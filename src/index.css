@@ -1,0 +1,43 @@
+/* 전역 기본 스타일 — 디자인 시스템이 정해지면 여기서 교체 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f7f7f8;
+  color: #1a1a1a;
+}
+
+/* 페이지 자리 표시용 공통 레이아웃 */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+}
+
+.placeholder {
+  width: 100%;
+  max-width: 480px;
+  padding: 24px;
+  border: 2px dashed #c4c4c8;
+  border-radius: 12px;
+  text-align: center;
+  color: #6b6b70;
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #3b5bdb;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
