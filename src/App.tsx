@@ -91,6 +91,13 @@ export default function App() {
     });
   }, []);
 
+  // 보정본으로 원문만 바꾼다. 번역은 보정본 기준으로 다시 올 때까지 이전 것을 둔다
+  const handleCorrectSegment = useCallback((segmentId: string, text: string) => {
+    setTranscript((prev) =>
+      prev.map((item) => (item.id === segmentId ? { ...item, originalText: text } : item))
+    );
+  }, []);
+
   const handleUpdateSegmentTranslation = useCallback(
     (segmentId: string, targetLanguage: LanguageCode, translatedText: string) => {
       setTranscript((prev) =>
@@ -121,15 +128,15 @@ export default function App() {
       const now = new Date();
       const stamp = `${session.roomCode} · ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       const fromOutcome: DecisionItem[] = [
-        ...next.decided.map((item, idx) => ({
-          id: `outcome-decided-${idx}`,
+        ...next.decided.map((item) => ({
+          id: `outcome-${item.id}`,
           title: item.text,
           owner: '—',
           dueDate: stamp,
           status: 'Confirmed' as const,
         })),
-        ...next.actionItems.map((item, idx) => ({
-          id: `outcome-action-${idx}`,
+        ...next.actionItems.map((item) => ({
+          id: `outcome-${item.id}`,
           title: item.text,
           owner: item.owner ?? '—',
           dueDate: stamp,
@@ -137,11 +144,11 @@ export default function App() {
         })),
       ];
       setDecisions((prev) => {
-        // 사용자가 이미 상태를 바꾼 항목은 그 상태를 지킨다
-        const prevStatus = new Map(prev.map((d) => [`${d.id}|${d.title}`, d.status]));
+        // 사용자가 이미 상태를 바꾼 항목은 그 상태를 지킨다. 문구가 다듬어져도 id 는 그대로다
+        const prevStatus = new Map(prev.map((d) => [d.id, d.status]));
         const merged = fromOutcome.map((d) => ({
           ...d,
-          status: prevStatus.get(`${d.id}|${d.title}`) ?? d.status,
+          status: prevStatus.get(d.id) ?? d.status,
         }));
         return [...merged, ...prev.filter((d) => !d.id.startsWith('outcome-'))];
       });
@@ -331,6 +338,7 @@ export default function App() {
                 }
                 onAddTranscriptText={handleAddTranscriptText}
                 onAddFinalStreamEntry={handleAddFinalStreamEntry}
+                onCorrectSegment={handleCorrectSegment}
                 onUpdateSegmentTranslation={handleUpdateSegmentTranslation}
                 liveContext={liveContext}
                 outcome={outcome}

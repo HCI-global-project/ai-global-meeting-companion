@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { needsTranslation } from '../i18n/contentLanguage';
 import { useI18n } from '../i18n/I18nContext';
 import type { LanguageCode, MeetingOutcome, OutcomeItem } from '../types/meeting';
 
@@ -21,7 +22,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   const { t } = useI18n();
   const [collapsed, setCollapsed] = useState(false);
 
-  const columns: { key: keyof Omit<MeetingOutcome, 'updatedAt'>; label: string }[] = [
+  const columns: { key: 'decided' | 'actionItems' | 'undecided'; label: string }[] = [
     { key: 'decided', label: t.summary.decided },
     { key: 'actionItems', label: t.summary.actionItems },
     { key: 'undecided', label: t.summary.undecided },
@@ -66,8 +67,9 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
                   <ul className="flex flex-col gap-1.5">
                     {outcome[key].map((item) => (
                       <OutcomeRow
-                        key={item.text}
+                        key={item.id}
                         item={item}
+                        showTranslation={needsTranslation(targetLanguage, outcome.language)}
                         targetLanguage={targetLanguage}
                         showOwner={key === 'actionItems'}
                         noOwnerLabel={t.summary.noOwner}
@@ -85,13 +87,20 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
 
 interface OutcomeRowProps {
   item: OutcomeItem;
+  showTranslation: boolean;
   targetLanguage: LanguageCode;
   showOwner: boolean;
   noOwnerLabel: string;
 }
 
-const OutcomeRow: React.FC<OutcomeRowProps> = ({ item, targetLanguage, showOwner, noOwnerLabel }) => {
-  const translation = targetLanguage === 'ko' ? undefined : item.translations?.[targetLanguage];
+const OutcomeRow: React.FC<OutcomeRowProps> = ({
+  item,
+  showTranslation,
+  targetLanguage,
+  showOwner,
+  noOwnerLabel,
+}) => {
+  const translation = showTranslation ? item.translations?.[targetLanguage] : undefined;
 
   return (
     <li className="flex animate-[fade-up_0.25s_ease-out] items-start justify-between gap-2">

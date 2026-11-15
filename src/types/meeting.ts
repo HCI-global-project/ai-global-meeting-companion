@@ -40,15 +40,19 @@ export interface LiveContext {
   rollingSummary: string;
   keywords: string[];
   openQuestions: string[];
-  // 회의 언어(한국어)가 아닌 참여자를 위한 주제·요약 번역
+  // 주제·요약을 쓴 언어(회의 주 언어). 없으면 한국어로 본다
+  language?: LanguageCode;
+  // 그 언어가 아닌 참여자를 위한 주제·요약 번역
   translations?: Partial<Record<LanguageCode, { topic: string; summary: string }>>;
   updatedAt: string;
 }
 
 export interface OutcomeItem {
+  // 서버가 주는 고정 id. 항목 순서가 바뀌어도 사용자가 바꾼 상태가 따라간다
+  id: string;
   text: string;
   // 할 일의 담당자
-  owner?: string;
+  owner?: string | null;
   translations?: Partial<Record<LanguageCode, string>>;
 }
 
@@ -60,6 +64,8 @@ export interface MeetingOutcome {
   decided: OutcomeItem[];
   actionItems: OutcomeItem[];
   undecided: OutcomeItem[];
+  // 항목을 쓴 언어. 없으면 한국어로 본다
+  language?: LanguageCode;
   updatedAt: string;
 }
 
@@ -77,8 +83,12 @@ export interface OpinionSuggestion {
   agree: string;
   disagree: string;
   alternative: string;
+  // 세 문장을 쓴 언어(회의 주 언어). 없으면 한국어로 본다
+  language?: LanguageCode;
   // 세 문장의 뜻을 참여자 언어로 옮긴 것
   gloss?: Partial<Record<LanguageCode, Record<OpinionStance, string>>>;
+  // 실험 조건: 영어로 바로 말할 수 있는 문장
+  english?: Record<OpinionStance, string> | null;
   createdAt: string;
 }
 

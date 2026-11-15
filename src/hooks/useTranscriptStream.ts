@@ -15,6 +15,8 @@ import type {
 interface UseTranscriptStreamOptions {
   speechTargetLanguage: LanguageCode;
   onFinalSegment: (entry: TranscriptEntry) => void;
+  // 서버가 STT 오인식을 고친 보정본을 보냈을 때
+  onCorrectSegment?: (segmentId: string, text: string) => void;
   onUpdateSegmentTranslation?: (
     segmentId: string,
     targetLanguage: LanguageCode,
@@ -45,6 +47,7 @@ export interface UseTranscriptStreamResult {
 export function useTranscriptStream({
   speechTargetLanguage,
   onFinalSegment,
+  onCorrectSegment,
   onUpdateSegmentTranslation,
   onContextUpdated,
   onOutcomeUpdated,
@@ -60,6 +63,9 @@ export function useTranscriptStream({
 
   const targetLangRef = useRef<LanguageCode>(speechTargetLanguage);
   const onFinalRef = useRef(onFinalSegment);
+  const onCorrectRef = useRef(onCorrectSegment);
+  onCorrectRef.current = onCorrectSegment;
+
   const onTranslationDeltaRef = useRef(onUpdateSegmentTranslation);
   const onContextRef = useRef(onContextUpdated);
   const onOutcomeRef = useRef(onOutcomeUpdated);
@@ -133,12 +139,18 @@ export function useTranscriptStream({
           badgeVariant: event.badgeVariant ?? 'neutral',
           status: 'final',
           source: event.source ?? 'stream',
+          isAnonymous: event.isAnonymous,
         };
 
         setInterimSegment((prev) =>
           prev?.id === event.segmentId ? null : prev
         );
         onFinalRef.current(finalEntry);
+        break;
+      }
+
+      case 'transcript.corrected': {
+        onCorrectRef.current?.(event.segmentId, event.text);
         break;
       }
 

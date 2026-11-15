@@ -35,6 +35,7 @@ export interface DemoUtterance {
 
 // 회의 결과 항목 — 여러 스냅샷에서 다시 쓴다
 const PROTOTYPE_THURSDAY: OutcomeItem = {
+  id: 'demo-prototype-thursday',
   text: '프로토타입은 목요일까지 완성',
   translations: {
     en: 'Prototype finished by Thursday',
@@ -46,6 +47,7 @@ const PROTOTYPE_THURSDAY: OutcomeItem = {
 };
 
 const FIVE_PARTICIPANTS: OutcomeItem = {
+  id: 'demo-five-participants',
   text: '테스트 참가자는 5명',
   translations: {
     en: 'Five test participants',
@@ -57,6 +59,7 @@ const FIVE_PARTICIPANTS: OutcomeItem = {
 };
 
 const TODO_PROTOTYPE: OutcomeItem = {
+  id: 'demo-todo-prototype',
   text: '프로토타입 마무리',
   owner: 'Joe',
   translations: {
@@ -69,6 +72,7 @@ const TODO_PROTOTYPE: OutcomeItem = {
 };
 
 const TODO_RECRUIT: OutcomeItem = {
+  id: 'demo-todo-recruit',
   text: '참가자 모집',
   owner: 'Kenji',
   translations: {
@@ -81,6 +85,7 @@ const TODO_RECRUIT: OutcomeItem = {
 };
 
 const TODO_CONFIRM_DATE: OutcomeItem = {
+  id: 'demo-todo-confirm-date',
   text: '이번 주 안에 테스트 날짜 확정',
   owner: 'Minji',
   translations: {
@@ -93,6 +98,7 @@ const TODO_CONFIRM_DATE: OutcomeItem = {
 };
 
 const OPEN_TEST_DATE: OutcomeItem = {
+  id: 'demo-open-test-date',
   text: '테스트 날짜',
   translations: {
     en: 'Test date',
@@ -104,6 +110,7 @@ const OPEN_TEST_DATE: OutcomeItem = {
 };
 
 const OPEN_FRIDAY_OR_MONDAY: OutcomeItem = {
+  id: 'demo-open-friday-or-monday',
   text: '테스트 날짜: 금요일 오후 vs 다음 주 월요일',
   translations: {
     en: 'Test date: Friday afternoon vs. next Monday',

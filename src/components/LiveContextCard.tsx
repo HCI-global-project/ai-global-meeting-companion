@@ -1,4 +1,5 @@
 import React from 'react';
+import { needsTranslation } from '../i18n/contentLanguage';
 import { useI18n } from '../i18n/I18nContext';
 import type { LanguageCode, LiveContext } from '../types/meeting';
 
@@ -18,8 +19,11 @@ export const LiveContextCard: React.FC<LiveContextCardProps> = ({
   isDemo = false,
 }) => {
   const { t } = useI18n();
-  // 회의 언어(한국어) 사용자에게는 번역을 따로 보여 주지 않는다
-  const translation = targetLanguage === 'ko' ? undefined : context?.translations?.[targetLanguage];
+  // 맥락을 쓴 언어와 같은 언어를 쓰는 사람에게는 번역을 따로 보여 주지 않는다
+  const translation =
+    context && needsTranslation(targetLanguage, context.language)
+      ? context.translations?.[targetLanguage]
+      : undefined;
 
   return (
     <section className="h-full min-h-0 flex flex-col gap-4 rounded-4 border border-gray-100 bg-white p-5">

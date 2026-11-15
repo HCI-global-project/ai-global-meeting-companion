@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { needsTranslation } from '../i18n/contentLanguage';
 import { useI18n } from '../i18n/I18nContext';
 import type { LanguageCode, OpinionStance, OpinionSuggestion } from '../types/meeting';
 
@@ -51,8 +52,10 @@ const SuggestionGroup: React.FC<SuggestionGroupProps> = ({ suggestion, targetLan
   const { t } = useI18n();
   const [copied, setCopied] = useState<OpinionStance | null>(null);
   const timerRef = useRef<number | null>(null);
-  // 회의 언어(한국어) 사용자에게는 뜻풀이가 필요 없다
-  const gloss = targetLanguage === 'ko' ? undefined : suggestion.gloss?.[targetLanguage];
+  // 추천 문장을 쓴 언어와 같은 언어를 쓰는 사람에게는 뜻풀이가 필요 없다
+  const gloss = needsTranslation(targetLanguage, suggestion.language)
+    ? suggestion.gloss?.[targetLanguage]
+    : undefined;
 
   useEffect(
     () => () => {

@@ -31,6 +31,7 @@ interface MeetingPageProps {
   onChangeRoom: (room: string) => void;
   onAddTranscriptText: (recognizedText: string) => void;
   onAddFinalStreamEntry: (entry: TranscriptEntry) => void;
+  onCorrectSegment: (segmentId: string, text: string) => void;
   onUpdateSegmentTranslation: (
     segmentId: string,
     targetLanguage: LanguageCode,
@@ -60,6 +61,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   onChangeRoom,
   onAddTranscriptText,
   onAddFinalStreamEntry,
+  onCorrectSegment,
   onUpdateSegmentTranslation,
   onContextUpdated,
   onOutcomeUpdated,
@@ -98,6 +100,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   } = useTranscriptStream({
     speechTargetLanguage: session.speechTargetLanguage,
     onFinalSegment: onAddFinalStreamEntry,
+    onCorrectSegment,
     onUpdateSegmentTranslation,
     onContextUpdated,
     onOutcomeUpdated,

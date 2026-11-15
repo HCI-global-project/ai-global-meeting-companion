@@ -3,6 +3,7 @@ import type {
   LiveContext,
   MeetingOutcome,
   OpinionSuggestion,
+  TranscriptEntry,
 } from './meeting';
 
 /**
@@ -22,6 +23,7 @@ export type IncomingTranscriptEvent =
   | StreamStatusEvent
   | TranscriptInterimEvent
   | TranscriptFinalEvent
+  | TranscriptCorrectedEvent
   | TranslationDeltaEvent
   | ContextUpdatedEvent
   | OutcomeUpdatedEvent
@@ -68,7 +70,16 @@ export interface TranscriptFinalEvent {
   /** Optional multi-language translation map */
   translations?: Partial<Record<LanguageCode, string>>;
   badgeVariant?: 'neutral' | 'lavender';
-  source?: 'stream' | 'demo';
+  // 서버는 음성(stream) 외에 채팅·의견·요청 알림도 같은 이벤트로 보낸다
+  source?: TranscriptEntry['source'];
+  isAnonymous?: boolean;
+}
+
+/** 서버가 STT 오인식을 고친 뒤 보내는 보정본. 번역은 보정본 기준으로 다시 온다 */
+export interface TranscriptCorrectedEvent {
+  type: 'transcript.corrected';
+  segmentId: string;
+  text: string;
 }
 
 export interface TranslationDeltaEvent {
