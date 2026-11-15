@@ -1,14 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Mic } from 'lucide-react';
 import { AVAILABLE_ROOMS, SUPPORTED_LANGUAGES } from '../data/mockMeetingData';
 import { useI18n } from '../i18n/I18nContext';
 import type { AppView, LanguageCode, RoomSession } from '../types/meeting';
 import { LoopLogo } from './LoopLogo';
 
+function formatDuration(totalSeconds: number): string {
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
 interface MeetingHeaderProps {
   session: RoomSession;
   isRecording: boolean;
   isRequesting?: boolean;
+  recordingSeconds?: number;
   activeView: Extract<AppView, 'meeting' | 'notes'>;
   onChangeLanguage: (lang: LanguageCode) => void;
   onChangeRoom: (room: string) => void;
@@ -21,6 +28,7 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
   session,
   isRecording,
   isRequesting = false,
+  recordingSeconds = 0,
   activeView,
   onChangeLanguage,
   onChangeRoom,
@@ -164,7 +172,7 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
           </div>
         </div>
 
-        {/* Right Zone: Language Selector + Exit + Start meeting / End Meeting */}
+        {/* 오른쪽: 언어 → 녹음 시작/중지(회의 종료 화면에서는 회의 재개) → 나가기 */}
         <div className="flex items-center gap-2 shrink-0">
           {/* Language Dropdown */}
           <div className="relative">
@@ -205,6 +213,37 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
             )}
           </div>
 
+          {/* 회의 화면: 실시간 녹음 시작/중지 · 회의 종료 화면: 회의로 돌아가기 */}
+          {activeView === 'notes' ? (
+            <button
+              type="button"
+              onClick={onToggleRecording}
+              className="inline-flex items-center justify-center h-9 px-4 lg:px-5 rounded-2 bg-gray-400 hover:bg-gray-500 text-white body-02 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              {t.header.resumeMeeting}
+            </button>
+          ) : isRecording ? (
+            <button
+              type="button"
+              onClick={onToggleRecording}
+              className="inline-flex items-center justify-center gap-2 h-9 px-4 lg:px-5 rounded-2 bg-gray-100 hover:bg-gray-200 text-gray-800 body-02 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <span className="size-2 rounded-full bg-primary-500 animate-pulse" aria-hidden="true" />
+              <span>{t.transcript.stopRecording}</span>
+              <span className="tabular-nums text-gray-500">{formatDuration(recordingSeconds)}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onToggleRecording}
+              disabled={isRequesting}
+              className="inline-flex items-center justify-center gap-1.5 h-9 px-4 lg:px-5 rounded-2 bg-primary-500 hover:opacity-90 text-white body-02 transition-opacity whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Mic className="size-icon-xs" />
+              <span>{isRequesting ? t.header.starting : t.transcript.startRecording}</span>
+            </button>
+          )}
+
           {/* Exit Button */}
           <button
             type="button"
@@ -212,22 +251,6 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
             className="inline-flex items-center gap-1.5 h-9 px-3 lg:px-4 rounded-2 bg-gray-100 hover:bg-gray-200 text-gray-600 body-02 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
             {t.header.exit}
-          </button>
-
-          {/* Start meeting / End Meeting Button */}
-          <button
-            type="button"
-            onClick={onToggleRecording}
-            disabled={isRequesting}
-            className="inline-flex items-center justify-center h-9 px-4 lg:px-5 rounded-2 bg-gray-400 hover:bg-gray-500 text-white body-02 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {activeView === 'notes'
-              ? t.header.resumeMeeting
-              : isRequesting
-                ? t.header.starting
-                : isRecording
-                  ? t.header.endMeeting
-                  : t.header.startMeeting}
           </button>
         </div>
       </div>

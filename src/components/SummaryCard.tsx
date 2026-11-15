@@ -1,119 +1,109 @@
 import React, { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
-import type { LanguageCode, TranscriptEntry } from '../types/meeting';
+import type { LanguageCode, MeetingOutcome, OutcomeItem } from '../types/meeting';
 
 interface SummaryCardProps {
-  speechTargetLanguage: LanguageCode;
-  isRecording: boolean;
-  transcript: TranscriptEntry[];
-  onOpenNotesReview: () => void;
+  outcome: MeetingOutcome | null;
+  targetLanguage: LanguageCode;
+  isDemo?: boolean;
 }
 
+/**
+ * 회의 결과 누적 — 정해진 것 / 할 일 / 아직 정해지지 않은 것.
+ * 대화 맥락이 '지금 무슨 얘기 중인지'라면, 요약은 회의가 지금까지 남긴 결과다.
+ */
 export const SummaryCard: React.FC<SummaryCardProps> = ({
-  speechTargetLanguage,
-  isRecording,
-  transcript,
-  onOpenNotesReview,
+  outcome,
+  targetLanguage,
+  isDemo = false,
 }) => {
   const { t } = useI18n();
-  const [showSummary, setShowSummary] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
-  const isExpanded = showSummary || isRecording || transcript.length > 0;
-
-  const realEntries = transcript.filter((item) => item.source !== 'demo');
-  const demoEntries = transcript.filter((item) => item.source === 'demo');
-  const activeEntries = realEntries.length > 0 ? realEntries : demoEntries;
-  const isDemoOnly = realEntries.length === 0 && demoEntries.length > 0;
-
-  const buildSessionSummaryPoints = (): string[] => {
-    if (activeEntries.length === 0) return [];
-
-    const speakers = Array.from(
-      new Set(activeEntries.map((entry) => entry.speakerName))
-    ).join(', ');
-    const latestEntry = activeEntries[activeEntries.length - 1];
-    const latestText =
-      latestEntry.translations[speechTargetLanguage] || latestEntry.originalText;
-    const clippedSnippet =
-      latestText.length > 72 ? `${latestText.slice(0, 72)}...` : latestText;
-    const opinionCount = activeEntries.filter(
-      (entry) => entry.source === 'opinion'
-    ).length;
-
-    const points = [
-      t.summary.speakersSummary(speakers, activeEntries.length),
-      t.summary.latestTopic(latestEntry.speakerName, clippedSnippet),
-    ];
-
-    if (opinionCount > 0) {
-      points.push(t.summary.opinionSummary(opinionCount));
-    } else {
-      const firstEntry = activeEntries[0];
-      const firstText =
-        firstEntry.translations[speechTargetLanguage] || firstEntry.originalText;
-      const firstSnippet =
-        firstText.length > 72 ? `${firstText.slice(0, 72)}...` : firstText;
-      if (activeEntries.length > 1) {
-        points.push(t.summary.latestTopic(firstEntry.speakerName, firstSnippet));
-      }
-    }
-
-    return points;
-  };
-
-  const summaryItems = buildSessionSummaryPoints();
+  const columns: { key: keyof Omit<MeetingOutcome, 'updatedAt'>; label: string }[] = [
+    { key: 'decided', label: t.summary.decided },
+    { key: 'actionItems', label: t.summary.actionItems },
+    { key: 'undecided', label: t.summary.undecided },
+  ];
 
   return (
-    <section className="bg-white border border-gray-100 rounded-4 px-5 sm:px-6 py-4 min-h-[104px] lg:min-h-[116px] flex flex-col justify-between">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <section className="rounded-4 border border-gray-100 bg-white px-5 py-4 flex flex-col gap-3">
+      <header className="flex items-center justify-between gap-3">
         <div className="flex items-baseline gap-2 min-w-0">
-          <h2 className="heading-06 text-gray-700">
-            {t.summary.title}
-          </h2>
-          {summaryItems.length > 0 && (
-            <span className="label-02 text-gray-500 truncate">
-              · {isDemoOnly ? t.summary.demoSummaryLabel : t.summary.sessionSummaryLabel}
-            </span>
-          )}
+          <h2 className="heading-06 text-gray-900">{t.summary.title}</h2>
+          <span className="label-01 text-gray-500 truncate">
+            {t.summary.subtitle}
+            {isDemo && ` · ${t.summary.demoLabel}`}
+          </span>
         </div>
+        <button
+          type="button"
+          onClick={() => setCollapsed((prev) => !prev)}
+          aria-expanded={!collapsed}
+          className="inline-flex items-center gap-1 h-8 px-2.5 rounded-2 label-01 text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer shrink-0"
+        >
+          {collapsed ? t.summary.expand : t.summary.collapse}
+          <ChevronDown
+            className={`size-icon-xs transition-transform ${collapsed ? '' : 'rotate-180'}`}
+          />
+        </button>
+      </header>
 
-        <div className="flex items-center gap-2 body-04 text-gray-500 whitespace-nowrap shrink-0">
-          <button
-            type="button"
-            onClick={() => setShowSummary((prev) => !prev)}
-            className="hover:text-primary-500 transition-colors cursor-pointer"
-          >
-            {isExpanded ? t.summary.hideSummary : t.summary.generateSummary}
-          </button>
-          <span aria-hidden="true">·</span>
-          <button
-            type="button"
-            onClick={onOpenNotesReview}
-            className="hover:text-primary-500 transition-colors cursor-pointer"
-          >
-            {t.summary.endMeeting}
-          </button>
-        </div>
-      </div>
-
-      {isExpanded ? (
-        summaryItems.length > 0 ? (
-          <ul className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2.5">
-            {summaryItems.map((point, index) => (
-              <li
-                key={index}
-                className="rounded-2 bg-gray-50 border border-gray-100 px-4 py-3 body-04 text-gray-800 break-words"
-              >
-                {point}
-              </li>
-            ))}
-          </ul>
+      {!collapsed &&
+        (!outcome ? (
+          <p className="body-03 text-gray-400">{t.summary.emptyState}</p>
         ) : (
-          <p className="mt-3 body-04 text-gray-400">{t.summary.emptyState}</p>
-        )
-      ) : (
-        <div className="flex-1" />
-      )}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {columns.map(({ key, label }) => (
+              <div key={key} className="flex flex-col gap-1.5 rounded-3 bg-gray-50 px-4 py-3 max-h-[132px] overflow-y-auto loop-scroll">
+                <span className="label-01 text-gray-500">
+                  {label} {outcome[key].length > 0 && `· ${outcome[key].length}`}
+                </span>
+                {outcome[key].length === 0 ? (
+                  <p className="body-04 text-gray-400">{t.summary.emptyColumn}</p>
+                ) : (
+                  <ul className="flex flex-col gap-1.5">
+                    {outcome[key].map((item) => (
+                      <OutcomeRow
+                        key={item.text}
+                        item={item}
+                        targetLanguage={targetLanguage}
+                        showOwner={key === 'actionItems'}
+                        noOwnerLabel={t.summary.noOwner}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        ))}
     </section>
+  );
+};
+
+interface OutcomeRowProps {
+  item: OutcomeItem;
+  targetLanguage: LanguageCode;
+  showOwner: boolean;
+  noOwnerLabel: string;
+}
+
+const OutcomeRow: React.FC<OutcomeRowProps> = ({ item, targetLanguage, showOwner, noOwnerLabel }) => {
+  const translation = targetLanguage === 'ko' ? undefined : item.translations?.[targetLanguage];
+
+  return (
+    <li className="flex animate-[fade-up_0.25s_ease-out] items-start justify-between gap-2">
+      <div className="min-w-0 flex flex-col gap-0.5">
+        <span className="body-03 break-keep text-gray-800">{item.text}</span>
+        {translation && <span className="body-04 break-keep text-primary-700">{translation}</span>}
+      </div>
+      {showOwner && (
+        <span className="shrink-0 rounded-2 bg-white px-2 py-0.5 label-02 text-gray-600">
+          {item.owner ?? noOwnerLabel}
+        </span>
+      )}
+    </li>
   );
 };

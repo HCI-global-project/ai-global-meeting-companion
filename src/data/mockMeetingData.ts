@@ -1,5 +1,4 @@
 import type {
-  ContextDocument,
   DecisionItem,
   LanguageOption,
   MeetingNote,
@@ -58,30 +57,6 @@ export const MOCK_PARTICIPANTS: Participant[] = [
 ];
 
 export const INITIAL_TRANSCRIPT: TranscriptEntry[] = [];
-
-export const MOCK_CONTEXT_DOCUMENTS: ContextDocument[] = [
-  {
-    id: 'ctx-1',
-    title: 'HCI Milestone 3 — Project Schedule',
-    type: 'agenda',
-    summary: 'Review prototype handoff, multilingual latency targets, and Friday usability study.',
-    updatedAt: 'Updated 10m ago',
-  },
-  {
-    id: 'ctx-2',
-    title: 'Loop Design System Brief',
-    type: 'brief',
-    summary: 'Lavender surface hierarchy, real-time bilingual subtitles, and non-intrusive AI sidecars.',
-    updatedAt: 'Updated 1h ago',
-  },
-  {
-    id: 'ctx-3',
-    title: 'Team Glossary (EN / KO / JA / MY)',
-    type: 'glossary',
-    summary: 'Key HCI terms: Think-aloud protocol, turn-taking latency, speaker diarization.',
-    updatedAt: 'Shared by Anna',
-  },
-];
 
 export const MOCK_SUMMARY_POINTS: Record<string, string[]> = {
   ko: [

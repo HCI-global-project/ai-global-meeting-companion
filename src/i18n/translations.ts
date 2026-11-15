@@ -33,7 +33,6 @@ export interface TranslationDictionary {
     exit: string;
     resumeMeeting: string;
     starting: string;
-    startMeeting: string;
   };
   transcript: {
     title: string;
@@ -77,63 +76,73 @@ export interface TranslationDictionary {
     speaking: string;
     selectedHint: string;
   };
-  shareOpinion: {
+  opinion: {
     title: string;
-    closeAria: string;
-    openAria: string;
-    placeholder: (name: string) => string;
-    aiDraft: string;
-    askScope: string;
-    send: string;
-    submitAnonymously: string;
+    demoLabel: string;
+    generating: string;
+    emptyState: string;
+    agree: string;
+    disagree: string;
+    alternative: string;
+    copied: string;
+    copyHint: string;
+  };
+  anonymousOpinion: {
+    title: string;
+    description: string;
+    placeholder: string;
+    submit: string;
+    cancel: string;
+    submitted: string;
     anonymousSpeaker: string;
     validationEmpty: string;
     validationTooShort: string;
     validationTooLong: string;
-    submittedBanner: string;
-    submittedAnonymouslyBanner: string;
-    shareAnother: string;
-    submittedHistoryLabel: (count: number) => string;
-    aiSuggestedNote: string;
-    aiRefinedNote: string;
-    previewLabel: (langCode: string, text: string) => string;
+  };
+  quickActions: {
+    waitPlease: string;
+    anonymousOpinion: string;
+    waitSent: string;
+    waitNotice: string;
   };
   context: {
     title: string;
-    mockLabel: string;
-    collapseAria: string;
-    openAria: string;
+    demoLabel: string;
+    currentTopic: string;
+    topicPending: string;
+    openQuestions: string;
+    emptyState: string;
   };
   summary: {
     title: string;
-    hideSummary: string;
-    generateSummary: string;
-    endMeeting: string;
-    demoSummaryLabel: string;
-    sessionSummaryLabel: string;
+    subtitle: string;
+    demoLabel: string;
+    decided: string;
+    actionItems: string;
+    undecided: string;
+    emptyColumn: string;
     emptyState: string;
-    speakersSummary: (speakers: string, count: number) => string;
-    latestTopic: (speaker: string, snippet: string) => string;
-    opinionSummary: (count: number) => string;
+    collapse: string;
+    expand: string;
+    noOwner: string;
+  };
+  chat: {
+    placeholder: string;
+    send: string;
+    badge: string;
   };
   meetingEnd: {
     backToMeeting: string;
     notesTitle: string;
-    collapseNotesAria: string;
-    openNotesAria: string;
     noNotesTitle: string;
     noNotesBody: string;
     addNotePlaceholder: (name: string) => string;
     addNoteButton: string;
     noteValidationEmpty: string;
     translationHistoryTitle: string;
-    collapseHistoryAria: string;
-    openHistoryAria: string;
     noHistoryTitle: string;
     noHistoryBody: string;
     reviewDecisionsTitle: string;
-    collapseDecisionsAria: string;
-    openDecisionsAria: string;
     noDecisionsTitle: string;
     noDecisionsBody: string;
     addDecisionPlaceholder: string;
@@ -186,7 +195,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       exit: 'Exit',
       resumeMeeting: 'Resume meeting',
       starting: 'Starting...',
-      startMeeting: 'Start meeting',
     },
     transcript: {
       title: 'Live Conversation Translation',
@@ -247,67 +255,76 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       speaking: 'Speaking',
       selectedHint: 'Click a card to inspect role & language',
     },
-    shareOpinion: {
-      title: 'Share opinion',
-      closeAria: 'Close opinion composer',
-      openAria: 'Open Share opinion composer',
-      placeholder: (name) => `Share your thought as ${name}...`,
-      aiDraft: 'AI Draft',
-      askScope: 'Ask scope',
-      send: 'Send',
-      submitAnonymously: 'Submit anonymously',
+    opinion: {
+      title: 'Opinion Suggestions',
+      demoLabel: 'Demo',
+      generating: 'Generating suggestions',
+      emptyState:
+        'When it\'s a good moment to speak up, you\'ll get three ready-to-say sentences: agree, disagree, and another view.',
+      agree: 'Agree',
+      disagree: 'Disagree',
+      alternative: 'Another view',
+      copied: 'Copied',
+      copyHint: 'Tap to copy',
+    },
+    anonymousOpinion: {
+      title: 'Submit Anonymous Opinion',
+      description: 'Your opinion is shared in the live conversation without your name.',
+      placeholder: 'Write what you want to say',
+      submit: 'Submit anonymously',
+      cancel: 'Cancel',
+      submitted: 'Your anonymous opinion was shared',
       anonymousSpeaker: 'Anonymous',
       validationEmpty: 'Please write an opinion before sending.',
       validationTooShort: 'Please enter at least 2 characters.',
       validationTooLong: 'Keep opinions under 400 characters.',
-      submittedBanner: 'Opinion shared to live transcript',
-      submittedAnonymouslyBanner: 'Opinion shared anonymously to live transcript',
-      shareAnother: 'Share another opinion',
-      submittedHistoryLabel: (count) => `Submitted in this session (${count})`,
-      aiSuggestedNote:
-        'AI suggested a concise phrasing ready for multilingual broadcast.',
-      aiRefinedNote: 'AI refined tone for clear cross-language translation.',
-      previewLabel: (langCode, text) => `Preview (${langCode}): ${text}`,
+    },
+    quickActions: {
+      waitPlease: 'Please wait a moment',
+      anonymousOpinion: 'Anonymous opinion',
+      waitSent: 'Request sent',
+      waitNotice: 'Someone asked everyone to wait a moment',
     },
     context: {
       title: 'Conversation Context',
-      mockLabel: 'Sample docs',
-      collapseAria: 'Collapse conversation context',
-      openAria: 'Open Conversation Context documents',
+      demoLabel: 'Demo',
+      currentTopic: 'Current topic',
+      topicPending: 'Identifying topic',
+      openQuestions: 'Open questions',
+      emptyState:
+        'As the conversation builds up, the topic, keywords, and a summary of what is being discussed will appear here.',
     },
     summary: {
       title: 'Summary',
-      hideSummary: 'Hide summary',
-      generateSummary: 'Generate summary',
-      endMeeting: 'End Meeting',
-      demoSummaryLabel: 'Demo stream summary',
-      sessionSummaryLabel: 'Current session summary',
-      emptyState:
-        'No meeting transcript yet. Record speech, share an opinion, or run Demo Stream to summarize this session.',
-      speakersSummary: (speakers, count) =>
-        `Active speakers (${count} entries): ${speakers}`,
-      latestTopic: (speaker, snippet) => `Latest from ${speaker}: "${snippet}"`,
-      opinionSummary: (count) => `Shared opinions in session: ${count}`,
+      subtitle: 'What has been decided so far',
+      demoLabel: 'Demo',
+      decided: 'Decided',
+      actionItems: 'To-dos',
+      undecided: 'Not decided yet',
+      emptyColumn: 'Nothing yet',
+      emptyState: 'As the meeting goes on, decisions, to-dos, and open issues will be collected here.',
+      collapse: 'Collapse',
+      expand: 'Expand',
+      noOwner: 'No owner yet',
+    },
+    chat: {
+      placeholder: 'Type a message (Enter to send)',
+      send: 'Send',
+      badge: 'Chat',
     },
     meetingEnd: {
       backToMeeting: 'Back to Meeting Page',
       notesTitle: 'Meeting Notes',
-      collapseNotesAria: 'Collapse notes',
-      openNotesAria: 'Open Notes editor',
       noNotesTitle: 'No meeting notes added yet',
       noNotesBody: 'Capture key takeaways or follow-ups for this meeting below.',
       addNotePlaceholder: (name) => `Add a shared note as ${name}...`,
       addNoteButton: 'Add Note',
       noteValidationEmpty: 'Please enter a note before adding.',
       translationHistoryTitle: 'Translation History',
-      collapseHistoryAria: 'Collapse translation history',
-      openHistoryAria: 'Open Translation History',
       noHistoryTitle: 'No translated entries recorded yet',
       noHistoryBody:
         'Transcribed speech and translation history will appear here.',
       reviewDecisionsTitle: 'Review Decisions',
-      collapseDecisionsAria: 'Collapse review decisions',
-      openDecisionsAria: 'Open Review Decisions',
       noDecisionsTitle: 'No decisions recorded yet',
       noDecisionsBody:
         'Add action items or decisions from this meeting and click any item to toggle its confirmation status.',
@@ -360,7 +377,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       exit: '나가기',
       resumeMeeting: '회의 재개',
       starting: '시작 중...',
-      startMeeting: '회의 시작',
     },
     transcript: {
       title: '실시간 대화 번역',
@@ -421,65 +437,75 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       speaking: '발화 중',
       selectedHint: '카드를 클릭해 역할과 언어를 확인하세요',
     },
-    shareOpinion: {
-      title: '의견 공유',
-      closeAria: '의견 작성기 닫기',
-      openAria: '의견 공유 작성기 열기',
-      placeholder: (name) => `${name}님으로 의견을 입력해 주세요...`,
-      aiDraft: 'AI 초안',
-      askScope: '범위 질문',
-      send: '보내기',
-      submitAnonymously: '익명으로 제출',
+    opinion: {
+      title: '의견 추천',
+      demoLabel: '데모',
+      generating: '추천 만드는 중',
+      emptyState:
+        '의견을 낼 만한 발화가 나오면 동의·반대·다른 의견 세 문장을 바로 추천해 드려요.',
+      agree: '동의',
+      disagree: '반대',
+      alternative: '다른 의견',
+      copied: '복사했어요',
+      copyHint: '눌러서 복사',
+    },
+    anonymousOpinion: {
+      title: '익명 의견 제출',
+      description: '이름 없이 실시간 대화창에 의견이 공유돼요.',
+      placeholder: '하고 싶은 말을 적어 주세요',
+      submit: '익명으로 제출',
+      cancel: '취소',
+      submitted: '익명 의견을 공유했어요',
       anonymousSpeaker: '익명',
       validationEmpty: '전송하기 전에 의견을 입력해 주세요.',
       validationTooShort: '최소 2자 이상 입력해 주세요.',
       validationTooLong: '의견은 400자 이내로 작성해 주세요.',
-      submittedBanner: '실시간 대화창에 의견이 공유되었습니다',
-      submittedAnonymouslyBanner: '익명으로 실시간 대화창에 의견이 공유되었습니다',
-      shareAnother: '다른 의견 작성',
-      submittedHistoryLabel: (count) => `이번 세션에 제출한 의견 (${count})`,
-      aiSuggestedNote: '다국어 공유에 알맞은 간결한 문장을 AI가 제안했습니다.',
-      aiRefinedNote: '명확한 번역을 위해 AI가 문장을 다듬었습니다.',
-      previewLabel: (langCode, text) => `미리보기 (${langCode}): ${text}`,
+    },
+    quickActions: {
+      waitPlease: '잠깐 기다려주세요',
+      anonymousOpinion: '익명 의견 제출',
+      waitSent: '요청을 보냈어요',
+      waitNotice: '누군가 잠깐 기다려 달라고 요청했어요',
     },
     context: {
       title: '대화 맥락',
-      mockLabel: '샘플 문서',
-      collapseAria: '대화 맥락 접기',
-      openAria: '대화 맥락 문서 열기',
+      demoLabel: '데모',
+      currentTopic: '현재 주제',
+      topicPending: '주제 파악 중',
+      openQuestions: '미해결 질문',
+      emptyState:
+        '발화가 쌓이면 지금 무슨 이야기를 하는지 주제·키워드·요약으로 정리해 드려요.',
     },
     summary: {
       title: '요약',
-      hideSummary: '요약 숨기기',
-      generateSummary: '요약 생성',
-      endMeeting: '회의 종료',
-      demoSummaryLabel: '데모 스트림 요약',
-      sessionSummaryLabel: '현재 회의 세션 요약',
-      emptyState:
-        '아직 기록된 대화가 없습니다. 음성을 녹음하거나 의견을 공유하거나 데모 스트림을 실행해 요약을 확인하세요.',
-      speakersSummary: (speakers, count) =>
-        `참여 발화자 (${count}건): ${speakers}`,
-      latestTopic: (speaker, snippet) => `최근 발화 (${speaker}): "${snippet}"`,
-      opinionSummary: (count) => `세션 내 공유된 의견: ${count}건`,
+      subtitle: '지금까지 정해진 것',
+      demoLabel: '데모',
+      decided: '정해진 것',
+      actionItems: '할 일',
+      undecided: '아직 정해지지 않은 것',
+      emptyColumn: '아직 없어요',
+      emptyState: '회의가 진행되면 정해진 것과 할 일, 남은 쟁점을 모아 보여 드려요.',
+      collapse: '접기',
+      expand: '펼치기',
+      noOwner: '담당 미정',
+    },
+    chat: {
+      placeholder: '채팅으로 말하기 (Enter로 보내기)',
+      send: '보내기',
+      badge: '채팅',
     },
     meetingEnd: {
       backToMeeting: '회의 페이지로 돌아가기',
       notesTitle: '회의 노트',
-      collapseNotesAria: '노트 접기',
-      openNotesAria: '노트 편집기 열기',
       noNotesTitle: '아직 작성된 회의 노트가 없습니다',
       noNotesBody: '아래 입력란에 이번 회의의 핵심 내용과 후속 작업을 남겨 보세요.',
       addNotePlaceholder: (name) => `${name}님으로 공유 노트를 추가하세요...`,
       addNoteButton: '노트 추가',
       noteValidationEmpty: '추가할 노트 내용을 입력해 주세요.',
       translationHistoryTitle: '번역 기록',
-      collapseHistoryAria: '번역 기록 접기',
-      openHistoryAria: '번역 기록 열기',
       noHistoryTitle: '아직 기록된 번역 내역이 없습니다',
       noHistoryBody: '음성 인식 및 번역 기록이 여기에 표시됩니다.',
       reviewDecisionsTitle: '결정 사항 검토',
-      collapseDecisionsAria: '결정 사항 접기',
-      openDecisionsAria: '결정 사항 열기',
       noDecisionsTitle: '아직 등록된 결정 사항이 없습니다',
       noDecisionsBody:
         '이번 회의에서 정해진 결정 사항을 추가하고 클릭해 확정 상태를 전환할 수 있습니다.',
@@ -532,7 +558,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       exit: '退出',
       resumeMeeting: '会議を再開',
       starting: '開始中...',
-      startMeeting: '会議を開始',
     },
     transcript: {
       title: 'ライブ会話翻訳',
@@ -593,65 +618,75 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       speaking: '発話中',
       selectedHint: 'カードをクリックして役割と言語を表示',
     },
-    shareOpinion: {
-      title: '意見を共有',
-      closeAria: '意見入力を閉じる',
-      openAria: '意見共有を開く',
-      placeholder: (name) => `${name} として意見を入力...`,
-      aiDraft: 'AI下書き',
-      askScope: '範囲を確認',
-      send: '送信',
-      submitAnonymously: '匿名で送信',
+    opinion: {
+      title: '意見の提案',
+      demoLabel: 'デモ',
+      generating: '提案を作成中',
+      emptyState:
+        '発言のチャンスが来たら、賛成・反対・別の意見の3つの文をすぐに提案します。',
+      agree: '賛成',
+      disagree: '反対',
+      alternative: '別の意見',
+      copied: 'コピーしました',
+      copyHint: 'タップでコピー',
+    },
+    anonymousOpinion: {
+      title: '匿名で意見を送る',
+      description: '名前を出さずにリアルタイム会話に意見が共有されます。',
+      placeholder: '伝えたいことを書いてください',
+      submit: '匿名で送信',
+      cancel: 'キャンセル',
+      submitted: '匿名の意見を共有しました',
       anonymousSpeaker: '匿名',
       validationEmpty: '送信する前に意見を入力してください。',
       validationTooShort: '2文字以上入力してください。',
       validationTooLong: '意見は400文字以内で入力してください。',
-      submittedBanner: 'ライブ会話に意見を共有しました',
-      submittedAnonymouslyBanner: '匿名でライブ会話に意見を共有しました',
-      shareAnother: '別の意見を入力',
-      submittedHistoryLabel: (count) => `このセッションで送信済み (${count})`,
-      aiSuggestedNote: '多言語配信に適した簡潔な表現をAIが提案しました。',
-      aiRefinedNote: '翻訳しやすいようにAIが表現を整えました。',
-      previewLabel: (langCode, text) => `プレビュー (${langCode}): ${text}`,
+    },
+    quickActions: {
+      waitPlease: '少し待ってください',
+      anonymousOpinion: '匿名で意見を送る',
+      waitSent: 'リクエストを送りました',
+      waitNotice: '誰かが少し待ってほしいとリクエストしました',
     },
     context: {
-      title: '会話のコンテキスト',
-      mockLabel: 'サンプル資料',
-      collapseAria: '会話コンテキストを閉じる',
-      openAria: '会話コンテキストを開く',
+      title: '会話の文脈',
+      demoLabel: 'デモ',
+      currentTopic: '現在のトピック',
+      topicPending: 'トピックを把握中',
+      openQuestions: '未解決の質問',
+      emptyState:
+        '発言が集まると、今何を話しているかをトピック・キーワード・要約でまとめます。',
     },
     summary: {
       title: '要約',
-      hideSummary: '要約を隠す',
-      generateSummary: '要約を生成',
-      endMeeting: '会議を終了',
-      demoSummaryLabel: 'デモ配信の要約',
-      sessionSummaryLabel: '現在の会議要約',
-      emptyState:
-        'まだ文字起こしがありません。録音、意見の共有、またはデモ配信を実行するとここに要約が表示されます。',
-      speakersSummary: (speakers, count) =>
-        `発話者 (${count}件): ${speakers}`,
-      latestTopic: (speaker, snippet) => `最新の発言 (${speaker}): 「${snippet}」`,
-      opinionSummary: (count) => `共有された意見: ${count}件`,
+      subtitle: 'ここまでに決まったこと',
+      demoLabel: 'デモ',
+      decided: '決まったこと',
+      actionItems: 'やること',
+      undecided: 'まだ決まっていないこと',
+      emptyColumn: 'まだありません',
+      emptyState: '会議が進むと、決まったこと・やること・残った論点をここにまとめます。',
+      collapse: '折りたたむ',
+      expand: '開く',
+      noOwner: '担当未定',
+    },
+    chat: {
+      placeholder: 'チャットで発言（Enterで送信）',
+      send: '送信',
+      badge: 'チャット',
     },
     meetingEnd: {
       backToMeeting: '会議ページに戻る',
       notesTitle: '会議ノート',
-      collapseNotesAria: 'ノートを閉じる',
-      openNotesAria: 'ノートエディタを開く',
       noNotesTitle: 'まだ会議ノートはありません',
       noNotesBody: 'この会議のメモや次のアクションを下から追加できます。',
       addNotePlaceholder: (name) => `${name} として共有ノートを追加...`,
       addNoteButton: 'ノートを追加',
       noteValidationEmpty: '追加するノートの内容を入力してください。',
       translationHistoryTitle: '翻訳履歴',
-      collapseHistoryAria: '翻訳履歴を閉じる',
-      openHistoryAria: '翻訳履歴を開く',
       noHistoryTitle: '翻訳履歴はまだありません',
       noHistoryBody: '文字起こしされた発言と翻訳履歴がここに表示されます。',
       reviewDecisionsTitle: '決定事項の確認',
-      collapseDecisionsAria: '決定事項を閉じる',
-      openDecisionsAria: '決定事項を開く',
       noDecisionsTitle: 'まだ決定事項はありません',
       noDecisionsBody:
         'この会議の決定事項を追加し、クリックして確定ステータスを切り替えられます。',
@@ -704,7 +739,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       exit: 'ထွက်ရန်',
       resumeMeeting: 'ပြန်စရန်',
       starting: 'စတင်နေသည်...',
-      startMeeting: 'အစည်းအဝေး စတင်ရန်',
     },
     transcript: {
       title: 'တိုက်ရိုက် စကားဝိုင်း ဘာသာပြန်မှု',
@@ -765,66 +799,75 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       speaking: 'ပြောနေသည်',
       selectedHint: 'အသေးစိတ်ကြည့်ရန် ကတ်ကို နှိပ်ပါ',
     },
-    shareOpinion: {
-      title: 'ထင်မြင်ချက် မျှဝေရန်',
-      closeAria: 'ထင်မြင်ချက် ရေးသားခြင်း ပိတ်ရန်',
-      openAria: 'ထင်မြင်ချက် မျှဝေရန် ဖွင့်ရန်',
-      placeholder: (name) => `${name} အဖြစ် သင့်အမြင်ကို ရေးပါ...`,
-      aiDraft: 'AI မူကြမ်း',
-      askScope: 'နယ်ပယ် မေးရန်',
-      send: 'ပို့ရန်',
-      submitAnonymously: 'အမည်မဖော်ဘဲ ပေးပို့ရန်',
+    opinion: {
+      title: 'အကြံပြု အမြင်များ',
+      demoLabel: 'ဒမို',
+      generating: 'အကြံပြုချက်များ ပြင်ဆင်နေသည်',
+      emptyState:
+        'ပြောဆိုရန် အခွင့်အရေးရောက်လာသောအခါ သဘောတူ၊ သဘောမတူ၊ အခြားအမြင် ဝါကျသုံးကြောင်းကို ချက်ချင်း အကြံပြုပေးပါမည်။',
+      agree: 'သဘောတူ',
+      disagree: 'သဘောမတူ',
+      alternative: 'အခြားအမြင်',
+      copied: 'ကူးယူပြီးပါပြီ',
+      copyHint: 'နှိပ်၍ ကူးယူပါ',
+    },
+    anonymousOpinion: {
+      title: 'အမည်မဖော်ဘဲ အမြင်တင်ပြရန်',
+      description: 'သင့်အမည်မပါဘဲ တိုက်ရိုက်စကားဝိုင်းတွင် အမြင်ကို မျှဝေပါမည်။',
+      placeholder: 'ပြောချင်သည်ကို ရေးပါ',
+      submit: 'အမည်မဖော်ဘဲ တင်ပြမည်',
+      cancel: 'မလုပ်တော့ပါ',
+      submitted: 'အမည်မဖော်ဘဲ အမြင်ကို မျှဝေပြီးပါပြီ',
       anonymousSpeaker: 'အမည်မသိ',
       validationEmpty: 'မပို့မီ ထင်မြင်ချက်ကို ရေးသားပါ။',
       validationTooShort: 'အနည်းဆုံး စာလုံး ၂ လုံး ရေးပါ။',
       validationTooLong: 'စာလုံး ၄၀၀ ထက် မပိုစေရ။',
-      submittedBanner: 'တိုက်ရိုက်စကားဝိုင်းသို့ ထင်မြင်ချက် မျှဝေပြီးပါပြီ',
-      submittedAnonymouslyBanner: 'အမည်မဖော်ဘဲ ထင်မြင်ချက် မျှဝေပြီးပါပြီ',
-      shareAnother: 'နောက်ထပ် ထင်မြင်ချက် ရေးရန်',
-      submittedHistoryLabel: (count) => `ဤအစည်းအဝေးတွင် ပို့ပြီးသား (${count})`,
-      aiSuggestedNote:
-        'ဘာသာစကားစုံ မျှဝေရန် သင့်တော်သော ဝါကျကို AI က အကြံပြုထားပါသည်။',
-      aiRefinedNote: 'ရှင်းလင်းစွာ ဘာသာပြန်နိုင်ရန် AI က စာသားကို ပြင်ဆင်ပြီးပါပြီ။',
-      previewLabel: (langCode, text) => `အစမ်းကြည့် (${langCode}): ${text}`,
+    },
+    quickActions: {
+      waitPlease: 'ခဏစောင့်ပေးပါ',
+      anonymousOpinion: 'အမည်မဖော်ဘဲ အမြင်',
+      waitSent: 'တောင်းဆိုချက် ပို့ပြီးပါပြီ',
+      waitNotice: 'တစ်စုံတစ်ယောက်က ခဏစောင့်ပေးရန် တောင်းဆိုထားပါသည်',
     },
     context: {
-      title: 'စကားဝိုင်း နောက်ခံအချက်အလက်',
-      mockLabel: 'နမူနာ ဖိုင်များ',
-      collapseAria: 'စကားဝိုင်း နောက်ခံအချက်အလက် ပိတ်ရန်',
-      openAria: 'စကားဝိုင်း နောက်ခံအချက်အလက် ဖွင့်ရန်',
+      title: 'စကားဝိုင်း နောက်ခံအကြောင်းအရာ',
+      demoLabel: 'ဒမို',
+      currentTopic: 'လက်ရှိ ခေါင်းစဉ်',
+      topicPending: 'ခေါင်းစဉ်ကို ရှာဖွေနေသည်',
+      openQuestions: 'မဖြေရသေးသော မေးခွန်းများ',
+      emptyState:
+        'ပြောဆိုမှုများ စုလာသည်နှင့် ယခု ဘာအကြောင်း ပြောနေသည်ကို ခေါင်းစဉ်၊ သော့ချက်စကားလုံးနှင့် အနှစ်ချုပ်ဖြင့် စုစည်းပေးပါမည်။',
     },
     summary: {
-      title: 'အကျဉ်းချုပ်',
-      hideSummary: 'အကျဉ်းချုပ် ဝှက်ရန်',
-      generateSummary: 'အကျဉ်းချုပ် ထုတ်ရန်',
-      endMeeting: 'အစည်းအဝေး ပြီးဆုံးရန်',
-      demoSummaryLabel: 'Demo စမ်းသပ်မှု အကျဉ်းချုပ်',
-      sessionSummaryLabel: 'လက်ရှိအစည်းအဝေး အကျဉ်းချုပ်',
-      emptyState:
-        'စကားဝိုင်း မှတ်တမ်း မရှိသေးပါ။ အသံဖမ်းခြင်း၊ ထင်မြင်ချက် မျှဝေခြင်း သို့မဟုတ် Demo စမ်းသပ်မှု ပြုလုပ်ပါ။',
-      speakersSummary: (speakers, count) =>
-        `ပါဝင်ပြောဆိုသူများ (${count} ခု): ${speakers}`,
-      latestTopic: (speaker, snippet) => `နောက်ဆုံးပြောချက် (${speaker}): "${snippet}"`,
-      opinionSummary: (count) => `မျှဝေထားသော ထင်မြင်ချက်များ: ${count}`,
+      title: 'အနှစ်ချုပ်',
+      subtitle: 'ယခုထိ ဆုံးဖြတ်ပြီးသည်များ',
+      demoLabel: 'ဒမို',
+      decided: 'ဆုံးဖြတ်ပြီးသည်',
+      actionItems: 'လုပ်ရန်',
+      undecided: 'မဆုံးဖြတ်ရသေးသည်',
+      emptyColumn: 'မရှိသေးပါ',
+      emptyState: 'အစည်းအဝေး ဆက်လက်သွားသည်နှင့် ဆုံးဖြတ်ချက်များ၊ လုပ်ရန်များနှင့် ကျန်ရှိသော ပြဿနာများကို ဤနေရာတွင် စုစည်းပြပါမည်။',
+      collapse: 'ခေါက်ရန်',
+      expand: 'ဖြန့်ရန်',
+      noOwner: 'တာဝန်ခံ မသတ်မှတ်ရသေး',
+    },
+    chat: {
+      placeholder: 'စာရိုက်၍ ပြောရန် (Enter ဖြင့် ပို့ပါ)',
+      send: 'ပို့ရန်',
+      badge: 'ချတ်',
     },
     meetingEnd: {
       backToMeeting: 'အစည်းအဝေး စာမျက်နှာသို့ ပြန်သွားရန်',
       notesTitle: 'အစည်းအဝေး မှတ်စုများ',
-      collapseNotesAria: 'မှတ်စု ပိတ်ရန်',
-      openNotesAria: 'မှတ်စု တည်းဖြတ်ရန် ဖွင့်ရန်',
       noNotesTitle: 'အစည်းအဝေး မှတ်စု မရှိသေးပါ',
       noNotesBody: 'အောက်တွင် ဤအစည်းအဝေးအတွက် မှတ်စုများ ထည့်သွင်းနိုင်ပါသည်။',
       addNotePlaceholder: (name) => `${name} အဖြစ် မျှဝေမှတ်စု ထည့်ပါ...`,
       addNoteButton: 'မှတ်စု ထည့်ရန်',
       noteValidationEmpty: 'မှတ်စုစာသားကို ရေးထည့်ပါ။',
       translationHistoryTitle: 'ဘာသာပြန် မှတ်တမ်း',
-      collapseHistoryAria: 'ဘာသာပြန် မှတ်တမ်း ပိတ်ရန်',
-      openHistoryAria: 'ဘာသာပြန် မှတ်တမ်း ဖွင့်ရန်',
       noHistoryTitle: 'ဘာသာပြန် မှတ်တမ်း မရှိသေးပါ',
       noHistoryBody: 'စာသားပြောင်းထားသော စကားများနှင့် ဘာသာပြန်မှတ်တမ်း ဤနေရာတွင် ပေါ်လာပါမည်။',
       reviewDecisionsTitle: 'ဆုံးဖြတ်ချက်များ စစ်ဆေးရန်',
-      collapseDecisionsAria: 'ဆုံးဖြတ်ချက်များ ပိတ်ရန်',
-      openDecisionsAria: 'ဆုံးဖြတ်ချက်များ ဖွင့်ရန်',
       noDecisionsTitle: 'ဆုံးဖြတ်ချက်များ မရှိသေးပါ',
       noDecisionsBody:
         'ဆုံးဖြတ်ချက်အသစ် ထည့်သွင်းပြီး အတည်ပြုမှု အခြေအနေကို ပြောင်းလဲရန် နှိပ်ပါ။',
@@ -877,7 +920,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       exit: 'Выйти',
       resumeMeeting: 'Вернуться ко встрече',
       starting: 'Запуск...',
-      startMeeting: 'Начать встречу',
     },
     transcript: {
       title: 'Живой перевод беседы',
@@ -938,65 +980,75 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       speaking: 'Говорит',
       selectedHint: 'Нажмите на карточку, чтобы посмотреть роль и язык',
     },
-    shareOpinion: {
-      title: 'Поделиться мнением',
-      closeAria: 'Закрыть редактор мнения',
-      openAria: 'Открыть редактор мнения',
-      placeholder: (name) => `Поделитесь мыслью от имени ${name}...`,
-      aiDraft: 'Черновик ИИ',
-      askScope: 'Уточнить объём',
-      send: 'Отправить',
-      submitAnonymously: 'Отправить анонимно',
+    opinion: {
+      title: 'Варианты ответа',
+      demoLabel: 'Демо',
+      generating: 'Готовим варианты',
+      emptyState:
+        'Когда наступит момент высказаться, появятся три готовые фразы: согласие, несогласие и другое мнение.',
+      agree: 'Согласие',
+      disagree: 'Несогласие',
+      alternative: 'Другое мнение',
+      copied: 'Скопировано',
+      copyHint: 'Нажмите, чтобы скопировать',
+    },
+    anonymousOpinion: {
+      title: 'Анонимное мнение',
+      description: 'Ваше мнение появится в разговоре без вашего имени.',
+      placeholder: 'Напишите, что хотите сказать',
+      submit: 'Отправить анонимно',
+      cancel: 'Отмена',
+      submitted: 'Анонимное мнение отправлено',
       anonymousSpeaker: 'Анонимно',
       validationEmpty: 'Введите текст мнения перед отправкой.',
       validationTooShort: 'Введите минимум 2 символа.',
       validationTooLong: 'Сократите мнение до 400 символов.',
-      submittedBanner: 'Мнение добавлено в ленту встречи',
-      submittedAnonymouslyBanner: 'Мнение добавлено анонимно в ленту встречи',
-      shareAnother: 'Добавить ещё мнение',
-      submittedHistoryLabel: (count) => `Отправлено в этой сессии (${count})`,
-      aiSuggestedNote: 'ИИ предложил лаконичную формулировку для перевода.',
-      aiRefinedNote: 'ИИ уточнил тон для точного перевода на другие языки.',
-      previewLabel: (langCode, text) => `Предпросмотр (${langCode}): ${text}`,
+    },
+    quickActions: {
+      waitPlease: 'Подождите, пожалуйста',
+      anonymousOpinion: 'Анонимное мнение',
+      waitSent: 'Запрос отправлен',
+      waitNotice: 'Кто-то попросил немного подождать',
     },
     context: {
-      title: 'Контекст беседы',
-      mockLabel: 'Примеры',
-      collapseAria: 'Свернуть контекст беседы',
-      openAria: 'Открыть контекст беседы',
+      title: 'Контекст разговора',
+      demoLabel: 'Демо',
+      currentTopic: 'Текущая тема',
+      topicPending: 'Определяем тему',
+      openQuestions: 'Открытые вопросы',
+      emptyState:
+        'Когда накопятся реплики, здесь появятся тема, ключевые слова и краткое содержание обсуждения.',
     },
     summary: {
       title: 'Итоги',
-      hideSummary: 'Скрыть итоги',
-      generateSummary: 'Создать итоги',
-      endMeeting: 'Завершить встречу',
-      demoSummaryLabel: 'Итоги демо-потока',
-      sessionSummaryLabel: 'Итоги текущей встречи',
-      emptyState:
-        'Записей пока нет. Запишите речь, отправьте мнение или запустите Демо-поток для сводки.',
-      speakersSummary: (speakers, count) =>
-        `Участники (${count} зап.): ${speakers}`,
-      latestTopic: (speaker, snippet) => `Последняя реплика (${speaker}): «${snippet}»`,
-      opinionSummary: (count) => `Отправлено мнений в сессии: ${count}`,
+      subtitle: 'Что уже решено',
+      demoLabel: 'Демо',
+      decided: 'Решено',
+      actionItems: 'Задачи',
+      undecided: 'Ещё не решено',
+      emptyColumn: 'Пока ничего',
+      emptyState: 'По ходу встречи здесь будут собираться решения, задачи и открытые вопросы.',
+      collapse: 'Свернуть',
+      expand: 'Развернуть',
+      noOwner: 'Без ответственного',
+    },
+    chat: {
+      placeholder: 'Напишите сообщение (Enter — отправить)',
+      send: 'Отправить',
+      badge: 'Чат',
     },
     meetingEnd: {
       backToMeeting: 'Назад ко встрече',
       notesTitle: 'Заметки встречи',
-      collapseNotesAria: 'Свернуть заметки',
-      openNotesAria: 'Открыть редактор заметок',
       noNotesTitle: 'Заметок пока нет',
       noNotesBody: 'Добавьте общие заметки или следующие шаги для этой встречи ниже.',
       addNotePlaceholder: (name) => `Добавить заметку от имени ${name}...`,
       addNoteButton: 'Добавить заметку',
       noteValidationEmpty: 'Введите текст заметки.',
       translationHistoryTitle: 'История переводов',
-      collapseHistoryAria: 'Свернуть историю переводов',
-      openHistoryAria: 'Открыть историю переводов',
       noHistoryTitle: 'Записей пока нет',
       noHistoryBody: 'Здесь появится распознанная речь и история переводов.',
       reviewDecisionsTitle: 'Решения встречи',
-      collapseDecisionsAria: 'Свернуть решения',
-      openDecisionsAria: 'Открыть решения',
       noDecisionsTitle: 'Решений пока нет',
       noDecisionsBody:
         'Добавьте решение по итогам встречи и нажмите на него, чтобы изменить статус.',
@@ -1049,7 +1101,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       exit: 'Salir',
       resumeMeeting: 'Reanudar reunión',
       starting: 'Iniciando...',
-      startMeeting: 'Iniciar reunión',
     },
     transcript: {
       title: 'Traducción de conversación en vivo',
@@ -1111,69 +1162,76 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       speaking: 'Hablando',
       selectedHint: 'Haz clic en una tarjeta para ver rol e idioma',
     },
-    shareOpinion: {
-      title: 'Compartir opinión',
-      closeAria: 'Cerrar redactor de opinión',
-      openAria: 'Abrir redactor de opinión',
-      placeholder: (name) => `Comparte tu idea como ${name}...`,
-      aiDraft: 'Borrador IA',
-      askScope: 'Consultar alcance',
-      send: 'Enviar',
-      submitAnonymously: 'Enviar de forma anónima',
+    opinion: {
+      title: 'Sugerencias de opinión',
+      demoLabel: 'Demo',
+      generating: 'Generando sugerencias',
+      emptyState:
+        'Cuando llegue un buen momento para opinar, verás tres frases listas: a favor, en contra y otra idea.',
+      agree: 'A favor',
+      disagree: 'En contra',
+      alternative: 'Otra idea',
+      copied: 'Copiado',
+      copyHint: 'Toca para copiar',
+    },
+    anonymousOpinion: {
+      title: 'Enviar opinión anónima',
+      description: 'Tu opinión se comparte en la conversación en vivo sin tu nombre.',
+      placeholder: 'Escribe lo que quieres decir',
+      submit: 'Enviar de forma anónima',
+      cancel: 'Cancelar',
+      submitted: 'Se compartió tu opinión anónima',
       anonymousSpeaker: 'Anónimo',
       validationEmpty: 'Escribe una opinión antes de enviar.',
       validationTooShort: 'Escribe al menos 2 caracteres.',
       validationTooLong: 'Mantén la opinión por debajo de 400 caracteres.',
-      submittedBanner: 'Opinión compartida en la transcripción en vivo',
-      submittedAnonymouslyBanner:
-        'Opinión compartida de forma anónima en la transcripción',
-      shareAnother: 'Compartir otra opinión',
-      submittedHistoryLabel: (count) => `Enviadas en esta sesión (${count})`,
-      aiSuggestedNote:
-        'La IA sugirió una redacción concisa lista para difusión multilingüe.',
-      aiRefinedNote:
-        'La IA refinó el tono para una traducción clara entre idiomas.',
-      previewLabel: (langCode, text) => `Vista previa (${langCode}): ${text}`,
+    },
+    quickActions: {
+      waitPlease: 'Espera un momento, por favor',
+      anonymousOpinion: 'Opinión anónima',
+      waitSent: 'Solicitud enviada',
+      waitNotice: 'Alguien pidió esperar un momento',
     },
     context: {
       title: 'Contexto de la conversación',
-      mockLabel: 'Documentos de ejemplo',
-      collapseAria: 'Contraer contexto de conversación',
-      openAria: 'Abrir documentos de contexto',
+      demoLabel: 'Demo',
+      currentTopic: 'Tema actual',
+      topicPending: 'Identificando el tema',
+      openQuestions: 'Preguntas abiertas',
+      emptyState:
+        'A medida que avance la conversación, aquí verás el tema, las palabras clave y un resumen de lo que se está hablando.',
     },
     summary: {
       title: 'Resumen',
-      hideSummary: 'Ocultar resumen',
-      generateSummary: 'Generar resumen',
-      endMeeting: 'Finalizar reunión',
-      demoSummaryLabel: 'Resumen del modo demo',
-      sessionSummaryLabel: 'Resumen de la sesión actual',
-      emptyState:
-        'Aún no hay transcripción. Graba audio, comparte una opinión o ejecuta Modo Demo para resumir la sesión.',
-      speakersSummary: (speakers, count) =>
-        `Participantes activos (${count} entradas): ${speakers}`,
-      latestTopic: (speaker, snippet) => `Último comentario (${speaker}): "${snippet}"`,
-      opinionSummary: (count) => `Opiniones compartidas en la sesión: ${count}`,
+      subtitle: 'Lo decidido hasta ahora',
+      demoLabel: 'Demo',
+      decided: 'Decidido',
+      actionItems: 'Tareas',
+      undecided: 'Aún sin decidir',
+      emptyColumn: 'Nada todavía',
+      emptyState: 'A medida que avance la reunión, aquí se reunirán las decisiones, las tareas y los temas pendientes.',
+      collapse: 'Contraer',
+      expand: 'Expandir',
+      noOwner: 'Sin responsable',
+    },
+    chat: {
+      placeholder: 'Escribe un mensaje (Enter para enviar)',
+      send: 'Enviar',
+      badge: 'Chat',
     },
     meetingEnd: {
       backToMeeting: 'Volver a la reunión',
       notesTitle: 'Notas de la reunión',
-      collapseNotesAria: 'Contraer notas',
-      openNotesAria: 'Abrir editor de notas',
       noNotesTitle: 'Aún no hay notas de la reunión',
       noNotesBody: 'Agrega acuerdos o notas compartidas de esta reunión abajo.',
       addNotePlaceholder: (name) => `Agrega una nota compartida como ${name}...`,
       addNoteButton: 'Agregar nota',
       noteValidationEmpty: 'Escribe una nota antes de agregarla.',
       translationHistoryTitle: 'Historial de traducción',
-      collapseHistoryAria: 'Contraer historial de traducción',
-      openHistoryAria: 'Abrir historial de traducción',
       noHistoryTitle: 'Aún no hay entradas registradas',
       noHistoryBody:
         'El texto reconocido y su historial de traducción aparecerán aquí.',
       reviewDecisionsTitle: 'Revisar decisiones',
-      collapseDecisionsAria: 'Contraer decisiones',
-      openDecisionsAria: 'Abrir decisiones',
       noDecisionsTitle: 'Aún no hay decisiones registradas',
       noDecisionsBody:
         'Agrega decisiones de esta reunión y haz clic en cualquiera para cambiar su estado.',

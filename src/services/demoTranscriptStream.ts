@@ -1,115 +1,18 @@
+import { DEMO_MEETING_SCRIPT } from '../data/demoMeetingScript';
+import type { DemoUtterance } from '../data/demoMeetingScript';
 import type { LanguageCode } from '../types/meeting';
 import type {
   IncomingTranscriptEvent,
   TranscriptStreamTransport,
 } from '../types/streaming';
 
-interface DemoUtteranceScript {
-  speakerId: string;
-  speakerName: string;
-  sourceLanguage: LanguageCode;
-  badgeVariant: 'neutral' | 'lavender';
-  steps: string[];
-  translations: Record<LanguageCode, string>;
-}
+// 회의 언어. 실제 서비스도 한국어 회의를 전사하고 참여자 언어로 번역한다.
+const MEETING_LANGUAGE: LanguageCode = 'ko';
 
-const DEMO_SCRIPT: DemoUtteranceScript[] = [
-  {
-    speakerId: 'p-joe',
-    speakerName: 'Joe',
-    sourceLanguage: 'en',
-    badgeVariant: 'neutral',
-    steps: [
-      'Today, we will',
-      'Today, we will discuss the',
-      'Today, we will discuss the project schedule',
-      'Today, we will discuss the project schedule during the meeting.',
-    ],
-    translations: {
-      ko: '오늘 회의에서는 프로젝트 일정에 대해 논의하겠습니다.',
-      en: 'Today, we will discuss the project schedule during the meeting.',
-      ja: '本日の会議では、プロジェクトのスケジュールについて話し合います。',
-      my: 'ယနေ့ အစည်းအဝေးတွင် ပရောဂျက်အချိန်ဇယားအကြောင်း ဆွေးနွေးပါမည်။',
-      ru: 'Сегодня на встрече мы обсудим график проекта.',
-      es: 'Hoy discutiremos el calendario del proyecto durante la reunión.',
-    },
-  },
-  {
-    speakerId: 'p-anna',
-    speakerName: 'Anna',
-    sourceLanguage: 'ru',
-    badgeVariant: 'lavender',
-    steps: [
-      'Как насчет',
-      'Как насчет пятницы?',
-    ],
-    translations: {
-      ko: '금요일은 어때요?',
-      en: 'How about Friday?',
-      ja: '金曜日はどうですか？',
-      my: 'သောကြာနေ့ဆိုရင် ဘယ်လိုလဲ။',
-      ru: 'Как насчет пятницы?',
-      es: '¿Qué tal el viernes?',
-    },
-  },
-  {
-    speakerId: 'p-minji',
-    speakerName: 'Minji',
-    sourceLanguage: 'ko',
-    badgeVariant: 'neutral',
-    steps: [
-      '금요일 오후',
-      '금요일 오후 2시까지',
-      '금요일 오후 2시까지 프로토타입을 공유할게요.',
-    ],
-    translations: {
-      ko: '금요일 오후 2시까지 프로토타입을 공유할게요.',
-      en: 'I will share the prototype by 2 PM on Friday.',
-      ja: '金曜日の午後2時までにプロトタイプを共有します。',
-      my: 'သောကြာနေ့ နေ့လယ် ၂ နာရီမတိုင်မီ ပရိုတိုတိုက်ကို မျှဝေပေးပါမည်။',
-      ru: 'Я поделюсь прототипом к 14:00 в пятницу.',
-      es: 'Compartiré el prototipo el viernes a las 14:00.',
-    },
-  },
-  {
-    speakerId: 'p-kenji',
-    speakerName: 'Kenji',
-    sourceLanguage: 'ja',
-    badgeVariant: 'lavender',
-    steps: [
-      'ユーザーテストの',
-      'ユーザーテストの結果も',
-      'ユーザーテストの結果も一緒に確認しましょう。',
-    ],
-    translations: {
-      ko: '사용자 테스트 결과도 함께 확인합시다.',
-      en: 'Let us also review the user test results together.',
-      ja: 'ユーザーテストの結果も一緒に確認しましょう。',
-      my: 'အသုံးပြုသူ စမ်းသပ်မှုရလဒ်များကိုလည်း အတူတကွ စစ်ဆေးကြပါစို့။',
-      ru: 'Давайте также вместе проверим результаты пользовательского тестирования.',
-      es: 'Revisemos también juntos los resultados de las pruebas de usuario.',
-    },
-  },
-  {
-    speakerId: 'p-su',
-    speakerName: 'Su',
-    sourceLanguage: 'my',
-    badgeVariant: 'neutral',
-    steps: [
-      'မြန်မာဘာသာဖြင့်',
-      'မြန်မာဘာသာဖြင့် ပြောဆိုမှုကိုလည်း',
-      'မြန်မာဘာသာဖြင့် ပြောဆိုမှုကိုလည်း တိုက်ရိုက်ဘာသာပြန်ပေးပါသည်။',
-    ],
-    translations: {
-      ko: '버마어 발언도 실시간으로 함께 번역됩니다.',
-      en: 'Burmese speech is also translated in real time.',
-      ja: 'ビルマ語の発話もリアルタイムで翻訳されます。',
-      my: 'မြန်မာဘာသာဖြင့် ပြောဆိုမှုကိုလည်း တိုက်ရိုက်ဘာသာပြန်ပေးပါသည်။',
-      ru: 'Речь на бирманском языке также переводится в реальном времени.',
-      es: 'El habla en birmano también se traduce en tiempo real.',
-    },
-  },
-];
+const STEP_MS = 650;
+const CONTEXT_DELAY_MS = 900;
+const SUGGESTION_DELAY_MS = 1600;
+const NEXT_UTTERANCE_MS = 1800;
 
 function formatCurrentTime(): string {
   const now = new Date();
@@ -118,10 +21,24 @@ function formatCurrentTime(): string {
   return `${hh}:${mm}`;
 }
 
+// 말하는 중인 것처럼 어절 단위로 잘라 3~4단계로 늘려 보낸다
+function buildSteps(text: string): string[] {
+  const words = text.split(' ');
+  const stepCount = Math.min(4, words.length);
+  return Array.from({ length: stepCount }, (_, idx) =>
+    words.slice(0, Math.ceil((words.length * (idx + 1)) / stepCount)).join(' ')
+  );
+}
+
+function translationFor(script: DemoUtterance, target: LanguageCode): string | undefined {
+  // 한국어 사용자는 원문을 그대로 읽으므로 번역이 없다
+  return target === 'ko' ? undefined : script.translations[target];
+}
+
 /**
- * Simulated streaming adapter for frontend UI testing without a backend.
- * Emits connecting -> listening -> transcript.interim -> transcript.final events
- * strictly tagged with `source: 'demo'`.
+ * 백엔드 없이 UI를 확인하기 위한 데모 스트림.
+ * 실제 백엔드가 보낼 이벤트(전사 interim/final, 맥락 갱신, 의견 추천)를 같은 형식으로 흉내 낸다.
+ * 모든 이벤트는 source: 'demo'로 표시된다.
  */
 export class DemoTranscriptStreamTransport implements TranscriptStreamTransport {
   private timers: number[] = [];
@@ -136,92 +53,126 @@ export class DemoTranscriptStreamTransport implements TranscriptStreamTransport 
   connect(onEvent: (event: IncomingTranscriptEvent) => void): void {
     this.disconnect();
     this.active = true;
+    this.utteranceIndex = 0;
 
     onEvent({ type: 'status', state: 'connecting' });
-
-    const connectTimer = window.setTimeout(() => {
-      if (!this.active) return;
+    this.schedule(() => {
       onEvent({ type: 'status', state: 'listening' });
-      this.scheduleNextUtterance(onEvent, 350);
+      this.playNextUtterance(onEvent, 350);
     }, 650);
-
-    this.timers.push(connectTimer);
-  }
-
-  private scheduleNextUtterance(
-    onEvent: (event: IncomingTranscriptEvent) => void,
-    initialDelayMs: number
-  ): void {
-    if (!this.active) return;
-
-    const script = DEMO_SCRIPT[this.utteranceIndex % DEMO_SCRIPT.length];
-    this.utteranceIndex += 1;
-    const segmentId = `demo-seg-${Date.now()}-${this.utteranceIndex}`;
-    const timestamp = formatCurrentTime();
-
-    script.steps.forEach((partialText, stepIdx) => {
-      const stepDelay = initialDelayMs + stepIdx * 750;
-      const stepTimer = window.setTimeout(() => {
-        if (!this.active) return;
-        const targetLang = this.getTargetLanguage();
-        const fullTranslated = script.translations[targetLang];
-        const ratio = (stepIdx + 1) / script.steps.length;
-        const partialTranslated = fullTranslated.slice(
-          0,
-          Math.max(4, Math.ceil(fullTranslated.length * ratio))
-        );
-
-        onEvent({
-          type: 'transcript.interim',
-          segmentId,
-          speakerId: script.speakerId,
-          speakerName: script.speakerName,
-          timestamp,
-          sourceLanguage: script.sourceLanguage,
-          text: partialText,
-          targetLanguage: targetLang,
-          translatedText:
-            stepIdx === script.steps.length - 1
-              ? fullTranslated
-              : `${partialTranslated}...`,
-          badgeVariant: script.badgeVariant,
-          source: 'demo',
-        });
-      }, stepDelay);
-
-      this.timers.push(stepTimer);
-    });
-
-    const finalizeDelay = initialDelayMs + script.steps.length * 750 + 450;
-    const finalizeTimer = window.setTimeout(() => {
-      if (!this.active) return;
-      const targetLang = this.getTargetLanguage();
-      const fullText = script.steps[script.steps.length - 1];
-
-      onEvent({
-        type: 'transcript.final',
-        segmentId,
-        speakerId: script.speakerId,
-        speakerName: script.speakerName,
-        timestamp,
-        sourceLanguage: script.sourceLanguage,
-        text: fullText,
-        targetLanguage: targetLang,
-        translatedText: script.translations[targetLang],
-        translations: script.translations,
-        badgeVariant: script.badgeVariant,
-        source: 'demo',
-      });
-
-      this.scheduleNextUtterance(onEvent, 1400);
-    }, finalizeDelay);
-
-    this.timers.push(finalizeTimer);
   }
 
   disconnect(): void {
     this.active = false;
     this.timers.forEach((id) => window.clearTimeout(id));
     this.timers = [];
+  }
+
+  private schedule(fn: () => void, delayMs: number): void {
+    const id = window.setTimeout(() => {
+      if (this.active) fn();
+    }, delayMs);
+    this.timers.push(id);
+  }
+
+  private playNextUtterance(
+    onEvent: (event: IncomingTranscriptEvent) => void,
+    initialDelayMs: number
+  ): void {
+    const script = DEMO_MEETING_SCRIPT[this.utteranceIndex];
+    if (!script) {
+      // 대본이 끝나면 스트림을 닫는다
+      this.schedule(() => onEvent({ type: 'status', state: 'disconnected' }), initialDelayMs);
+      return;
+    }
+
+    this.utteranceIndex += 1;
+    const segmentId = `demo-seg-${Date.now()}-${this.utteranceIndex}`;
+    const timestamp = formatCurrentTime();
+    const steps = buildSteps(script.text);
+    const base = {
+      segmentId,
+      speakerId: script.speakerId,
+      speakerName: script.speakerName,
+      timestamp,
+      sourceLanguage: MEETING_LANGUAGE,
+      badgeVariant: script.badgeVariant,
+      source: 'demo' as const,
+    };
+
+    steps.forEach((partialText, stepIdx) => {
+      this.schedule(() => {
+        const target = this.getTargetLanguage();
+        const isLast = stepIdx === steps.length - 1;
+        const full = translationFor(script, target);
+        onEvent({
+          type: 'transcript.interim',
+          ...base,
+          text: partialText,
+          targetLanguage: full ? target : undefined,
+          // 번역은 원문보다 조금 늦게 따라오는 것처럼 보여 준다
+          translatedText: full && stepIdx > 0 ? (isLast ? full : `${full.slice(0, Math.ceil((full.length * stepIdx) / steps.length))}...`) : undefined,
+        });
+      }, initialDelayMs + stepIdx * STEP_MS);
+    });
+
+    const finalDelay = initialDelayMs + steps.length * STEP_MS + 300;
+    this.schedule(() => {
+      const target = this.getTargetLanguage();
+      onEvent({
+        type: 'transcript.final',
+        ...base,
+        text: script.text,
+        // 언어를 바꿔도 다시 받지 않도록 모든 참여자 언어 번역을 함께 보낸다
+        translations: script.translations,
+        targetLanguage: target === MEETING_LANGUAGE ? undefined : target,
+      });
+
+      if (script.context) {
+        const context = script.context;
+        this.schedule(
+          () =>
+            onEvent({
+              type: 'context.updated',
+              context: { ...context, updatedAt: new Date().toISOString() },
+            }),
+          CONTEXT_DELAY_MS
+        );
+      }
+
+      if (script.outcome) {
+        const outcome = script.outcome;
+        this.schedule(
+          () =>
+            onEvent({
+              type: 'outcome.updated',
+              outcome: { ...outcome, updatedAt: new Date().toISOString() },
+            }),
+          CONTEXT_DELAY_MS + 300
+        );
+      }
+
+      if (script.suggestion) {
+        const { gloss, ...sentences } = script.suggestion;
+        this.schedule(
+          () =>
+            onEvent({
+              type: 'opinion.suggested',
+              suggestion: {
+                id: `demo-sug-${segmentId}`,
+                segmentId,
+                targetText: script.text,
+                source: 'auto',
+                ...sentences,
+                gloss,
+                createdAt: new Date().toISOString(),
+              },
+            }),
+          SUGGESTION_DELAY_MS
+        );
+      }
+
+      this.playNextUtterance(onEvent, NEXT_UTTERANCE_MS + (script.suggestion ? 1200 : 0));
+    }, finalDelay);
   }
 }

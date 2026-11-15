@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { DemoTranscriptStreamTransport } from '../services/demoTranscriptStream';
-import type { LanguageCode, TranscriptEntry } from '../types/meeting';
+import type {
+  LanguageCode,
+  LiveContext,
+  MeetingOutcome,
+  OpinionSuggestion,
+  TranscriptEntry,
+} from '../types/meeting';
 import type {
   IncomingTranscriptEvent,
   StreamConnectionState,
@@ -14,6 +20,9 @@ interface UseTranscriptStreamOptions {
     targetLanguage: LanguageCode,
     translatedText: string
   ) => void;
+  onContextUpdated?: (context: LiveContext) => void;
+  onOutcomeUpdated?: (outcome: MeetingOutcome) => void;
+  onOpinionSuggested?: (suggestion: OpinionSuggestion) => void;
 }
 
 export interface StreamErrorInfo {
@@ -37,6 +46,9 @@ export function useTranscriptStream({
   speechTargetLanguage,
   onFinalSegment,
   onUpdateSegmentTranslation,
+  onContextUpdated,
+  onOutcomeUpdated,
+  onOpinionSuggested,
 }: UseTranscriptStreamOptions): UseTranscriptStreamResult {
   const [connectionState, setConnectionState] =
     useState<StreamConnectionState>('disconnected');
@@ -47,13 +59,21 @@ export function useTranscriptStream({
   const [isDemoMode, setIsDemoMode] = useState(false);
 
   const targetLangRef = useRef<LanguageCode>(speechTargetLanguage);
-  targetLangRef.current = speechTargetLanguage;
-
   const onFinalRef = useRef(onFinalSegment);
-  onFinalRef.current = onFinalSegment;
-
   const onTranslationDeltaRef = useRef(onUpdateSegmentTranslation);
-  onTranslationDeltaRef.current = onUpdateSegmentTranslation;
+  const onContextRef = useRef(onContextUpdated);
+  const onOutcomeRef = useRef(onOutcomeUpdated);
+  const onSuggestionRef = useRef(onOpinionSuggested);
+
+  // 스트림 콜백이 항상 최신 값·핸들러를 쓰도록 렌더 후에 맞춰 둔다
+  useEffect(() => {
+    targetLangRef.current = speechTargetLanguage;
+    onFinalRef.current = onFinalSegment;
+    onTranslationDeltaRef.current = onUpdateSegmentTranslation;
+    onContextRef.current = onContextUpdated;
+    onOutcomeRef.current = onOutcomeUpdated;
+    onSuggestionRef.current = onOpinionSuggested;
+  });
 
   const demoTransportRef = useRef<DemoTranscriptStreamTransport | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -138,6 +158,21 @@ export function useTranscriptStream({
           event.targetLanguage,
           event.translatedText
         );
+        break;
+      }
+
+      case 'context.updated': {
+        onContextRef.current?.(event.context);
+        break;
+      }
+
+      case 'outcome.updated': {
+        onOutcomeRef.current?.(event.outcome);
+        break;
+      }
+
+      case 'opinion.suggested': {
+        onSuggestionRef.current?.(event.suggestion);
         break;
       }
 

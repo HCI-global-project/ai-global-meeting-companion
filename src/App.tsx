@@ -14,7 +14,10 @@ import { MeetingPage } from './pages/MeetingPage';
 import type {
   DecisionItem,
   LanguageCode,
+  LiveContext,
   MeetingNote,
+  MeetingOutcome,
+  OpinionSuggestion,
   RoomSession,
   TranscriptEntry,
 } from './types/meeting';
@@ -32,6 +35,10 @@ export default function App() {
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [notes, setNotes] = useState<MeetingNote[]>([]);
   const [decisions, setDecisions] = useState<DecisionItem[]>([]);
+  const [liveContext, setLiveContext] = useState<LiveContext | null>(null);
+  const [outcome, setOutcome] = useState<MeetingOutcome | null>(null);
+  // 최신 추천이 앞에 온다
+  const [suggestions, setSuggestions] = useState<OpinionSuggestion[]>([]);
 
   const handleChangeUiLanguage = (lang: LanguageCode) => {
     setSession((prev) => ({
@@ -103,6 +110,97 @@ export default function App() {
     []
   );
 
+  const handleContextUpdated = useCallback((context: LiveContext) => {
+    setLiveContext(context);
+  }, []);
+
+  // 회의 결과가 갱신되면 회의 종료 화면의 결정 사항에도 반영한다 (직접 추가한 항목은 유지)
+  const handleOutcomeUpdated = useCallback(
+    (next: MeetingOutcome) => {
+      setOutcome(next);
+      const now = new Date();
+      const stamp = `${session.roomCode} · ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const fromOutcome: DecisionItem[] = [
+        ...next.decided.map((item, idx) => ({
+          id: `outcome-decided-${idx}`,
+          title: item.text,
+          owner: '—',
+          dueDate: stamp,
+          status: 'Confirmed' as const,
+        })),
+        ...next.actionItems.map((item, idx) => ({
+          id: `outcome-action-${idx}`,
+          title: item.text,
+          owner: item.owner ?? '—',
+          dueDate: stamp,
+          status: 'Pending Review' as const,
+        })),
+      ];
+      setDecisions((prev) => {
+        // 사용자가 이미 상태를 바꾼 항목은 그 상태를 지킨다
+        const prevStatus = new Map(prev.map((d) => [`${d.id}|${d.title}`, d.status]));
+        const merged = fromOutcome.map((d) => ({
+          ...d,
+          status: prevStatus.get(`${d.id}|${d.title}`) ?? d.status,
+        }));
+        return [...merged, ...prev.filter((d) => !d.id.startsWith('outcome-'))];
+      });
+    },
+    [session.roomCode]
+  );
+
+  const handleOpinionSuggested = useCallback((suggestion: OpinionSuggestion) => {
+    setSuggestions((prev) =>
+      prev.some((item) => item.id === suggestion.id) ? prev : [suggestion, ...prev]
+    );
+  }, []);
+
+  // '잠깐 기다려주세요' — 누가 보냈는지 남기지 않는 요청 알림
+  const handleRequestWait = () => {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+
+    setTranscript((prev) => [
+      ...prev,
+      {
+        id: `t-signal-${Date.now()}`,
+        speakerId: 'p-anonymous',
+        speakerName: '',
+        timestamp: `${hh}:${mm}`,
+        originalLanguage: 'auto',
+        originalText: '',
+        translations: {},
+        badgeVariant: 'neutral',
+        status: 'final',
+        source: 'signal',
+        isAnonymous: true,
+      },
+    ]);
+  };
+
+  const handleSendChat = (text: string) => {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+
+    setTranscript((prev) => [
+      ...prev,
+      {
+        id: `t-chat-${Date.now()}`,
+        speakerId: 'p-self',
+        speakerName: session.userName,
+        timestamp: `${hh}:${mm}`,
+        originalLanguage: 'auto',
+        originalText: text,
+        translations: {},
+        badgeVariant: 'lavender',
+        status: 'final',
+        source: 'chat',
+      },
+    ]);
+  };
+
   const handlePublishOpinion = (
     originalText: string,
     translations: Partial<Record<LanguageCode, string>>,
@@ -116,7 +214,7 @@ export default function App() {
       id: `t-opinion-${Date.now()}`,
       speakerId: isAnonymous ? 'p-anonymous' : 'p-self',
       speakerName: isAnonymous
-        ? TRANSLATIONS[session.uiLanguage].shareOpinion.anonymousSpeaker
+        ? TRANSLATIONS[session.uiLanguage].anonymousOpinion.anonymousSpeaker
         : session.userName,
       timestamp: `${hh}:${mm}`,
       originalLanguage: 'auto',
@@ -198,6 +296,9 @@ export default function App() {
     setTranscript([]);
     setNotes([]);
     setDecisions([]);
+    setLiveContext(null);
+    setOutcome(null);
+    setSuggestions([]);
   }, []);
 
   return (
@@ -231,8 +332,15 @@ export default function App() {
                 onAddTranscriptText={handleAddTranscriptText}
                 onAddFinalStreamEntry={handleAddFinalStreamEntry}
                 onUpdateSegmentTranslation={handleUpdateSegmentTranslation}
+                liveContext={liveContext}
+                outcome={outcome}
+                suggestions={suggestions}
+                onContextUpdated={handleContextUpdated}
+                onOutcomeUpdated={handleOutcomeUpdated}
+                onSendChat={handleSendChat}
+                onOpinionSuggested={handleOpinionSuggested}
+                onRequestWait={handleRequestWait}
                 onPublishOpinion={handlePublishOpinion}
-                onExit={handleExitSession}
               />
             }
           />

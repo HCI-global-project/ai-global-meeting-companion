@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { AlertCircle, ArrowLeft, CheckCircle2, EyeOff, Plus, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { AlertCircle, ArrowLeft, CheckCircle2, EyeOff, Plus } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
 import type {
   DecisionItem,
@@ -7,11 +7,6 @@ import type {
   MeetingNote,
   TranscriptEntry,
 } from '../types/meeting';
-import {
-  BookmarkOutlineIcon,
-  ClockOutlineIcon,
-  PencilTrayIcon,
-} from './LoopIcons';
 
 interface NotesReviewViewProps {
   notes: MeetingNote[];
@@ -41,27 +36,14 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
   onBackToMeeting,
 }) => {
   const { t } = useI18n();
-  const [notesOpen, setNotesOpen] = useState(notes.length > 0);
-  const [historyOpen, setHistoryOpen] = useState(transcript.length > 0);
-  const [decisionsOpen, setDecisionsOpen] = useState(decisions.length > 0);
+  // '잠깐 기다려주세요' 같은 요청 알림은 번역 기록에 남기지 않는다
+  const historyItems = transcript.filter((item) => item.source !== 'signal');
 
   const [noteInput, setNoteInput] = useState('');
   const [noteError, setNoteError] = useState<string | null>(null);
 
   const [decisionInput, setDecisionInput] = useState('');
   const [decisionError, setDecisionError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (notes.length > 0) setNotesOpen(true);
-  }, [notes.length]);
-
-  useEffect(() => {
-    if (transcript.length > 0) setHistoryOpen(true);
-  }, [transcript.length]);
-
-  useEffect(() => {
-    if (decisions.length > 0) setDecisionsOpen(true);
-  }, [decisions.length]);
 
   const handleSaveNote = (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,29 +98,8 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                 </span>
               )}
             </div>
-
-            {notesOpen && (
-              <button
-                type="button"
-                onClick={() => setNotesOpen(false)}
-                className="text-gray-500 hover:text-gray-800 p-1 rounded-2 transition-colors cursor-pointer"
-                aria-label={t.meetingEnd.collapseNotesAria}
-              >
-                <X className="size-icon-xs" />
-              </button>
-            )}
           </div>
 
-          {!notesOpen ? (
-            <button
-              type="button"
-              onClick={() => setNotesOpen(true)}
-              className="w-full h-[200px] sm:h-[210px] rounded-3 bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-              aria-label={t.meetingEnd.openNotesAria}
-            >
-              <PencilTrayIcon className="w-12 h-12 text-gray-500" />
-            </button>
-          ) : (
             <div className="flex flex-col gap-4">
               {notes.length === 0 ? (
                 <div className="rounded-3 bg-gray-50 border border-gray-100 px-4 py-6 flex flex-col items-center justify-center text-center">
@@ -230,7 +191,6 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                 )}
               </form>
             </div>
-          )}
         </section>
 
         {/* Bottom 2-Column Split: Translation History & Review Decisions */}
@@ -242,35 +202,15 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                 <h2 className="heading-06 text-gray-700">
                   {t.meetingEnd.translationHistoryTitle}
                 </h2>
-                {transcript.length > 0 && (
+                {historyItems.length > 0 && (
                   <span className="body-05 text-gray-500">
-                    · {transcript.length}
+                    · {historyItems.length}
                   </span>
                 )}
               </div>
-
-              {historyOpen && (
-                <button
-                  type="button"
-                  onClick={() => setHistoryOpen(false)}
-                  className="text-gray-500 hover:text-gray-800 p-1 rounded-2 transition-colors cursor-pointer"
-                  aria-label={t.meetingEnd.collapseHistoryAria}
-                >
-                  <X className="size-icon-xs" />
-                </button>
-              )}
             </div>
 
-            {!historyOpen ? (
-              <button
-                type="button"
-                onClick={() => setHistoryOpen(true)}
-                className="w-full h-[155px] rounded-3 bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                aria-label={t.meetingEnd.openHistoryAria}
-              >
-                <ClockOutlineIcon className="w-11 h-11 text-gray-500" />
-              </button>
-            ) : transcript.length === 0 ? (
+            {historyItems.length === 0 ? (
               <div className="h-[155px] rounded-3 bg-gray-50 border border-gray-100 px-4 flex flex-col items-center justify-center text-center">
                 <p className="body-02 text-gray-700">
                   {t.meetingEnd.noHistoryTitle}
@@ -281,10 +221,13 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
               </div>
             ) : (
               <div className="flex flex-col gap-2.5 max-h-[210px] overflow-y-auto loop-scroll pr-1">
-                {transcript.map((item) => {
-                  const translated = item.translations[speechTargetLanguage];
+                {historyItems.map((item) => {
+                  const translated =
+                    item.originalLanguage === speechTargetLanguage
+                      ? undefined
+                      : item.translations[speechTargetLanguage];
                   const displaySpeaker = item.isAnonymous
-                    ? t.shareOpinion.anonymousSpeaker
+                    ? t.anonymousOpinion.anonymousSpeaker
                     : item.speakerName;
                   return (
                     <div
@@ -333,29 +276,8 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                   </span>
                 )}
               </div>
-
-              {decisionsOpen && (
-                <button
-                  type="button"
-                  onClick={() => setDecisionsOpen(false)}
-                  className="text-gray-500 hover:text-gray-800 p-1 rounded-2 transition-colors cursor-pointer"
-                  aria-label={t.meetingEnd.collapseDecisionsAria}
-                >
-                  <X className="size-icon-xs" />
-                </button>
-              )}
             </div>
 
-            {!decisionsOpen ? (
-              <button
-                type="button"
-                onClick={() => setDecisionsOpen(true)}
-                className="w-full h-[155px] rounded-3 bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                aria-label={t.meetingEnd.openDecisionsAria}
-              >
-                <BookmarkOutlineIcon className="w-11 h-11 text-gray-500" />
-              </button>
-            ) : (
               <div className="flex flex-col gap-3">
                 {decisions.length === 0 ? (
                   <div className="rounded-3 bg-gray-50 border border-gray-100 px-4 py-5 flex flex-col items-center justify-center text-center">
@@ -394,7 +316,9 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                             )}
                           </div>
                           <p className="label-01 text-gray-500 mt-0.5 truncate">
-                            {t.meetingEnd.ownerPrefix} {decision.owner} · {decision.dueDate}
+                            {decision.owner === '—'
+                              ? decision.dueDate
+                              : `${t.meetingEnd.ownerPrefix} ${decision.owner} · ${decision.dueDate}`}
                           </p>
                         </div>
                         <span
@@ -457,7 +381,6 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                   )}
                 </form>
               </div>
-            )}
           </section>
         </div>
       </div>

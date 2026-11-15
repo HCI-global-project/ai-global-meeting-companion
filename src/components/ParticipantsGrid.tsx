@@ -52,11 +52,11 @@ export const ParticipantsGrid: React.FC<ParticipantsGridProps> = ({
                 setSelectedId(isSelected ? null : participant.id)
               }
               title={`${participant.name} (${participant.role}) — ${participant.languageLabel}`}
-              className={`group relative rounded-4 px-2 py-2.5 min-h-[96px] lg:min-h-[108px] flex flex-col items-center justify-between transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 min-w-0 ${
+              className={`group relative rounded-4 px-2 py-2.5 min-h-[96px] lg:min-h-[108px] flex flex-col items-center justify-between transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 min-w-0 ${
                 isSpeaking
-                  ? 'bg-primary-300 ring-2 ring-primary-500 ring-offset-2 ring-offset-gray-50'
+                  ? 'bg-primary-300 ring-2 ring-inset ring-primary-500'
                   : isSelected
-                    ? 'bg-gray-300 ring-2 ring-primary-400 ring-offset-2 ring-offset-gray-50'
+                    ? 'bg-gray-300 ring-2 ring-inset ring-primary-400'
                     : 'bg-gray-300/80 hover:bg-gray-300'
               }`}
               aria-label={`${participant.name}, ${participant.role}, ${participant.languageLabel}${

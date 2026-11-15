@@ -114,3 +114,15 @@
 .loop-scroll::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-gray-300);
 }
+
+/* 새로 들어온 추천·키워드가 살짝 떠오르며 나타난다 */
+@keyframes fade-up {
+  from {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

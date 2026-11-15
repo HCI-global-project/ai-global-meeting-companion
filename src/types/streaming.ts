@@ -1,4 +1,9 @@
-import type { LanguageCode } from './meeting';
+import type {
+  LanguageCode,
+  LiveContext,
+  MeetingOutcome,
+  OpinionSuggestion,
+} from './meeting';
 
 /**
  * Connection lifecycle states for the real-time transcription & translation stream.
@@ -18,6 +23,9 @@ export type IncomingTranscriptEvent =
   | TranscriptInterimEvent
   | TranscriptFinalEvent
   | TranslationDeltaEvent
+  | ContextUpdatedEvent
+  | OutcomeUpdatedEvent
+  | OpinionSuggestedEvent
   | StreamErrorEvent;
 
 export interface StreamStatusEvent {
@@ -70,6 +78,21 @@ export interface TranslationDeltaEvent {
   targetLanguage: LanguageCode;
   translatedText: string;
   isFinal?: boolean;
+}
+
+export interface ContextUpdatedEvent {
+  type: 'context.updated';
+  context: LiveContext;
+}
+
+export interface OutcomeUpdatedEvent {
+  type: 'outcome.updated';
+  outcome: MeetingOutcome;
+}
+
+export interface OpinionSuggestedEvent {
+  type: 'opinion.suggested';
+  suggestion: OpinionSuggestion;
 }
 
 export interface StreamErrorEvent {

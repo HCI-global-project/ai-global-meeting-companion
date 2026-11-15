@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertCircle,
   FileAudio,
+  Hand,
   Loader2,
   Mic,
   Play,
@@ -40,10 +41,12 @@ interface LiveTranscriptPanelProps {
   onStopStream: () => void;
   onClearStreamError: () => void;
   onStartRecording: () => void;
-  onStopRecording: () => void;
   onClearRecording: () => void;
   onAddTranscriptText: (recognizedText: string) => void;
+  onSendChat: (text: string) => void;
 }
+
+const MEETING_LANGUAGE: LanguageCode = 'ko';
 
 function formatDuration(totalSeconds: number): string {
   const mins = Math.floor(totalSeconds / 60);
@@ -69,15 +72,16 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
   onStopStream,
   onClearStreamError,
   onStartRecording,
-  onStopRecording,
   onClearRecording,
   onAddTranscriptText,
+  onSendChat,
 }) => {
   const { t } = useI18n();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcribeError, setTranscribeError] = useState<string | null>(null);
   const [emptySpeechNotice, setEmptySpeechNotice] = useState<string | null>(null);
+  const [chatDraft, setChatDraft] = useState('');
   const [transcribedAudioUrl, setTranscribedAudioUrl] = useState<string | null>(
     null
   );
@@ -105,8 +109,21 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
   const isStreamActive =
     connectionState === 'connecting' || connectionState === 'listening';
 
+  // 회의 언어는 한국어. 언어를 알 수 없는 발화(직접 녹음·의견)도 한국어로 본다
+  const needsTranslation = (entry: TranscriptEntry) =>
+    (entry.originalLanguage === 'auto' ? MEETING_LANGUAGE : entry.originalLanguage) !==
+    speechTargetLanguage;
+
   const speechTargetLangLabel =
     t.common.languages[speechTargetLanguage] ?? t.common.languages.en;
+
+  const handleSendChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = chatDraft.trim();
+    if (!text) return;
+    onSendChat(text);
+    setChatDraft('');
+  };
 
   const handleTranscribeRecording = async () => {
     if (!audioBlob || isTranscribing) return;
@@ -192,12 +209,6 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
         </h2>
 
         <div className="flex items-center gap-2 shrink-0">
-          {isRecording && (
-            <span className="body-02 text-primary-500 tabular-nums">
-              {formatDuration(durationSeconds)}
-            </span>
-          )}
-
           {/* Clearly Labeled Demo Stream Toggle */}
           {isDemoMode && isStreamActive ? (
             <button
@@ -216,37 +227,6 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
             >
               <Play className="size-3 fill-current" />
               <span>{t.stream.demoButton}</span>
-            </button>
-          )}
-
-          {/* Existing MediaRecorder Microphone Controls */}
-          {isRecording ? (
-            <button
-              type="button"
-              onClick={onStopRecording}
-              className="inline-flex items-center gap-1.5 body-05 text-white bg-primary-500 hover:bg-primary-600 rounded-2 px-3 h-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-            >
-              <Square className="size-icon-xs fill-current" />
-              <span>{t.transcript.stopRecording}</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onStartRecording}
-              disabled={isRequesting || isTranscribing}
-              className="inline-flex items-center gap-1.5 body-05 text-primary-500 hover:text-primary-600 bg-primary-50 hover:bg-primary-100 disabled:opacity-50 rounded-2 px-3 h-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:cursor-not-allowed"
-            >
-              {isRequesting ? (
-                <>
-                  <Loader2 className="size-icon-xs animate-spin" />
-                  <span>{t.transcript.requestingMic}</span>
-                </>
-              ) : (
-                <>
-                  <Mic className="size-icon-xs" />
-                  <span>{t.transcript.startRecording}</span>
-                </>
-              )}
             </button>
           )}
         </div>
@@ -444,6 +424,17 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
           {entries.length > 0 || interimSegment ? (
             <div className="flex flex-col gap-6">
               {entries.map((entry) => {
+                if (entry.source === 'signal') {
+                  return (
+                    <div key={entry.id} className="self-center flex items-center gap-1.5 rounded-full bg-primary-50 px-3 py-1 body-05 text-primary-600">
+                      <Hand className="size-3.5 shrink-0" />
+                      <span>{t.quickActions.waitNotice}</span>
+                      <span className="label-01 text-primary-400 tabular-nums">{entry.timestamp}</span>
+                    </div>
+                  );
+                }
+
+                const showTranslation = needsTranslation(entry);
                 const translatedLine = entry.translations[speechTargetLanguage];
 
                 return (
@@ -458,7 +449,7 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
                       >
                         <span>
                           {entry.isAnonymous
-                            ? t.shareOpinion.anonymousSpeaker
+                            ? t.anonymousOpinion.anonymousSpeaker
                             : entry.speakerName}
                         </span>
                         <span>{entry.timestamp}</span>
@@ -469,23 +460,29 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
                           {t.stream.demoBadge}
                         </span>
                       )}
+                      {entry.source === 'chat' && (
+                        <span className="label-02 text-gray-500">
+                          {t.chat.badge}
+                        </span>
+                      )}
                     </div>
 
                     <p className="mt-3 body-01 text-gray-800">
                       {entry.originalText}
                     </p>
 
-                    {translatedLine ? (
-                      <p className="mt-0.5 body-03 text-gray-400">
-                        {translatedLine}
-                      </p>
-                    ) : (
-                      <p className="mt-0.5 body-04 text-gray-400">
-                        {t.transcript.speechRecognizedPendingTranslation(
-                          speechTargetLangLabel
-                        )}
-                      </p>
-                    )}
+                    {showTranslation &&
+                      (translatedLine ? (
+                        <p className="mt-0.5 body-03 text-gray-400">
+                          {translatedLine}
+                        </p>
+                      ) : (
+                        <p className="mt-0.5 body-04 text-gray-400">
+                          {t.transcript.speechRecognizedPendingTranslation(
+                            speechTargetLangLabel
+                          )}
+                        </p>
+                      ))}
                   </article>
                 );
               })}
@@ -523,10 +520,12 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
                     {interimSegment.originalText}
                   </p>
 
-                  <p className="mt-0.5 body-03 text-gray-400">
-                    {interimSegment.translations[speechTargetLanguage] ??
-                      t.stream.awaitingTranslation}
-                  </p>
+                  {needsTranslation(interimSegment) && (
+                    <p className="mt-0.5 body-03 text-gray-400">
+                      {interimSegment.translations[speechTargetLanguage] ??
+                        t.stream.awaitingTranslation}
+                    </p>
+                  )}
                 </article>
               )}
             </div>
@@ -541,6 +540,27 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
             </div>
           )}
         </div>
+
+        {/* 말로 끼어들기 어려울 때 채팅으로 — 발화와 같은 흐름에 들어간다 */}
+        <form
+          onSubmit={handleSendChat}
+          className="shrink-0 flex gap-2 border-t border-gray-100 p-3"
+        >
+          <input
+            value={chatDraft}
+            onChange={(e) => setChatDraft(e.target.value)}
+            placeholder={t.chat.placeholder}
+            maxLength={400}
+            className="h-[45px] min-w-0 flex-1 rounded-2 border border-gray-100 bg-white px-4 body-03 text-gray-900 placeholder:text-gray-400 hover:bg-gray-50 focus:bg-white focus:border-primary-300 focus:outline-none transition-colors"
+          />
+          <button
+            type="submit"
+            disabled={!chatDraft.trim()}
+            className="h-[45px] shrink-0 rounded-2 bg-gray-100 hover:bg-gray-200 px-4 title-03 text-gray-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {t.chat.send}
+          </button>
+        </form>
       </div>
     </section>
   );

@@ -1,22 +1,32 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ConversationContextCard } from '../components/ConversationContextCard';
+import { AnonymousOpinionModal } from '../components/AnonymousOpinionModal';
+import { LiveContextCard } from '../components/LiveContextCard';
 import { LiveTranscriptPanel } from '../components/LiveTranscriptPanel';
 import { MeetingHeader } from '../components/MeetingHeader';
+import { OpinionSuggestionCard } from '../components/OpinionSuggestionCard';
 import { ParticipantsGrid } from '../components/ParticipantsGrid';
-import { ShareOpinionCard } from '../components/ShareOpinionCard';
+import { QuickActionBar } from '../components/QuickActionBar';
 import { SummaryCard } from '../components/SummaryCard';
-import {
-  MOCK_CONTEXT_DOCUMENTS,
-  MOCK_PARTICIPANTS,
-} from '../data/mockMeetingData';
+import { MOCK_PARTICIPANTS } from '../data/mockMeetingData';
 import { useMicrophoneRecorder } from '../hooks/useMicrophoneRecorder';
 import { useTranscriptStream } from '../hooks/useTranscriptStream';
-import type { LanguageCode, RoomSession, TranscriptEntry } from '../types/meeting';
+import { useI18n } from '../i18n/I18nContext';
+import type {
+  LanguageCode,
+  LiveContext,
+  MeetingOutcome,
+  OpinionSuggestion,
+  RoomSession,
+  TranscriptEntry,
+} from '../types/meeting';
 
 interface MeetingPageProps {
   session: RoomSession;
   transcript: TranscriptEntry[];
+  liveContext: LiveContext | null;
+  outcome: MeetingOutcome | null;
+  suggestions: OpinionSuggestion[];
   onChangeLanguage: (lang: LanguageCode) => void;
   onChangeRoom: (room: string) => void;
   onAddTranscriptText: (recognizedText: string) => void;
@@ -26,26 +36,44 @@ interface MeetingPageProps {
     targetLanguage: LanguageCode,
     translatedText: string
   ) => void;
+  onContextUpdated: (context: LiveContext) => void;
+  onOutcomeUpdated: (outcome: MeetingOutcome) => void;
+  onSendChat: (text: string) => void;
+  onOpinionSuggested: (suggestion: OpinionSuggestion) => void;
+  onRequestWait: () => void;
   onPublishOpinion: (
     originalText: string,
     translations: Partial<Record<LanguageCode, string>>,
     isAnonymous: boolean
   ) => void;
-  onExit: () => void;
 }
+
+const TOAST_MS = 2000;
 
 export const MeetingPage: React.FC<MeetingPageProps> = ({
   session,
   transcript,
+  liveContext,
+  outcome,
+  suggestions,
   onChangeLanguage,
   onChangeRoom,
   onAddTranscriptText,
   onAddFinalStreamEntry,
   onUpdateSegmentTranslation,
+  onContextUpdated,
+  onOutcomeUpdated,
+  onSendChat,
+  onOpinionSuggested,
+  onRequestWait,
   onPublishOpinion,
-  onExit,
 }) => {
   const navigate = useNavigate();
+  const { t } = useI18n();
+  const [isAnonymousModalOpen, setIsAnonymousModalOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
+
   const {
     status: recorderStatus,
     error: recorderError,
@@ -71,10 +99,27 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     speechTargetLanguage: session.speechTargetLanguage,
     onFinalSegment: onAddFinalStreamEntry,
     onUpdateSegmentTranslation,
+    onContextUpdated,
+    onOutcomeUpdated,
+    onOpinionSuggested,
   });
+
+  useEffect(
+    () => () => {
+      if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    },
+    []
+  );
 
   const isRecording = recorderStatus === 'recording';
   const isRequesting = recorderStatus === 'requesting';
+  const hasDemoData = transcript.some((entry) => entry.source === 'demo');
+
+  const showToast = (message: string) => {
+    setToast(message);
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = window.setTimeout(() => setToast(null), TOAST_MS);
+  };
 
   const handleEndMeeting = () => {
     releaseMicrophone();
@@ -82,11 +127,10 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     navigate('/meeting-end');
   };
 
-  const handleExit = () => {
-    releaseMicrophone();
-    stopStream();
-    onExit();
-    navigate('/');
+  const handleSubmitAnonymous = (text: string) => {
+    onPublishOpinion(text, {}, true);
+    setIsAnonymousModalOpen(false);
+    showToast(t.anonymousOpinion.submitted);
   };
 
   const matchedSelfParticipant = MOCK_PARTICIPANTS.find(
@@ -103,25 +147,24 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
           session={session}
           isRecording={isRecording}
           isRequesting={isRequesting}
+          recordingSeconds={durationSeconds}
           activeView="meeting"
           onChangeLanguage={onChangeLanguage}
           onChangeRoom={onChangeRoom}
-          onToggleRecording={
-            isRecording ? handleEndMeeting : () => void startRecording()
-          }
+          onToggleRecording={isRecording ? stopRecording : () => void startRecording()}
           onSwitchView={(view) => {
             if (view === 'notes') {
               handleEndMeeting();
             }
           }}
-          onExit={handleExit}
+          // 회의 중 나가기는 회의 종료 화면(노트·번역 기록·결정 사항)으로 간다
+          onExit={handleEndMeeting}
         />
       </div>
 
       <main className="flex-1 min-h-0 w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-4 flex flex-col gap-4">
-        {/* Two-Column Desktop Dashboard: ~58% Left Transcript + ~42% Right Sidecar */}
+        {/* 왼쪽 실시간 전사(약 58%) + 오른쪽 보조 패널(약 42%) */}
         <div className="flex-1 min-h-0 grid grid-cols-1 min-[720px]:grid-cols-[minmax(0,58fr)_minmax(0,42fr)] gap-4 items-stretch">
-          {/* Left Column (~58%) */}
           <div className="min-h-0 flex flex-col">
             <LiveTranscriptPanel
               entries={transcript}
@@ -141,45 +184,68 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
               onStopStream={stopStream}
               onClearStreamError={clearStreamError}
               onStartRecording={() => void startRecording()}
-              onStopRecording={stopRecording}
               onClearRecording={clearRecording}
               onAddTranscriptText={onAddTranscriptText}
+              onSendChat={onSendChat}
             />
           </div>
 
-          {/* Right Column (~42%) */}
-          <div className="min-h-0 flex flex-col gap-4">
+          {/* 오른쪽 칸: 참여자·빠른 요청은 고정, 의견 추천·대화 맥락은 남은 높이를 나눠 갖고 각자 안에서 스크롤 */}
+          <aside className="min-h-0 flex flex-col gap-4">
             <div className="shrink-0">
               <ParticipantsGrid
                 participants={MOCK_PARTICIPANTS}
                 activeSpeakerId={activeSpeakerId}
               />
             </div>
-
-            <div className="flex-1 min-h-0 flex flex-col">
-              <ShareOpinionCard
-                userName={session.userName}
-                targetLanguage={session.speechTargetLanguage}
-                onPublishOpinion={onPublishOpinion}
+            <div className="shrink-0">
+              <QuickActionBar
+                onRequestWait={onRequestWait}
+                onOpenAnonymousOpinion={() => setIsAnonymousModalOpen(true)}
               />
             </div>
-
-            <div className="flex-1 min-h-0 flex flex-col">
-              <ConversationContextCard documents={MOCK_CONTEXT_DOCUMENTS} />
+            <div className="flex-1 min-h-0 min-[720px]:min-h-[160px]">
+              <OpinionSuggestionCard
+                suggestions={suggestions}
+                targetLanguage={session.speechTargetLanguage}
+                isDemo={hasDemoData}
+              />
             </div>
-          </div>
+            <div className="flex-1 min-h-0 min-[720px]:min-h-[160px]">
+              <LiveContextCard
+                context={liveContext}
+                targetLanguage={session.speechTargetLanguage}
+                isDemo={hasDemoData}
+              />
+            </div>
+          </aside>
         </div>
 
-        {/* Full-Width Bottom Summary */}
+        {/* 요약(회의 결과 누적)은 아래 전체 폭 */}
         <div className="shrink-0">
           <SummaryCard
-            speechTargetLanguage={session.speechTargetLanguage}
-            isRecording={isRecording || isDemoMode}
-            transcript={transcript}
-            onOpenNotesReview={handleEndMeeting}
+            outcome={outcome}
+            targetLanguage={session.speechTargetLanguage}
+            isDemo={hasDemoData}
           />
         </div>
+
       </main>
+
+      <AnonymousOpinionModal
+        open={isAnonymousModalOpen}
+        onClose={() => setIsAnonymousModalOpen(false)}
+        onSubmit={handleSubmitAnonymous}
+      />
+
+      {toast && (
+        <div
+          role="status"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-full bg-gray-800 px-4 py-2 body-02 text-white shadow-01"
+        >
+          {toast}
+        </div>
+      )}
     </div>
   );
 };
