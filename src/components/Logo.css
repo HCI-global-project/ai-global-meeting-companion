@@ -1,0 +1,20 @@
+.logo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.06em;
+  font-family: var(--font-sans);
+  font-size: 3.5rem; /* override per usage */
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.logo__mark {
+  width: 1.25em;
+  height: 0.625em;
+  flex: none;
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 7;
+}
