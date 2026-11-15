@@ -22,5 +22,7 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  // 테스트는 node:test + tsx 로 돈다(npm test). 앱 타입(vite/client)과 섞지 않는다
+  "exclude": ["src/**/*.test.ts"]
 }
