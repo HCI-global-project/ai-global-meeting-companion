@@ -1,0 +1,43 @@
+"""회의 데이터 저장소 인터페이스. 메모리(로컬·테스트)와 Supabase(배포) 구현이 있다."""
+
+from typing import Protocol
+
+from ..domain.models import (
+    LiveContext,
+    MeetingNote,
+    MeetingOutcome,
+    OpinionSuggestion,
+    Participant,
+    Segment,
+    SegmentDraft,
+)
+
+
+class MeetingStore(Protocol):
+    async def append_segment(self, meeting_id: str, draft: SegmentDraft) -> Segment:
+        """회의 단위로 순번을 매겨 저장한다."""
+        ...
+
+    async def recent_segments(self, meeting_id: str, limit: int) -> list[Segment]: ...
+
+    async def save_correction(self, segment_id: str, corrected: str, ms: int) -> None: ...
+
+    async def save_translations(self, segment_id: str, translations: dict[str, str]) -> None: ...
+
+    async def upsert_participant(self, meeting_id: str, participant: Participant) -> None: ...
+
+    async def list_participants(self, meeting_id: str) -> list[Participant]: ...
+
+    async def primary_language(self, meeting_id: str) -> str | None: ...
+
+    async def save_context(self, meeting_id: str, context: LiveContext) -> None: ...
+
+    async def load_context(self, meeting_id: str) -> LiveContext | None: ...
+
+    async def save_outcome(self, meeting_id: str, outcome: MeetingOutcome) -> None: ...
+
+    async def load_outcome(self, meeting_id: str) -> MeetingOutcome | None: ...
+
+    async def save_suggestion(self, suggestion: OpinionSuggestion) -> None: ...
+
+    async def save_note(self, note: MeetingNote) -> None: ...

@@ -1,0 +1,7 @@
+fastapi==0.163.1
+uvicorn[standard]==0.54.0
+httpx==0.28.1
+pydantic==2.14.3
+pydantic-settings==2.16.3
+# Windows 에는 IANA 시간대 DB 가 없어 zoneinfo 가 이 패키지를 쓴다
+tzdata>=2024.1

@@ -1,0 +1,11 @@
+# AI 파이프라인 서버. 데이터·실시간 전달은 Supabase(관리형)가 맡아 여기에는 없다.
+#   docker compose up --build
+services:
+  api:
+    build: ./api
+    env_file:
+      - path: ./api/.env
+        required: false
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
