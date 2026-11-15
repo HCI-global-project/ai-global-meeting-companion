@@ -97,7 +97,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     (isRecording && matchedSelfParticipant ? matchedSelfParticipant.id : undefined);
 
   return (
-    <div className="min-h-dvh min-[720px]:h-dvh w-full flex flex-col bg-[#F7F6FC] min-[720px]:overflow-hidden">
+    <div className="min-h-dvh min-[720px]:h-dvh w-full flex flex-col bg-gray-50 min-[720px]:overflow-hidden">
       <div className="shrink-0">
         <MeetingHeader
           session={session}

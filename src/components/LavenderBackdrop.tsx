@@ -6,7 +6,7 @@ export const LavenderBackdrop: React.FC = () => (
     aria-hidden="true"
     style={{
       background:
-        'radial-gradient(120% 100% at 15% 5%, #CFC6FF 0%, #ECE9FE 36%, #F9F8FE 72%, #E2DBFE 100%)',
+        'radial-gradient(120% 100% at 15% 5%, var(--color-primary-200) 0%, var(--color-primary-50) 36%, var(--color-gray-20) 72%, var(--color-primary-100) 100%)',
     }}
   >
     <svg
@@ -18,13 +18,13 @@ export const LavenderBackdrop: React.FC = () => (
     >
       <defs>
         <linearGradient id="loopRibbonA" x1="120" y1="780" x2="1320" y2="120" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#8574EE" stopOpacity="0.48" />
-          <stop offset="50%" stopColor="#B8AEFA" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#7C6BE8" stopOpacity="0.52" />
+          <stop offset="0%" stopColor="var(--color-primary-400)" stopOpacity="0.48" />
+          <stop offset="50%" stopColor="var(--color-primary-300)" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="var(--color-primary-400)" stopOpacity="0.52" />
         </linearGradient>
         <linearGradient id="loopRibbonB" x1="0" y1="200" x2="1400" y2="800" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.7" />
-          <stop offset="100%" stopColor="#C8BFFD" stopOpacity="0.35" />
+          <stop offset="0%" stopColor="var(--color-white)" stopOpacity="0.7" />
+          <stop offset="100%" stopColor="var(--color-primary-200)" stopOpacity="0.35" />
         </linearGradient>
       </defs>
 

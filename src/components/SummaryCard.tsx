@@ -64,24 +64,24 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   const summaryItems = buildSessionSummaryPoints();
 
   return (
-    <section className="bg-white border border-[#DFDDE9] rounded-[18px] px-5 sm:px-6 py-4 min-h-[104px] lg:min-h-[116px] flex flex-col justify-between">
+    <section className="bg-white border border-gray-100 rounded-4 px-5 sm:px-6 py-4 min-h-[104px] lg:min-h-[116px] flex flex-col justify-between">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-baseline gap-2 min-w-0">
-          <h2 className="text-[17px] lg:text-[18px] font-medium text-[#5A5770] tracking-[-0.01em]">
+          <h2 className="heading-06 text-gray-700">
             {t.summary.title}
           </h2>
           {summaryItems.length > 0 && (
-            <span className="text-[11.5px] font-medium text-[#8E8BA3] truncate">
+            <span className="label-02 text-gray-500 truncate">
               · {isDemoOnly ? t.summary.demoSummaryLabel : t.summary.sessionSummaryLabel}
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2 text-[13px] text-[#8E8BA3] whitespace-nowrap shrink-0">
+        <div className="flex items-center gap-2 body-04 text-gray-500 whitespace-nowrap shrink-0">
           <button
             type="button"
             onClick={() => setShowSummary((prev) => !prev)}
-            className="hover:text-[#5B49EA] transition-colors cursor-pointer"
+            className="hover:text-primary-500 transition-colors cursor-pointer"
           >
             {isExpanded ? t.summary.hideSummary : t.summary.generateSummary}
           </button>
@@ -89,7 +89,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
           <button
             type="button"
             onClick={onOpenNotesReview}
-            className="hover:text-[#5B49EA] transition-colors cursor-pointer"
+            className="hover:text-primary-500 transition-colors cursor-pointer"
           >
             {t.summary.endMeeting}
           </button>
@@ -102,14 +102,14 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
             {summaryItems.map((point, index) => (
               <li
                 key={index}
-                className="rounded-xl bg-[#F7F6FC] border border-[#EAE8F3] px-3.5 py-2 text-[12.5px] leading-relaxed text-[#4C4962] break-words"
+                className="rounded-2 bg-gray-50 border border-gray-100 px-4 py-3 body-04 text-gray-800 break-words"
               >
                 {point}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="mt-3 text-[13px] text-[#9A97AD]">{t.summary.emptyState}</p>
+          <p className="mt-3 body-04 text-gray-400">{t.summary.emptyState}</p>
         )
       ) : (
         <div className="flex-1" />

@@ -213,7 +213,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Loop server listening on http://0.0.0.0:${PORT}`);
+    console.log(`Loop server listening on http://localhost:${PORT}`);
   });
 }
 

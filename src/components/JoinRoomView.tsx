@@ -6,6 +6,10 @@ import type { LanguageCode, RoomSession } from '../types/meeting';
 import { LavenderBackdrop } from './LavenderBackdrop';
 import { LoopLogo } from './LoopLogo';
 
+// OMO 인풋: 회색 테두리 + 호버 시 옅은 배경, 포커스만 primary
+const INPUT_CLASS =
+  'w-full h-[45px] rounded-2 border border-gray-200 bg-white hover:bg-gray-50 focus:bg-white focus:border-primary-500 focus:outline-none px-4 body-03 text-gray-900 placeholder:text-gray-400 transition-colors';
+
 interface JoinRoomViewProps {
   initialSession: RoomSession;
   onStartMeeting: (session: RoomSession) => void;
@@ -44,30 +48,30 @@ export const JoinRoomView: React.FC<JoinRoomViewProps> = ({
       <LavenderBackdrop />
 
       {/* Centered Large Loop Logo */}
-      <div className="mb-7">
+      <div className="mb-8">
         <LoopLogo size="lg" />
       </div>
 
       {/* Centered Welcome Card */}
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-[460px] bg-white/95 backdrop-blur-sm rounded-[28px] shadow-[0_18px_50px_rgba(91,73,234,0.10)] px-8 sm:px-11 py-10"
+        className="w-full max-w-[460px] bg-white border border-gray-100 rounded-5 shadow-03 px-6 sm:px-10 py-10"
       >
         <div className="text-center mb-8">
-          <h1 className="text-[26px] font-bold tracking-[-0.02em] text-[#1A1826]">
+          <h1 className="heading-04 text-gray-900">
             {t.login.title}
           </h1>
-          <p className="mt-1.5 text-[14px] font-medium text-[#5B49EA]">
+          <p className="mt-2 body-02 text-primary-500">
             {t.login.subtitle}
           </p>
         </div>
 
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4">
           {/* Room Code */}
-          <div>
+          <div className="flex flex-col gap-[6px]">
             <label
               htmlFor="loop-room-code"
-              className="block text-[13px] font-medium text-[#1A1826] mb-1.5"
+              className="body-02 text-gray-900"
             >
               {t.login.roomCodeLabel}
             </label>
@@ -77,15 +81,15 @@ export const JoinRoomView: React.FC<JoinRoomViewProps> = ({
               value={roomCode}
               onChange={(e) => setRoomCode(e.target.value)}
               placeholder={t.login.roomCodePlaceholder}
-              className="w-full rounded-xl border border-[#8E82F6] focus:border-[#5B49EA] focus:outline-none focus:ring-2 focus:ring-[#5B49EA]/15 px-4 py-2.5 text-[14px] text-[#1A1826] placeholder:text-[#A4A1B5] bg-white"
+              className={INPUT_CLASS}
             />
           </div>
 
           {/* Name */}
-          <div>
+          <div className="flex flex-col gap-[6px]">
             <label
               htmlFor="loop-user-name"
-              className="block text-[13px] font-medium text-[#1A1826] mb-1.5"
+              className="body-02 text-gray-900"
             >
               {t.login.nameLabel}
             </label>
@@ -95,15 +99,15 @@ export const JoinRoomView: React.FC<JoinRoomViewProps> = ({
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
               placeholder={t.login.namePlaceholder}
-              className="w-full rounded-xl border border-[#8E82F6] focus:border-[#5B49EA] focus:outline-none focus:ring-2 focus:ring-[#5B49EA]/15 px-4 py-2.5 text-[14px] text-[#1A1826] placeholder:text-[#A4A1B5] bg-white"
+              className={INPUT_CLASS}
             />
           </div>
 
           {/* Role */}
-          <div>
+          <div className="flex flex-col gap-[6px]">
             <label
               htmlFor="loop-user-role"
-              className="block text-[13px] font-medium text-[#1A1826] mb-1.5"
+              className="body-02 text-gray-900"
             >
               {t.login.roleLabel}
             </label>
@@ -113,15 +117,15 @@ export const JoinRoomView: React.FC<JoinRoomViewProps> = ({
               value={userRole}
               onChange={(e) => setUserRole(e.target.value)}
               placeholder={t.login.rolePlaceholder}
-              className="w-full rounded-xl border border-[#8E82F6] focus:border-[#5B49EA] focus:outline-none focus:ring-2 focus:ring-[#5B49EA]/15 px-4 py-2.5 text-[14px] text-[#1A1826] placeholder:text-[#A4A1B5] bg-white"
+              className={INPUT_CLASS}
             />
           </div>
 
           {/* My Language */}
-          <div>
+          <div className="flex flex-col gap-[6px]">
             <label
               htmlFor="loop-my-language"
-              className="block text-[13px] font-medium text-[#1A1826] mb-1.5"
+              className="body-02 text-gray-900"
             >
               {t.login.languageLabel}
             </label>
@@ -132,7 +136,7 @@ export const JoinRoomView: React.FC<JoinRoomViewProps> = ({
                 onChange={(e) =>
                   handleLanguageChange(e.target.value as LanguageCode)
                 }
-                className="w-full appearance-none rounded-xl border border-[#8E82F6] focus:border-[#5B49EA] focus:outline-none focus:ring-2 focus:ring-[#5B49EA]/15 px-4 py-2.5 pr-10 text-[14px] text-[#1A1826] bg-white cursor-pointer"
+                className={`${INPUT_CLASS} appearance-none pr-10 cursor-pointer`}
               >
                 {SUPPORTED_LANGUAGES.map((lang) => (
                   <option key={lang.code} value={lang.code}>
@@ -141,7 +145,7 @@ export const JoinRoomView: React.FC<JoinRoomViewProps> = ({
                 ))}
               </select>
               <ChevronDown
-                className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1A1826]"
+                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 size-icon-xs text-gray-600"
                 strokeWidth={2}
               />
             </div>
@@ -150,7 +154,7 @@ export const JoinRoomView: React.FC<JoinRoomViewProps> = ({
           {/* Primary Start CTA */}
           <button
             type="submit"
-            className="mt-3 w-full rounded-xl bg-[#5B49EA] hover:bg-[#4C3ADB] text-white font-semibold text-[16px] py-3 transition-colors shadow-[0_6px_18px_rgba(91,73,234,0.28)] cursor-pointer"
+            className="mt-4 w-full h-12 rounded-2 bg-primary-500 hover:opacity-90 text-white title-02 flex items-center justify-center transition-opacity cursor-pointer"
           >
             {t.login.startButton}
           </button>

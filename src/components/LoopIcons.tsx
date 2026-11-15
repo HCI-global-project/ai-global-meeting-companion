@@ -23,7 +23,7 @@ export const PencilTrayIcon: React.FC<IconProps> = ({ className = 'w-9 h-9' }) =
     />
     <path
       d="M15.5 25.2L30.2 10.5C31.3 9.4 33.1 9.4 34.2 10.5C35.3 11.6 35.3 13.4 34.2 14.5L19.5 29.2L13.5 30.8L15.5 25.2Z"
-      fill="#E6E5EC"
+      fill="var(--color-gray-100)"
       stroke="currentColor"
       strokeWidth="2.4"
       strokeLinecap="round"

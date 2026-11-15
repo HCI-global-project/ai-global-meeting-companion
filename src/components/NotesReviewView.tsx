@@ -90,28 +90,28 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
   return (
     <div className="max-w-[1380px] mx-auto px-4 sm:px-6 py-6">
       {/* Large Rounded White Container over Lavender Backdrop */}
-      <div className="bg-white/95 backdrop-blur-sm border border-[#EAE8F3] rounded-[28px] shadow-[0_12px_40px_rgba(91,73,234,0.06)] p-5 sm:p-8 flex flex-col gap-5">
+      <div className="bg-white border border-gray-100 rounded-5 shadow-03 p-5 sm:p-8 flex flex-col gap-5">
         {/* Subtle Back Return Link */}
         <div className="flex items-center justify-between">
           <button
             type="button"
             onClick={onBackToMeeting}
-            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#7D7994] hover:text-[#5B49EA] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 body-02 text-gray-600 hover:text-primary-500 transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="size-icon-xs" />
             <span>{t.meetingEnd.backToMeeting}</span>
           </button>
         </div>
 
         {/* Meeting Notes Card */}
-        <section className="bg-white border border-[#DFDDE9] rounded-[18px] p-5 sm:p-6">
+        <section className="bg-white border border-gray-100 rounded-4 p-5 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-baseline gap-2">
-              <h2 className="text-[20px] sm:text-[22px] font-medium text-[#5A5770] tracking-[-0.01em]">
+              <h2 className="heading-05 text-gray-700">
                 {t.meetingEnd.notesTitle}
               </h2>
               {notes.length > 0 && (
-                <span className="text-[12px] font-medium text-[#8E8BA3]">
+                <span className="body-05 text-gray-500">
                   · {notes.length}
                 </span>
               )}
@@ -121,10 +121,10 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
               <button
                 type="button"
                 onClick={() => setNotesOpen(false)}
-                className="text-[#8E8BA3] hover:text-[#4C4962] p-1 rounded-lg transition-colors cursor-pointer"
+                className="text-gray-500 hover:text-gray-800 p-1 rounded-2 transition-colors cursor-pointer"
                 aria-label={t.meetingEnd.collapseNotesAria}
               >
-                <X className="w-4 h-4" />
+                <X className="size-icon-xs" />
               </button>
             )}
           </div>
@@ -133,25 +133,25 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
             <button
               type="button"
               onClick={() => setNotesOpen(true)}
-              className="w-full h-[200px] sm:h-[210px] rounded-[18px] bg-[#E6E5EC] hover:bg-[#DDDCE6] transition-colors flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5B49EA]"
+              className="w-full h-[200px] sm:h-[210px] rounded-3 bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               aria-label={t.meetingEnd.openNotesAria}
             >
-              <PencilTrayIcon className="w-12 h-12 text-[#8E8BA3]" />
+              <PencilTrayIcon className="w-12 h-12 text-gray-500" />
             </button>
           ) : (
             <div className="flex flex-col gap-4">
               {notes.length === 0 ? (
-                <div className="rounded-[14px] bg-[#F7F6FC] border border-[#EAE8F3] px-4 py-6 flex flex-col items-center justify-center text-center">
-                  <p className="text-[13.5px] font-medium text-[#5A5770]">
+                <div className="rounded-3 bg-gray-50 border border-gray-100 px-4 py-6 flex flex-col items-center justify-center text-center">
+                  <p className="body-02 text-gray-700">
                     {t.meetingEnd.noNotesTitle}
                   </p>
-                  <p className="text-[12px] text-[#9A97AD] mt-1">
+                  <p className="label-01 text-gray-400 mt-1">
                     {t.meetingEnd.noNotesBody}
                   </p>
                   <button
                     type="button"
                     onClick={onLoadDemoNotes}
-                    className="mt-2.5 text-[12px] font-medium text-[#5B49EA] hover:text-[#4735D4] cursor-pointer"
+                    className="mt-2.5 body-05 text-primary-500 hover:text-primary-600 cursor-pointer"
                   >
                     {t.meetingEnd.loadSampleDemo}
                   </button>
@@ -163,27 +163,27 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                     return (
                       <div
                         key={note.id}
-                        className="rounded-xl bg-[#F7F6FC] border border-[#EAE8F3] px-4 py-3"
+                        className="rounded-2 bg-gray-50 border border-gray-100 px-4 py-3"
                       >
-                        <div className="flex items-center justify-between text-[12px] text-[#8E8BA3] mb-1">
+                        <div className="flex items-center justify-between label-01 text-gray-500 mb-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium text-[#5A5770]">
+                            <span className="font-medium text-gray-700">
                               {note.author}
                             </span>
                             <span aria-hidden="true">·</span>
                             <span className="tabular-nums">{note.timestamp}</span>
                           </div>
                           {note.isDemo && (
-                            <span className="text-[11px] text-[#8E8BA3]">
+                            <span className="label-01 text-gray-500">
                               {t.stream.demoBadge}
                             </span>
                           )}
                         </div>
-                        <p className="text-[14px] text-[#3E3B52] break-words">
+                        <p className="body-03 text-gray-800 break-words">
                           {note.content}
                         </p>
                         {translated && translated !== note.content && (
-                          <p className="text-[13px] text-[#9A97AD] mt-0.5 break-words">
+                          <p className="body-04 text-gray-400 mt-0.5 break-words">
                             {translated}
                           </p>
                         )}
@@ -204,17 +204,17 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                     }}
                     placeholder={t.meetingEnd.addNotePlaceholder(userName)}
                     aria-invalid={Boolean(noteError)}
-                    className={`flex-1 min-w-0 rounded-xl bg-[#F7F6FC] border focus:outline-none px-4 py-2.5 text-[14px] text-[#3E3B52] placeholder:text-[#9A97AD] ${
+                    className={`flex-1 min-w-0 h-[45px] rounded-2 bg-gray-50 border focus:outline-none px-4 body-03 text-gray-800 placeholder:text-gray-400 ${
                       noteError
-                        ? 'border-[#C94A63] focus:border-[#B43C54]'
-                        : 'border-[#DFDDE9] focus:border-[#7C6CEB]'
+                        ? 'border-red-400 focus:border-red-500'
+                        : 'border-gray-200 focus:border-primary-400'
                     }`}
                   />
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#5B49EA] hover:bg-[#4B3AD8] text-white px-4 py-2.5 text-[13px] font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 h-[45px] rounded-2 bg-primary-500 hover:bg-primary-600 text-white px-4 body-02 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="size-icon-xs" />
                     <span>{t.meetingEnd.addNoteButton}</span>
                   </button>
                 </div>
@@ -222,9 +222,9 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                 {noteError && (
                   <p
                     role="alert"
-                    className="inline-flex items-center gap-1.5 text-[12px] text-[#B43C54] font-medium"
+                    className="inline-flex items-center gap-1.5 body-04 text-red-500"
                   >
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <AlertCircle className="size-icon-xs shrink-0" />
                     <span>{noteError}</span>
                   </p>
                 )}
@@ -236,14 +236,14 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
         {/* Bottom 2-Column Split: Translation History & Review Decisions */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           {/* Translation History */}
-          <section className="lg:col-span-5 bg-white border border-[#DFDDE9] rounded-[18px] p-5 sm:p-6 flex flex-col">
+          <section className="lg:col-span-5 bg-white border border-gray-100 rounded-4 p-5 sm:p-6 flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-baseline gap-2">
-                <h2 className="text-[18px] font-medium text-[#5A5770] tracking-[-0.01em]">
+                <h2 className="heading-06 text-gray-700">
                   {t.meetingEnd.translationHistoryTitle}
                 </h2>
                 {transcript.length > 0 && (
-                  <span className="text-[12px] font-medium text-[#8E8BA3]">
+                  <span className="body-05 text-gray-500">
                     · {transcript.length}
                   </span>
                 )}
@@ -253,10 +253,10 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setHistoryOpen(false)}
-                  className="text-[#8E8BA3] hover:text-[#4C4962] p-1 rounded-lg transition-colors cursor-pointer"
+                  className="text-gray-500 hover:text-gray-800 p-1 rounded-2 transition-colors cursor-pointer"
                   aria-label={t.meetingEnd.collapseHistoryAria}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="size-icon-xs" />
                 </button>
               )}
             </div>
@@ -265,17 +265,17 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
               <button
                 type="button"
                 onClick={() => setHistoryOpen(true)}
-                className="w-full h-[155px] rounded-[18px] bg-[#E6E5EC] hover:bg-[#DDDCE6] transition-colors flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5B49EA]"
+                className="w-full h-[155px] rounded-3 bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 aria-label={t.meetingEnd.openHistoryAria}
               >
-                <ClockOutlineIcon className="w-11 h-11 text-[#8E8BA3]" />
+                <ClockOutlineIcon className="w-11 h-11 text-gray-500" />
               </button>
             ) : transcript.length === 0 ? (
-              <div className="h-[155px] rounded-[18px] bg-[#F7F6FC] border border-[#EAE8F3] px-4 flex flex-col items-center justify-center text-center">
-                <p className="text-[13.5px] font-medium text-[#5A5770]">
+              <div className="h-[155px] rounded-3 bg-gray-50 border border-gray-100 px-4 flex flex-col items-center justify-center text-center">
+                <p className="body-02 text-gray-700">
                   {t.meetingEnd.noHistoryTitle}
                 </p>
-                <p className="text-[12px] text-[#9A97AD] mt-1">
+                <p className="label-01 text-gray-400 mt-1">
                   {t.meetingEnd.noHistoryBody}
                 </p>
               </div>
@@ -289,27 +289,27 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                   return (
                     <div
                       key={item.id}
-                      className="rounded-xl bg-[#F7F6FC] border border-[#EAE8F3] px-3.5 py-2.5"
+                      className="rounded-2 bg-gray-50 border border-gray-100 px-4 py-2.5"
                     >
-                      <div className="flex items-center justify-between text-[12px] text-[#8E8BA3] gap-2">
-                        <span className="font-medium text-[#4C4962] inline-flex items-center gap-1.5 min-w-0">
+                      <div className="flex items-center justify-between label-01 text-gray-500 gap-2">
+                        <span className="font-medium text-gray-800 inline-flex items-center gap-1.5 min-w-0">
                           {item.isAnonymous && (
-                            <EyeOff className="w-3 h-3 text-[#5B49EA] shrink-0" />
+                            <EyeOff className="size-3 text-primary-500 shrink-0" />
                           )}
                           <span className="truncate">{displaySpeaker}</span>
                           {item.source === 'demo' && (
-                            <span className="text-[11px] font-normal text-[#8E8BA3] shrink-0">
+                            <span className="label-01 text-gray-500 shrink-0">
                               · {t.stream.demoBadge}
                             </span>
                           )}
                         </span>
                         <span className="tabular-nums shrink-0">{item.timestamp}</span>
                       </div>
-                      <p className="text-[13px] text-[#3E3B52] mt-1 break-words">
+                      <p className="body-04 text-gray-800 mt-1 break-words">
                         {item.originalText}
                       </p>
                       {translated && (
-                        <p className="text-[12.5px] text-[#9A97AD] break-words">
+                        <p className="label-01 text-gray-400 break-words">
                           {translated}
                         </p>
                       )}
@@ -321,14 +321,14 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
           </section>
 
           {/* Review Decisions */}
-          <section className="lg:col-span-7 bg-white border border-[#DFDDE9] rounded-[18px] p-5 sm:p-6 flex flex-col">
+          <section className="lg:col-span-7 bg-white border border-gray-100 rounded-4 p-5 sm:p-6 flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-baseline gap-2">
-                <h2 className="text-[18px] font-medium text-[#5A5770] tracking-[-0.01em]">
+                <h2 className="heading-06 text-gray-700">
                   {t.meetingEnd.reviewDecisionsTitle}
                 </h2>
                 {decisions.length > 0 && (
-                  <span className="text-[12px] font-medium text-[#8E8BA3]">
+                  <span className="body-05 text-gray-500">
                     · {decisions.length}
                   </span>
                 )}
@@ -338,10 +338,10 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setDecisionsOpen(false)}
-                  className="text-[#8E8BA3] hover:text-[#4C4962] p-1 rounded-lg transition-colors cursor-pointer"
+                  className="text-gray-500 hover:text-gray-800 p-1 rounded-2 transition-colors cursor-pointer"
                   aria-label={t.meetingEnd.collapseDecisionsAria}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="size-icon-xs" />
                 </button>
               )}
             </div>
@@ -350,25 +350,25 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
               <button
                 type="button"
                 onClick={() => setDecisionsOpen(true)}
-                className="w-full h-[155px] rounded-[18px] bg-[#E6E5EC] hover:bg-[#DDDCE6] transition-colors flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5B49EA]"
+                className="w-full h-[155px] rounded-3 bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 aria-label={t.meetingEnd.openDecisionsAria}
               >
-                <BookmarkOutlineIcon className="w-11 h-11 text-[#8E8BA3]" />
+                <BookmarkOutlineIcon className="w-11 h-11 text-gray-500" />
               </button>
             ) : (
-              <div className="flex flex-col gap-3.5">
+              <div className="flex flex-col gap-3">
                 {decisions.length === 0 ? (
-                  <div className="rounded-[14px] bg-[#F7F6FC] border border-[#EAE8F3] px-4 py-5 flex flex-col items-center justify-center text-center">
-                    <p className="text-[13.5px] font-medium text-[#5A5770]">
+                  <div className="rounded-3 bg-gray-50 border border-gray-100 px-4 py-5 flex flex-col items-center justify-center text-center">
+                    <p className="body-02 text-gray-700">
                       {t.meetingEnd.noDecisionsTitle}
                     </p>
-                    <p className="text-[12px] text-[#9A97AD] mt-1 max-w-md">
+                    <p className="label-01 text-gray-400 mt-1 max-w-md">
                       {t.meetingEnd.noDecisionsBody}
                     </p>
                     <button
                       type="button"
                       onClick={onLoadDemoDecisions}
-                      className="mt-2.5 text-[12px] font-medium text-[#5B49EA] hover:text-[#4735D4] cursor-pointer"
+                      className="mt-2.5 body-05 text-primary-500 hover:text-primary-600 cursor-pointer"
                     >
                       {t.meetingEnd.loadSampleDemo}
                     </button>
@@ -380,31 +380,31 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                         key={decision.id}
                         type="button"
                         onClick={() => onToggleDecisionStatus(decision.id)}
-                        className="w-full text-left rounded-xl bg-[#F7F6FC] hover:bg-[#F1EFFB] border border-[#EAE8F3] px-4 py-3 flex items-center justify-between gap-3 transition-colors cursor-pointer"
+                        className="w-full text-left rounded-2 bg-gray-50 hover:bg-primary-50 border border-gray-100 px-4 py-3 flex items-center justify-between gap-3 transition-colors cursor-pointer"
                       >
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="text-[14px] font-medium text-[#3E3B52] truncate">
+                            <p className="body-02 text-gray-800 truncate">
                               {decision.title}
                             </p>
                             {decision.isDemo && (
-                              <span className="text-[11px] text-[#8E8BA3] shrink-0">
+                              <span className="label-01 text-gray-500 shrink-0">
                                 {t.stream.demoBadge}
                               </span>
                             )}
                           </div>
-                          <p className="text-[12px] text-[#8E8BA3] mt-0.5 truncate">
+                          <p className="label-01 text-gray-500 mt-0.5 truncate">
                             {t.meetingEnd.ownerPrefix} {decision.owner} · {decision.dueDate}
                           </p>
                         </div>
                         <span
-                          className={`inline-flex items-center gap-1.5 text-[12px] font-medium shrink-0 ${
+                          className={`inline-flex items-center gap-1.5 body-05 shrink-0 ${
                             decision.status === 'Confirmed'
-                              ? 'text-[#5B49EA]'
-                              : 'text-[#8E8BA3]'
+                              ? 'text-primary-500'
+                              : 'text-gray-500'
                           }`}
                         >
-                          <CheckCircle2 className="w-4 h-4" />
+                          <CheckCircle2 className="size-icon-xs" />
                           <span>
                             {decision.status === 'Confirmed'
                               ? t.meetingEnd.statusConfirmed
@@ -431,17 +431,17 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                       }}
                       placeholder={t.meetingEnd.addDecisionPlaceholder}
                       aria-invalid={Boolean(decisionError)}
-                      className={`flex-1 min-w-0 rounded-xl bg-[#F7F6FC] border focus:outline-none px-4 py-2 text-[13.5px] text-[#3E3B52] placeholder:text-[#9A97AD] ${
+                      className={`flex-1 min-w-0 h-[45px] rounded-2 bg-gray-50 border focus:outline-none px-4 body-03 text-gray-800 placeholder:text-gray-400 ${
                         decisionError
-                          ? 'border-[#C94A63] focus:border-[#B43C54]'
-                          : 'border-[#DFDDE9] focus:border-[#7C6CEB]'
+                          ? 'border-red-400 focus:border-red-500'
+                          : 'border-gray-200 focus:border-primary-400'
                       }`}
                     />
                     <button
                       type="submit"
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#5B49EA] hover:bg-[#4B3AD8] text-white px-3.5 py-2 text-[13px] font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 h-[45px] rounded-2 bg-primary-500 hover:bg-primary-600 text-white px-4 body-02 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="size-icon-xs" />
                       <span>{t.meetingEnd.addDecisionButton}</span>
                     </button>
                   </div>
@@ -449,9 +449,9 @@ export const NotesReviewView: React.FC<NotesReviewViewProps> = ({
                   {decisionError && (
                     <p
                       role="alert"
-                      className="inline-flex items-center gap-1.5 text-[12px] text-[#B43C54] font-medium"
+                      className="inline-flex items-center gap-1.5 body-04 text-red-500"
                     >
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <AlertCircle className="size-icon-xs shrink-0" />
                       <span>{decisionError}</span>
                     </p>
                   )}

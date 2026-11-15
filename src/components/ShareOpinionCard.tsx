@@ -142,14 +142,14 @@ export const ShareOpinionCard: React.FC<ShareOpinionCardProps> = ({
   };
 
   return (
-    <section className="bg-white border border-[#DFDDE9] rounded-[18px] p-4 lg:p-5 h-full min-h-0 flex flex-col">
+    <section className="bg-white border border-gray-100 rounded-4 p-4 lg:p-5 h-full min-h-0 flex flex-col">
       <div className="shrink-0 flex items-center justify-between mb-3 gap-2">
         <div className="flex items-baseline gap-2 min-w-0">
-          <h2 className="text-[17px] lg:text-[18px] font-medium text-[#5A5770] tracking-[-0.01em] truncate">
+          <h2 className="heading-06 text-gray-700 truncate">
             {t.shareOpinion.title}
           </h2>
           {submittedOpinions.length > 0 && (
-            <span className="text-[11px] font-medium text-[#5B49EA] shrink-0">
+            <span className="label-02 text-primary-500 shrink-0">
               · {submittedOpinions.length}
             </span>
           )}
@@ -159,10 +159,10 @@ export const ShareOpinionCard: React.FC<ShareOpinionCardProps> = ({
           <button
             type="button"
             onClick={handleCollapse}
-            className="text-[#8E8BA3] hover:text-[#4C4962] p-1 rounded-lg transition-colors cursor-pointer shrink-0"
+            className="text-gray-500 hover:text-gray-800 p-1 rounded-2 transition-colors cursor-pointer shrink-0"
             aria-label={t.shareOpinion.closeAria}
           >
-            <X className="w-4 h-4" />
+            <X className="size-icon-xs" />
           </button>
         )}
       </div>
@@ -171,12 +171,12 @@ export const ShareOpinionCard: React.FC<ShareOpinionCardProps> = ({
         <button
           type="button"
           onClick={() => setIsComposing(true)}
-          className="w-full flex-1 min-h-[76px] rounded-[16px] bg-[#E6E5EC] hover:bg-[#DDDCE6] transition-colors flex flex-col items-center justify-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5B49EA]"
+          className="w-full flex-1 min-h-[76px] rounded-3 bg-gray-100 hover:bg-gray-200 transition-colors flex flex-col items-center justify-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           aria-label={t.shareOpinion.openAria}
         >
-          <PencilTrayIcon className="w-9 h-9 lg:w-10 lg:h-10 text-[#8E8BA3]" />
+          <PencilTrayIcon className="w-9 h-9 lg:w-10 lg:h-10 text-gray-500" />
           {submittedOpinions.length > 0 && (
-            <span className="text-[11.5px] font-medium text-[#6B6780]">
+            <span className="label-02 text-gray-600">
               {t.shareOpinion.submittedHistoryLabel(submittedOpinions.length)}
             </span>
           )}
@@ -185,11 +185,11 @@ export const ShareOpinionCard: React.FC<ShareOpinionCardProps> = ({
         <div className="flex-1 min-h-0 flex flex-col gap-2.5 overflow-y-auto loop-scroll pr-0.5">
           <div
             role="status"
-            className="rounded-xl border border-[#CFC9F5] bg-[#F5F3FE] px-3.5 py-2.5 flex items-center justify-between gap-2 shrink-0"
+            className="rounded-2 border border-primary-200 bg-primary-50 px-4 py-2.5 flex items-center justify-between gap-2 shrink-0"
           >
             <div className="flex items-center gap-2 min-w-0">
-              <CheckCircle2 className="w-4 h-4 text-[#5B49EA] shrink-0" />
-              <span className="text-[12.5px] font-medium text-[#3E3B52] truncate">
+              <CheckCircle2 className="size-icon-xs text-primary-500 shrink-0" />
+              <span className="body-05 text-gray-800 truncate">
                 {lastWasAnonymous
                   ? t.shareOpinion.submittedAnonymouslyBanner
                   : t.shareOpinion.submittedBanner}
@@ -201,7 +201,7 @@ export const ShareOpinionCard: React.FC<ShareOpinionCardProps> = ({
                 setShowSubmittedState(false);
                 setIsComposing(true);
               }}
-              className="text-[12px] font-medium text-[#5B49EA] hover:text-[#4735D4] whitespace-nowrap shrink-0 cursor-pointer"
+              className="body-05 text-primary-500 hover:text-primary-600 whitespace-nowrap shrink-0 cursor-pointer"
             >
               {t.shareOpinion.shareAnother}
             </button>
@@ -211,18 +211,18 @@ export const ShareOpinionCard: React.FC<ShareOpinionCardProps> = ({
             {submittedOpinions.map((item) => (
               <div
                 key={item.id}
-                className="rounded-xl bg-[#F7F6FC] border border-[#EAE8F3] px-3 py-2"
+                className="rounded-2 bg-gray-50 border border-gray-100 px-3 py-2"
               >
-                <div className="flex items-center justify-between text-[11px] text-[#8E8BA3] mb-0.5">
-                  <span className="font-medium text-[#5A5770] inline-flex items-center gap-1">
-                    {item.isAnonymous && <EyeOff className="w-3 h-3 text-[#5B49EA]" />}
+                <div className="flex items-center justify-between label-01 text-gray-500 mb-0.5">
+                  <span className="font-medium text-gray-700 inline-flex items-center gap-1">
+                    {item.isAnonymous && <EyeOff className="size-3 text-primary-500" />}
                     <span>
                       {item.isAnonymous ? t.shareOpinion.anonymousSpeaker : userName}
                     </span>
                   </span>
                   <span className="tabular-nums">{item.timestamp}</span>
                 </div>
-                <p className="text-[13px] text-[#3E3B52] leading-snug break-words">
+                <p className="body-04 text-gray-800 break-words">
                   {item.text}
                 </p>
               </div>
@@ -247,10 +247,10 @@ export const ShareOpinionCard: React.FC<ShareOpinionCardProps> = ({
                 isAnonymous ? t.shareOpinion.anonymousSpeaker : userName
               )}
               aria-invalid={Boolean(validationError)}
-              className={`w-full rounded-xl bg-[#F7F6FC] border focus:outline-none px-3.5 py-2 text-[13.5px] text-[#3E3B52] placeholder:text-[#9A97AD] resize-none ${
+              className={`w-full rounded-2 bg-gray-50 border focus:outline-none px-4 py-2 body-04 text-gray-800 placeholder:text-gray-400 resize-none ${
                 validationError
-                  ? 'border-[#C94A63] focus:border-[#B43C54]'
-                  : 'border-[#DFDDE9] focus:border-[#7C6CEB]'
+                  ? 'border-red-400 focus:border-red-500'
+                  : 'border-gray-200 focus:border-primary-400'
               }`}
               autoFocus
             />
@@ -258,31 +258,31 @@ export const ShareOpinionCard: React.FC<ShareOpinionCardProps> = ({
             {validationError && (
               <p
                 role="alert"
-                className="inline-flex items-center gap-1.5 text-[11.5px] text-[#B43C54] font-medium"
+                className="inline-flex items-center gap-1.5 body-04 text-red-500"
               >
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <AlertCircle className="size-icon-xs shrink-0" />
                 <span>{validationError}</span>
               </p>
             )}
 
             {polishedNote && !validationError && (
-              <p className="text-[11px] text-[#5B49EA] leading-snug">{polishedNote}</p>
+              <p className="label-01 text-primary-500">{polishedNote}</p>
             )}
           </div>
 
           <div className="flex items-center justify-between gap-2 flex-wrap pt-0.5">
-            <label className="inline-flex items-center gap-1.5 text-[12px] text-[#5A5770] cursor-pointer select-none">
+            <label className="inline-flex items-center gap-1.5 label-01 text-gray-700 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={isAnonymous}
                 onChange={(e) => setIsAnonymous(e.target.checked)}
-                className="w-3.5 h-3.5 rounded border-[#C6C3D6] text-[#5B49EA] accent-[#5B49EA] cursor-pointer"
+                className="size-icon-xs rounded-1 border-gray-300 text-primary-500 accent-primary-500 cursor-pointer"
               />
-              <EyeOff className="w-3.5 h-3.5 text-[#7D7994]" />
+              <EyeOff className="size-icon-xs text-gray-600" />
               <span>{t.shareOpinion.submitAnonymously}</span>
             </label>
 
-            <span className="text-[11px] text-[#9A97AD] tabular-nums">
+            <span className="label-01 text-gray-400 tabular-nums">
               {draft.length}/{MAX_OPINION_LENGTH}
             </span>
           </div>
@@ -292,9 +292,9 @@ export const ShareOpinionCard: React.FC<ShareOpinionCardProps> = ({
               <button
                 type="button"
                 onClick={handlePolishWithAI}
-                className="inline-flex items-center gap-1 text-[12px] font-medium text-[#5B49EA] bg-[#F2F0FD] hover:bg-[#E7E3FC] rounded-lg px-2.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                className="inline-flex items-center gap-1 body-05 text-primary-500 bg-primary-50 hover:bg-primary-100 rounded-2 px-3 h-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="size-icon-xs" />
                 <span>{t.shareOpinion.aiDraft}</span>
               </button>
               <button
@@ -310,7 +310,7 @@ export const ShareOpinionCard: React.FC<ShareOpinionCardProps> = ({
                     )
                   );
                 }}
-                className="text-[12px] text-[#6B6780] hover:text-[#3E3B52] bg-[#ECEAF4] hover:bg-[#E0DDEC] rounded-lg px-2.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                className="inline-flex items-center label-01 text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-2 px-3 h-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
                 {t.shareOpinion.askScope}
               </button>
@@ -318,9 +318,9 @@ export const ShareOpinionCard: React.FC<ShareOpinionCardProps> = ({
 
             <button
               type="submit"
-              className="inline-flex items-center gap-1.5 text-[12px] font-medium text-white bg-[#5B49EA] hover:bg-[#4B3AD8] rounded-lg px-3 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 body-05 text-white bg-primary-500 hover:bg-primary-600 rounded-2 px-3 h-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
-              <Send className="w-3.5 h-3.5" />
+              <Send className="size-icon-xs" />
               <span>{t.shareOpinion.send}</span>
             </button>
           </div>

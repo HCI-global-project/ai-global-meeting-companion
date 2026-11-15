@@ -153,30 +153,30 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
     switch (connectionState) {
       case 'connecting':
         return (
-          <div className="flex items-center gap-2 text-[12px] font-medium text-[#5B49EA]">
-            <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+          <div className="flex items-center gap-2 body-05 text-primary-500">
+            <Loader2 className="size-icon-xs animate-spin shrink-0" />
             <span>{t.stream.states.connecting}</span>
           </div>
         );
       case 'listening':
         return (
-          <div className="flex items-center gap-2 text-[12px] font-medium text-[#5B49EA]">
-            <Radio className="w-3.5 h-3.5 shrink-0" />
+          <div className="flex items-center gap-2 body-05 text-primary-500">
+            <Radio className="size-icon-xs shrink-0" />
             <span>{t.stream.states.listening}</span>
           </div>
         );
       case 'error':
         return (
-          <div className="flex items-center gap-2 text-[12px] font-medium text-[#B43C54]">
-            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+          <div className="flex items-center gap-2 body-04 text-red-500">
+            <AlertCircle className="size-icon-xs shrink-0" />
             <span>{t.stream.states.error}</span>
           </div>
         );
       case 'disconnected':
       default:
         return (
-          <div className="flex items-center gap-2 text-[12px] font-medium text-[#8E8BA3]">
-            <WifiOff className="w-3.5 h-3.5 shrink-0" />
+          <div className="flex items-center gap-2 body-05 text-gray-500">
+            <WifiOff className="size-icon-xs shrink-0" />
             <span>{t.stream.states.disconnected}</span>
           </div>
         );
@@ -184,16 +184,16 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
   };
 
   return (
-    <section className="flex flex-col gap-3.5 h-full min-h-0">
+    <section className="flex flex-col gap-3 h-full min-h-0">
       {/* Header Pill Bar */}
-      <div className="shrink-0 bg-white border border-[#DFDDE9] rounded-[18px] px-5 sm:px-6 py-3 flex items-center justify-between gap-2.5 flex-wrap">
-        <h2 className="text-[17px] lg:text-[19px] font-medium text-[#5A5770] tracking-[-0.01em]">
+      <div className="shrink-0 bg-white border border-gray-100 rounded-4 px-5 sm:px-6 py-3 flex items-center justify-between gap-2.5 flex-wrap">
+        <h2 className="heading-06 text-gray-700">
           {t.transcript.title}
         </h2>
 
         <div className="flex items-center gap-2 shrink-0">
           {isRecording && (
-            <span className="text-[13px] font-medium text-[#5B49EA] tabular-nums">
+            <span className="body-02 text-primary-500 tabular-nums">
               {formatDuration(durationSeconds)}
             </span>
           )}
@@ -203,18 +203,18 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
             <button
               type="button"
               onClick={onStopStream}
-              className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[#5A5770] hover:text-[#3E3B52] bg-[#ECEAF4] hover:bg-[#E0DDEC] rounded-xl px-3 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 body-05 text-gray-700 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-2 px-3 h-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
-              <Square className="w-3 h-3 fill-current" />
+              <Square className="size-3 fill-current" />
               <span>{t.stream.stopDemoButton}</span>
             </button>
           ) : (
             <button
               type="button"
               onClick={onStartDemoStream}
-              className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[#5A5770] hover:text-[#5B49EA] bg-[#F7F6FC] hover:bg-[#F2F0FD] border border-[#DFDDE9] rounded-xl px-3 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 body-05 text-gray-700 hover:text-primary-500 bg-gray-50 hover:bg-primary-50 border border-gray-200 rounded-2 px-3 h-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
-              <Play className="w-3 h-3 fill-current" />
+              <Play className="size-3 fill-current" />
               <span>{t.stream.demoButton}</span>
             </button>
           )}
@@ -224,9 +224,9 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
             <button
               type="button"
               onClick={onStopRecording}
-              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-white bg-[#5B49EA] hover:bg-[#4B3AD8] rounded-xl px-3.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 body-05 text-white bg-primary-500 hover:bg-primary-600 rounded-2 px-3 h-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
-              <Square className="w-3.5 h-3.5 fill-current" />
+              <Square className="size-icon-xs fill-current" />
               <span>{t.transcript.stopRecording}</span>
             </button>
           ) : (
@@ -234,16 +234,16 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
               type="button"
               onClick={onStartRecording}
               disabled={isRequesting || isTranscribing}
-              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#5B49EA] hover:text-[#4735D4] bg-[#F2F0FD] hover:bg-[#E7E3FC] disabled:opacity-60 rounded-xl px-3.5 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 body-05 text-primary-500 hover:text-primary-600 bg-primary-50 hover:bg-primary-100 disabled:opacity-50 rounded-2 px-3 h-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:cursor-not-allowed"
             >
               {isRequesting ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="size-icon-xs animate-spin" />
                   <span>{t.transcript.requestingMic}</span>
                 </>
               ) : (
                 <>
-                  <Mic className="w-3.5 h-3.5" />
+                  <Mic className="size-icon-xs" />
                   <span>{t.transcript.startRecording}</span>
                 </>
               )}
@@ -253,12 +253,12 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
       </div>
 
       {/* Transcript Container: Pinned Stream Status Bar + Internally Scrollable Transcript Feed */}
-      <div className="bg-white border border-[#DFDDE9] rounded-[18px] flex-1 min-h-[260px] min-[720px]:min-h-0 flex flex-col overflow-hidden">
+      <div className="bg-white border border-gray-100 rounded-4 flex-1 min-h-[260px] min-[720px]:min-h-0 flex flex-col overflow-hidden">
         {/* Stream Connection & Demo Mode Status Strip */}
-        <div className="shrink-0 border-b border-[#EAE8F3] bg-[#FAFAFE] px-5 sm:px-6 py-2.5 flex items-center justify-between gap-3 flex-wrap">
+        <div className="shrink-0 border-b border-gray-100 bg-gray-20 px-5 sm:px-6 py-2.5 flex items-center justify-between gap-3 flex-wrap">
           {renderConnectionStatus()}
 
-          <span className="text-[12px] text-[#7D7994] truncate">
+          <span className="label-01 text-gray-600 truncate">
             {isDemoMode && isStreamActive
               ? t.stream.demoBanner
               : connectionState === 'listening'
@@ -276,15 +276,15 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
           {streamError && (
             <div
               role="alert"
-              className="rounded-2xl border border-[#E7C6CC] bg-[#FDF6F7] px-4 py-3 flex items-start justify-between gap-3"
+              className="rounded-3 border border-red-100 bg-red-50 px-4 py-3 flex items-start justify-between gap-3"
             >
               <div className="flex items-start gap-2.5">
-                <AlertCircle className="w-4 h-4 text-[#B43C54] mt-0.5 shrink-0" />
+                <AlertCircle className="size-icon-xs text-red-500 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-[13px] font-semibold text-[#8E2B40]">
+                  <p className="body-02 text-red-600">
                     {t.stream.states.error}
                   </p>
-                  <p className="text-[12.5px] text-[#7A3544] mt-0.5 leading-relaxed">
+                  <p className="body-04 text-red-700 mt-0.5">
                     {streamError.message}
                   </p>
                 </div>
@@ -292,10 +292,10 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
               <button
                 type="button"
                 onClick={onClearStreamError}
-                className="text-[#8E2B40] hover:text-[#6B1E2F] p-1 rounded-lg cursor-pointer"
+                className="text-red-600 hover:text-red-800 p-1 rounded-2 cursor-pointer"
                 aria-label={t.common.close}
               >
-                <X className="w-4 h-4" />
+                <X className="size-icon-xs" />
               </button>
             </div>
           )}
@@ -304,15 +304,15 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
           {localizedMicError && (
             <div
               role="alert"
-              className="rounded-2xl border border-[#E7C6CC] bg-[#FDF6F7] px-4 py-3.5 flex items-start justify-between gap-3"
+              className="rounded-3 border border-red-100 bg-red-50 px-4 py-4 flex items-start justify-between gap-3"
             >
               <div className="flex items-start gap-2.5">
-                <AlertCircle className="w-4 h-4 text-[#B43C54] mt-0.5 shrink-0" />
+                <AlertCircle className="size-icon-xs text-red-500 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-[13px] font-semibold text-[#8E2B40]">
+                  <p className="body-02 text-red-600">
                     {t.transcript.micUnavailableTitle}
                   </p>
-                  <p className="text-[13px] text-[#7A3544] mt-0.5 leading-relaxed">
+                  <p className="body-04 text-red-700 mt-0.5">
                     {localizedMicError}
                   </p>
                 </div>
@@ -320,7 +320,7 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
               <button
                 type="button"
                 onClick={onStartRecording}
-                className="text-[12px] font-medium text-[#8E2B40] hover:text-[#6B1E2F] bg-white border border-[#E7C6CC] rounded-lg px-2.5 py-1 whitespace-nowrap shrink-0 cursor-pointer"
+                className="body-05 text-red-600 hover:text-red-800 bg-white border border-red-100 rounded-2 px-2.5 py-1 whitespace-nowrap shrink-0 cursor-pointer"
               >
                 {t.common.tryAgain}
               </button>
@@ -329,22 +329,22 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
 
           {/* Requesting Permission Loading State */}
           {isRequesting && (
-            <div className="rounded-2xl border border-[#DFDDE9] bg-[#F7F6FC] px-4 py-3 flex items-center gap-2.5 text-[13px] text-[#5A5770]">
-              <Loader2 className="w-4 h-4 text-[#5B49EA] animate-spin shrink-0" />
+            <div className="rounded-3 border border-gray-200 bg-gray-50 px-4 py-3 flex items-center gap-2.5 body-04 text-gray-700">
+              <Loader2 className="size-icon-xs text-primary-500 animate-spin shrink-0" />
               <span>{t.transcript.waitingPermission}</span>
             </div>
           )}
 
           {/* Active Local Recording Notice */}
           {isRecording && (
-            <div className="rounded-2xl border border-[#CFC9F5] bg-[#F5F3FE] px-4 py-3 flex items-center justify-between gap-3">
+            <div className="rounded-3 border border-primary-200 bg-primary-50 px-4 py-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <Mic className="w-4 h-4 text-[#5B49EA] shrink-0" />
-                <span className="text-[13px] font-medium text-[#4C4962]">
+                <Mic className="size-icon-xs text-primary-500 shrink-0" />
+                <span className="body-02 text-gray-800">
                   {t.transcript.recordingLocallyNotice(speakerName)}
                 </span>
               </div>
-              <span className="text-[13px] font-medium text-[#5B49EA] tabular-nums">
+              <span className="body-02 text-primary-500 tabular-nums">
                 {formatDuration(durationSeconds)}
               </span>
             </div>
@@ -352,12 +352,12 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
 
           {/* Local Recorded Audio Playback + Optional Post-Recording Fallback Transcription */}
           {recorderStatus === 'stopped' && audioUrl && (
-            <div className="rounded-2xl border border-[#DFDDE9] bg-[#F7F6FC] p-4 flex flex-col gap-3">
+            <div className="rounded-3 border border-gray-200 bg-gray-50 p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2 text-[13px] font-medium text-[#4C4962]">
-                  <Volume2 className="w-4 h-4 text-[#5B49EA]" />
+                <div className="flex items-center gap-2 body-02 text-gray-800">
+                  <Volume2 className="size-icon-xs text-primary-500" />
                   <span>{t.transcript.recordedPlaybackTitle}</span>
-                  <span className="text-[#8E8BA3] font-normal tabular-nums">
+                  <span className="text-gray-500 font-normal tabular-nums">
                     · {formatDuration(durationSeconds)}
                   </span>
                 </div>
@@ -367,16 +367,16 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
                     type="button"
                     onClick={() => void handleTranscribeRecording()}
                     disabled={isTranscribing || !audioBlob}
-                    className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-white bg-[#5B49EA] hover:bg-[#4B3AD8] disabled:opacity-65 rounded-lg px-3 py-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-1.5 body-05 text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 rounded-2 px-3 h-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:cursor-not-allowed"
                   >
                     {isTranscribing ? (
                       <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <Loader2 className="size-icon-xs animate-spin" />
                         <span>{t.transcript.transcribing}</span>
                       </>
                     ) : (
                       <>
-                        <FileAudio className="w-3.5 h-3.5" />
+                        <FileAudio className="size-icon-xs" />
                         <span>
                           {hasTranscribedCurrentClip
                             ? t.transcript.transcribeAgain
@@ -395,9 +395,9 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
                       onClearRecording();
                     }}
                     disabled={isTranscribing}
-                    className="inline-flex items-center gap-1 text-[12px] text-[#7D7994] hover:text-[#4C4962] px-2 py-1.5 rounded-lg hover:bg-[#ECEAF4] disabled:opacity-50 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-1 label-01 text-gray-600 hover:text-gray-800 px-2 h-8 rounded-2 hover:bg-gray-100 disabled:opacity-50 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:cursor-not-allowed"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="size-icon-xs" />
                     <span>{t.common.clear}</span>
                   </button>
                 </div>
@@ -413,11 +413,11 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
               {transcribeError && (
                 <div
                   role="alert"
-                  className="rounded-xl border border-[#E7C6CC] bg-[#FDF6F7] px-3.5 py-2.5 flex items-start justify-between gap-3"
+                  className="rounded-2 border border-red-100 bg-red-50 px-4 py-2.5 flex items-start justify-between gap-3"
                 >
                   <div className="flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-[#B43C54] mt-0.5 shrink-0" />
-                    <p className="text-[12.5px] leading-relaxed text-[#7A3544]">
+                    <AlertCircle className="size-icon-xs text-red-500 mt-0.5 shrink-0" />
+                    <p className="body-04 text-red-700">
                       {transcribeError}
                     </p>
                   </div>
@@ -425,7 +425,7 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
                     type="button"
                     onClick={() => void handleTranscribeRecording()}
                     disabled={isTranscribing}
-                    className="text-[12px] font-medium text-[#8E2B40] hover:text-[#6B1E2F] bg-white border border-[#E7C6CC] rounded-lg px-2.5 py-1 whitespace-nowrap shrink-0 cursor-pointer"
+                    className="body-05 text-red-600 hover:text-red-800 bg-white border border-red-100 rounded-2 px-2.5 py-1 whitespace-nowrap shrink-0 cursor-pointer"
                   >
                     {t.common.retry}
                   </button>
@@ -433,7 +433,7 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
               )}
 
               {emptySpeechNotice && (
-                <div className="rounded-xl border border-[#DFDDE9] bg-white px-3.5 py-2.5 text-[12.5px] text-[#6B6780]">
+                <div className="rounded-2 border border-gray-200 bg-white px-4 py-2.5 label-01 text-gray-600">
                   {emptySpeechNotice}
                 </div>
               )}
@@ -450,10 +450,10 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
                   <article key={entry.id} className="flex flex-col items-start">
                     <div className="flex items-center gap-2 flex-wrap">
                       <div
-                        className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-[13px] font-medium text-[#4C4962] tabular-nums ${
+                        className={`inline-flex items-center gap-2 rounded-full px-4 py-1 body-02 text-gray-800 tabular-nums ${
                           entry.badgeVariant === 'lavender'
-                            ? 'bg-[#BFB8F7]'
-                            : 'bg-[#E3E1EC]'
+                            ? 'bg-primary-300'
+                            : 'bg-gray-200'
                         }`}
                       >
                         <span>
@@ -465,22 +465,22 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
                       </div>
 
                       {entry.source === 'demo' && (
-                        <span className="text-[11.5px] font-medium text-[#8E8BA3]">
+                        <span className="label-02 text-gray-500">
                           {t.stream.demoBadge}
                         </span>
                       )}
                     </div>
 
-                    <p className="mt-3 text-[16px] leading-[1.55] text-[#3E3B52] font-normal">
+                    <p className="mt-3 body-01 text-gray-800">
                       {entry.originalText}
                     </p>
 
                     {translatedLine ? (
-                      <p className="mt-0.5 text-[15px] leading-[1.55] text-[#9A97AD] font-normal">
+                      <p className="mt-0.5 body-03 text-gray-400">
                         {translatedLine}
                       </p>
                     ) : (
-                      <p className="mt-0.5 text-[13.5px] leading-[1.55] text-[#9A97AD] font-normal">
+                      <p className="mt-0.5 body-04 text-gray-400">
                         {t.transcript.speechRecognizedPendingTranslation(
                           speechTargetLangLabel
                         )}
@@ -494,36 +494,36 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
               {interimSegment && (
                 <article
                   aria-live="polite"
-                  className="rounded-2xl border border-dashed border-[#C7C0F7] bg-[#FAF9FE] px-4 py-3.5 flex flex-col items-start"
+                  className="rounded-3 border border-dashed border-primary-200 bg-gray-20 px-4 py-4 flex flex-col items-start"
                 >
                   <div className="flex items-center gap-2 flex-wrap">
                     <div
-                      className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-[13px] font-medium text-[#4C4962] tabular-nums ${
+                      className={`inline-flex items-center gap-2 rounded-full px-4 py-1 body-02 text-gray-800 tabular-nums ${
                         interimSegment.badgeVariant === 'lavender'
-                          ? 'bg-[#BFB8F7]'
-                          : 'bg-[#E3E1EC]'
+                          ? 'bg-primary-300'
+                          : 'bg-gray-200'
                       }`}
                     >
                       <span>{interimSegment.speakerName}</span>
                       <span>{interimSegment.timestamp}</span>
                     </div>
 
-                    <span className="text-[12px] font-medium text-[#5B49EA]">
+                    <span className="body-05 text-primary-500">
                       {t.stream.interimBadge}
                     </span>
 
                     {interimSegment.source === 'demo' && (
-                      <span className="text-[11.5px] text-[#8E8BA3]">
+                      <span className="label-01 text-gray-500">
                         · {t.stream.demoBadge}
                       </span>
                     )}
                   </div>
 
-                  <p className="mt-2.5 text-[16px] leading-[1.55] text-[#3E3B52] font-normal">
+                  <p className="mt-2.5 body-01 text-gray-800">
                     {interimSegment.originalText}
                   </p>
 
-                  <p className="mt-0.5 text-[15px] leading-[1.55] text-[#9A97AD] font-normal">
+                  <p className="mt-0.5 body-03 text-gray-400">
                     {interimSegment.translations[speechTargetLanguage] ??
                       t.stream.awaitingTranslation}
                   </p>
@@ -532,10 +532,10 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-4 py-8">
-              <p className="text-[15px] font-medium text-[#5A5770]">
+              <p className="body-01 text-gray-700">
                 {t.transcript.emptyStateTitle}
               </p>
-              <p className="mt-1.5 max-w-md text-[13.5px] leading-relaxed text-[#9A97AD]">
+              <p className="mt-1.5 max-w-md body-04 text-gray-400">
                 {t.transcript.emptyStateBody}
               </p>
             </div>
