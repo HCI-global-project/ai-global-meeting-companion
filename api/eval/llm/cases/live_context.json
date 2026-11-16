@@ -1,0 +1,91 @@
+{
+  "task": "live_context",
+  "cases": [
+    {
+      "id": "proposal-triggers-suggestion",
+      "note": "일정 제안 질문에서 의견 추천을 띄우고, 그 발화를 고른다",
+      "input": {
+        "participants": [
+          {"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"},
+          {"id": "p-joe", "name": "Joe", "role": "Developer", "language": "en"}
+        ],
+        "segments": [
+          {"speaker": "p-minji", "text": "오늘은 다음 주 사용자 테스트 일정부터 정해 볼게요."},
+          {"speaker": "p-joe", "text": "프로토타입은 목요일까지 마무리할 수 있을 것 같아요."},
+          {"speaker": "p-minji", "text": "그럼 테스트는 금요일 오후에 진행하는 게 어떨까요?"}
+        ]
+      },
+      "checks": [
+        {"check": "equals", "field": "shouldSuggest", "value": true},
+        {"check": "one_of", "field": "target", "values": [2]},
+        {"check": "range", "field": "importance", "min": 60},
+        {"check": "script", "field": "summary", "script": "hangul"},
+        {"check": "contains_any", "field": "summary", "values": ["금요일"]},
+        {"check": "contains_any", "field": "openQuestions", "values": ["금요일", "테스트", "일정"]},
+        {"check": "count", "field": "keywords", "min": 2, "max": 6}
+      ]
+    },
+    {
+      "id": "small-talk-no-suggestion",
+      "note": "잡담에는 추천을 띄우지 않는다",
+      "input": {
+        "participants": [
+          {"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"},
+          {"id": "p-sujin", "name": "수진", "role": "Developer", "language": "ko"}
+        ],
+        "segments": [
+          {"speaker": "p-minji", "text": "다들 점심 맛있게 드셨어요?"},
+          {"speaker": "p-sujin", "text": "네 저는 김치찌개 먹었어요."},
+          {"speaker": "p-minji", "text": "오 맛있겠네요."}
+        ]
+      },
+      "checks": [
+        {"check": "equals", "field": "shouldSuggest", "value": false}
+      ]
+    },
+    {
+      "id": "english-utterance-summarized-in-korean",
+      "note": "영어로 말해도 맥락은 회의 주 언어(한국어)로 쓴다",
+      "input": {
+        "participants": [
+          {"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"},
+          {"id": "p-joe", "name": "Joe", "role": "Developer", "language": "en"}
+        ],
+        "segments": [
+          {"speaker": "p-minji", "text": "첫 테스트 범위를 어디까지 할지 얘기해 봐요."},
+          {"speaker": "p-joe", "text": "I think we should cut the onboarding tutorial for the first test.", "language": "en"}
+        ]
+      },
+      "checks": [
+        {"check": "script", "field": "summary", "script": "hangul", "min_ratio": 0.5},
+        {"check": "contains_any", "field": "summary", "values": ["온보딩", "onboarding", "튜토리얼", "tutorial"]},
+        {"check": "equals", "field": "shouldSuggest", "value": true},
+        {"check": "one_of", "field": "target", "values": [1]}
+      ]
+    },
+    {
+      "id": "answered-question-removed",
+      "note": "답이 나온 질문은 미해결 질문에서 뺀다",
+      "input": {
+        "participants": [
+          {"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"},
+          {"id": "p-sujin", "name": "수진", "role": "Developer", "language": "ko"}
+        ],
+        "context": {
+          "currentTopic": "사용자 테스트 일정",
+          "rollingSummary": "다음 주 사용자 테스트 일정을 논의하고 있다. 금요일 오후와 다음 주 월요일이 후보다.",
+          "keywords": ["사용자 테스트", "금요일 오후", "월요일"],
+          "openQuestions": ["테스트 날짜를 금요일과 월요일 중 언제로 할지"]
+        },
+        "segments": [
+          {"speaker": "p-minji", "text": "테스트는 금요일 오후로 확정할게요."},
+          {"speaker": "p-sujin", "text": "네 좋아요."}
+        ]
+      },
+      "checks": [
+        {"check": "not_contains", "field": "openQuestions", "values": ["언제로", "월요일 중"]},
+        {"check": "contains_any", "field": "summary", "values": ["확정", "정했", "결정"]}
+      ]
+    }
+  ]
+}

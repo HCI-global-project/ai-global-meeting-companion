@@ -1,0 +1,89 @@
+{
+  "task": "correct",
+  "cases": [
+    {
+      "id": "term-from-glossary",
+      "note": "자주 나오는 단어 목록에 있는 용어로 고친다",
+      "input": {
+        "topic": "STT 정확도 비교",
+        "terms": ["Soniox"],
+        "participants": [{"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"}],
+        "focus": {"speaker": "p-minji", "text": "소니옥스로 전사 정확도 다시 재 볼게요."}
+      },
+      "checks": [
+        {"check": "contains_any", "field": "final", "values": ["Soniox"]},
+        {"check": "contains_all", "field": "final", "values": ["정확도"]}
+      ]
+    },
+    {
+      "id": "participant-name",
+      "note": "참여자 이름으로 고친다",
+      "input": {
+        "participants": [
+          {"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"},
+          {"id": "p-kenji", "name": "켄지", "role": "Designer", "language": "ja"}
+        ],
+        "focus": {"speaker": "p-minji", "text": "겐지 씨가 디자인 시안 공유해 주실래요?"}
+      },
+      "checks": [
+        {"check": "contains_any", "field": "final", "values": ["켄지"]},
+        {"check": "contains_all", "field": "final", "values": ["시안"]}
+      ]
+    },
+    {
+      "id": "number-homophone",
+      "note": "앞 발화 문맥으로 숫자 오인식(오명 → 5명)을 고친다",
+      "input": {
+        "topic": "사용자 테스트 준비",
+        "participants": [
+          {"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"},
+          {"id": "p-sujin", "name": "수진", "role": "Developer", "language": "ko"}
+        ],
+        "before": [{"speaker": "p-minji", "text": "테스트 참가자는 몇 명으로 할까요?"}],
+        "focus": {"speaker": "p-sujin", "text": "오명 정도면 충분할 것 같아요."}
+      },
+      "checks": [
+        {"check": "contains_any", "field": "final", "values": ["5명", "5 명", "다섯 명", "다섯명"]}
+      ]
+    },
+    {
+      "id": "leave-correct-text-alone",
+      "note": "틀린 데가 없으면 그대로 둔다",
+      "input": {
+        "participants": [{"id": "p-joe", "name": "Joe", "role": "Developer", "language": "en"}],
+        "focus": {"speaker": "p-joe", "text": "프로토타입은 목요일까지 마무리할 수 있을 것 같아요."}
+      },
+      "checks": [
+        {"check": "equals_loose", "field": "final", "value": "프로토타입은 목요일까지 마무리할 수 있을 것 같아요."}
+      ]
+    },
+    {
+      "id": "keep-english-words",
+      "note": "섞어 말한 영어는 한글로 바꾸지 않는다",
+      "input": {
+        "participants": [{"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"}],
+        "focus": {"speaker": "p-minji", "text": "이번 sprint 에서 onboarding 먼저 할게요."}
+      },
+      "checks": [
+        {"check": "contains_all", "field": "final", "values": ["sprint", "onboarding"]},
+        {"check": "contains_all", "field": "raw", "values": ["sprint", "onboarding"]}
+      ]
+    },
+    {
+      "id": "do-not-copy-previous-line",
+      "note": "짧은 맞장구를 앞 발화로 바꿔 쓰지 않는다 (실제 회의에서 나온 문제)",
+      "input": {
+        "participants": [
+          {"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"},
+          {"id": "p-sujin", "name": "수진", "role": "Developer", "language": "ko"}
+        ],
+        "before": [{"speaker": "p-minji", "text": "테스트는 금요일 오후에 하죠."}],
+        "focus": {"speaker": "p-sujin", "text": "네 그렇게 하죠."}
+      },
+      "checks": [
+        {"check": "equals_loose", "field": "final", "value": "네 그렇게 하죠."},
+        {"check": "not_contains", "field": "raw", "values": ["금요일"]}
+      ]
+    }
+  ]
+}

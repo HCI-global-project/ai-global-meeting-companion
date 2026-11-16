@@ -96,6 +96,25 @@ python -m eval.cer --ref reference.txt --hyp hypothesis.txt   # 전체·한글·
 python -m eval.segment_stats soniox-log-*.json                # 프론트 TokenLog 로 받은 발화 길이 분포
 ```
 
+### LLM 작업 품질 (`eval/llm/`)
+
+번역·보정·맥락·회의 결과·의견 추천을 **실제 작업 코드 그대로** 돌리고, 케이스마다 꼭 지켜야 할 성질을 검사합니다.
+정답 문장과 똑같은지는 보지 않습니다(같은 뜻을 여러 표현으로 쓸 수 있어서). 대신 "목요일이 들어갔나",
+"미얀마 문자로 썼나", "없던 숫자를 지어내지 않았나", "잡담에 추천을 띄우지 않았나" 같은 것을 봅니다.
+
+```bash
+python -m eval.llm.run                                  # 전체 (.env 의 AI_PROVIDER, 실제 호출이라 비용·한도 소모)
+python -m eval.llm.run --task outcome --repeat 3        # 답이 흔들리므로 여러 번 돌려 통과율로 본다
+python -m eval.llm.run --model gemini-3.5-flash-lite --label flash
+python -m eval.llm.run --check                          # 케이스 파일 오타만 검사 (호출 없음)
+python -m eval.llm.compare eval/llm/results/A.json eval/llm/results/B.json   # 프롬프트 고치기 전후 비교
+```
+
+- 케이스는 `eval/llm/cases/<작업>.json`. 검사 종류는 `eval/llm/checks.py` 맨 위 설명.
+- 결과 JSON(`eval/llm/results/`, gitignore)에 git 커밋, 프롬프트 파일 지문, **실제로 답한 모델**(기본 모델이 한도에 걸리면 대체 모델이 답한다), 지연 시간이 남습니다.
+- 결과는 PASS / FLAKY(가끔 실패) / FAIL / ERROR(429·503 같은 호출 실패. 프롬프트 문제가 아님)로 나뉩니다.
+- 실제 회의에서 문제가 나오면 그 상황을 케이스로 하나 더 넣어 두면 다시 생기는지 잡을 수 있습니다.
+
 ## 지금 단순화한 것
 
 - 세션이 메모리에 있어 인스턴스는 한 대만 띄웁니다(uvicorn 워커 1).
