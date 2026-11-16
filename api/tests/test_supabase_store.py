@@ -76,3 +76,12 @@ async def test_suggestion_upsert_uses_participant_conflict_key():
     assert seen["query"] == "meeting_id,participant_id,segment_id,source"
     assert "merge-duplicates" in seen["prefer"]
     assert seen["body"]["segment_id"] == 7 and seen["body"]["user_id"] == "u1"
+
+
+def test_new_secret_key_goes_only_in_apikey_header():
+    from app.store.supabase import server_key_headers
+
+    # 새 키는 JWT 가 아니라 Bearer 로 보내면 거절된다
+    assert server_key_headers("sb_secret_abc") == {"apikey": "sb_secret_abc"}
+    # 예전 service_role 키(JWT)는 두 헤더 모두
+    assert server_key_headers("eyJhbGciOi") == {"apikey": "eyJhbGciOi", "Authorization": "Bearer eyJhbGciOi"}
