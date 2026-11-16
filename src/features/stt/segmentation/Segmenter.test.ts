@@ -180,8 +180,6 @@ describe('other boundaries', () => {
       { text: ' 말하는', isFinal: false },
     ]);
     assert.equal(display, '지금 말하는');
-    // 앞의 '지금' 만 확정, ' 말하는' 은 아직 바뀔 수 있는 추측
-    assert.equal(segmenter.confirmedLength, 2);
     assert.equal(segmenter.push([]), '지금');
   });
 });

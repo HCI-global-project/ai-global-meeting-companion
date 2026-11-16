@@ -43,7 +43,7 @@ export function useLiveTranscription({
 }: Options) {
   const [state, setState] = useState<LiveState>('idle');
   const [failure, setFailure] = useState<TranscriberFailure | null>(null);
-  const [interim, setInterim] = useState({ confirmed: '', guess: '' });
+  const [interimText, setInterimText] = useState('');
   const [seconds, setSeconds] = useState(0);
 
   const wantRef = useRef(false);
@@ -85,8 +85,7 @@ export function useLiveTranscription({
         unsavedRef.current.set(id, segment);
         getConnection()?.sendSegment(segment, id);
       },
-      onInterim: (text, confirmedLength) =>
-        setInterim({ confirmed: text.slice(0, confirmedLength), guess: text.slice(confirmedLength) }),
+      onInterim: setInterimText,
       onStateChange: (next, error) => {
         if (next === 'listening') {
           setState('listening');
@@ -174,7 +173,7 @@ export function useLiveTranscription({
   return {
     state,
     failure,
-    interim,
+    interimText,
     seconds,
     start,
     stop,

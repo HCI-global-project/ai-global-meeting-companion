@@ -37,8 +37,7 @@ export interface SonioxTranscriberOptions {
   noiseSuppression?: boolean;
   log?: TokenLog;
   onSegment: (segment: SegmentDraft) => void;
-  /** text: 확정 + 추측. confirmedLength: 그중 앞에서부터 확정된 글자 수(나머지는 Soniox 가 바꿀 수 있다) */
-  onInterim?: (text: string, confirmedLength: number) => void;
+  onInterim?: (text: string) => void;
   onStateChange?: (state: TranscriberState, error?: TranscriberFailure) => void;
 }
 
@@ -128,8 +127,7 @@ export class SonioxTranscriber {
     if (!response.tokens?.length) return;
     const tokens = response.tokens.map(toToken);
     this.options.log?.recordTokens(tokens);
-    const display = this.segmenter.push(tokens);
-    this.options.onInterim?.(display, Math.min(this.segmenter.confirmedLength, display.length));
+    this.options.onInterim?.(this.segmenter.push(tokens));
     if (tokens.some((t) => t.isFinal)) this.resetIdleTimer();
   }
 
@@ -137,7 +135,7 @@ export class SonioxTranscriber {
     if (this.idleTimer) clearTimeout(this.idleTimer);
     this.idleTimer = setTimeout(() => {
       this.segmenter.flush('idle');
-      this.options.onInterim?.('', 0);
+      this.options.onInterim?.('');
     }, IDLE_FLUSH_MS);
   }
 
@@ -148,7 +146,7 @@ export class SonioxTranscriber {
     this.recorder = null;
     this.socket = null;
     this.segmenter.flush('stop');
-    this.options.onInterim?.('', 0);
+    this.options.onInterim?.('');
     if (!this.failed) this.setState('idle');
   }
 

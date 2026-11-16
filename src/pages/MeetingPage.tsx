@@ -196,15 +196,14 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   // 녹음 기기에서만 보이는 말하는 중인 문장. 데모 스트림이 돌면 데모 쪽을 보여 준다
   const interimSegment: TranscriptEntry | null =
     demoInterim ??
-    (live.interim.confirmed || live.interim.guess
+    (live.interimText
       ? {
           id: 'live-interim',
           speakerId: 'live',
           speakerName: '',
           timestamp: clock(),
           originalLanguage: 'auto',
-          originalText: live.interim.confirmed,
-          interimGuess: live.interim.guess,
+          originalText: live.interimText,
           translations: {},
           badgeVariant: 'neutral',
           status: 'interim',
