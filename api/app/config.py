@@ -34,7 +34,8 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
     # --- 파이프라인 실험 조건 ---
-    correction_enabled: bool = True
+    # 실제 회의에서 보정이 앞 발화를 베끼거나 말을 바꿔 원문을 망가뜨려 기본으로 끈다
+    correction_enabled: bool = False
     # 번역에 같이 보낼 앞 발화 수
     translation_context_size: int = 3
     # 다음 발화가 오면 직전 발화 번역을 한 번 더 다듬는다(호출 수가 늘어난다)

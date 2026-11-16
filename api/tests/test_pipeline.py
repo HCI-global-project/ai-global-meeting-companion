@@ -45,7 +45,7 @@ async def test_correction_change_triggers_retranslation(store):
     from app.container import build_container
 
     llm = FakeLlmClient(handlers={"correct": lambda req: {"corrected": req.metadata["text"].replace("프로토 타입", "프로토타입")}})
-    c = build_container(make_settings(), llm=llm, store=store)
+    c = build_container(make_settings(correction_enabled=True), llm=llm, store=store)
     try:
         session = await room(c)
         corrected = record(session, SegmentCorrected)
