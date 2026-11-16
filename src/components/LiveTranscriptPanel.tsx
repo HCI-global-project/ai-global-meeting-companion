@@ -217,11 +217,12 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
 
                     {/* 원문은 한 문단으로 잇는다. 말하는 중인 글자는 끝에 옅게 붙어 있다가 확정되면 진해진다 */}
                     <p className="mt-3 body-01 text-gray-800" aria-live={interim ? 'polite' : undefined}>
+                      {/* 새로 확정된 문장은 처음 그려질 때 잠깐 칠해진다(index.css transcript-arrive) */}
                       {turn.entries.map((e, i) => (
-                        <span key={e.id}>
+                        <React.Fragment key={e.id}>
                           {i > 0 && ' '}
-                          {e.originalText}
-                        </span>
+                          <span className="transcript-arrive">{e.originalText}</span>
+                        </React.Fragment>
                       ))}
                       {interim && <span className="text-gray-400"> {interim.originalText}</span>}
                     </p>
@@ -229,12 +230,24 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
                     {/* 번역도 한 문단으로 잇는다. 아직 안 온 줄은 '…' 로 자리만 둔다 */}
                     {translating && (
                       <p className="mt-0.5 body-03 text-gray-400">
-                        {turn.entries.filter(needsTranslation).map((e, i) => (
-                          <span key={e.id} className={e.translations[speechTargetLanguage] ? undefined : 'text-gray-300'}>
-                            {i > 0 && ' '}
-                            {e.translations[speechTargetLanguage] ?? PENDING_TRANSLATION}
-                          </span>
-                        ))}
+                        {turn.entries.filter(needsTranslation).map((e, i) => {
+                          const translated = e.translations[speechTargetLanguage];
+                          return (
+                            <React.Fragment key={e.id}>
+                              {i > 0 && ' '}
+                              {/* 번역이 오면 key 가 바뀌어 새로 그려진다. 그때 서서히 나타나며 잠깐 칠해진다 */}
+                              {translated ? (
+                                <span key="done" className="transcript-translation-arrive">
+                                  {translated}
+                                </span>
+                              ) : (
+                                <span key="pending" className="text-gray-300">
+                                  {PENDING_TRANSLATION}
+                                </span>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
                       </p>
                     )}
                   </article>
