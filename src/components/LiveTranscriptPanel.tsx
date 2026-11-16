@@ -1,15 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  AlertCircle,
-  Hand,
-  Loader2,
-  Play,
-  Radio,
-  Square,
-  WifiOff,
-  X,
-} from 'lucide-react';
-import type { StreamErrorInfo } from '../hooks/useTranscriptStream';
+import { Hand, Play, Square } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
 import type { LanguageCode, TranscriptEntry } from '../types/meeting';
 import type { StreamConnectionState } from '../types/streaming';
@@ -18,12 +8,10 @@ interface LiveTranscriptPanelProps {
   entries: TranscriptEntry[];
   interimSegment: TranscriptEntry | null;
   connectionState: StreamConnectionState;
-  streamError: StreamErrorInfo | null;
   isDemoMode: boolean;
   speechTargetLanguage: LanguageCode;
   onStartDemoStream: () => void;
   onStopStream: () => void;
-  onClearStreamError: () => void;
   onSendChat: (text: string) => void;
 }
 
@@ -33,12 +21,10 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
   entries,
   interimSegment,
   connectionState,
-  streamError,
   isDemoMode,
   speechTargetLanguage,
   onStartDemoStream,
   onStopStream,
-  onClearStreamError,
   onSendChat,
 }) => {
   const { t } = useI18n();
@@ -75,40 +61,6 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
     setChatDraft('');
   };
 
-  const renderConnectionStatus = () => {
-    switch (connectionState) {
-      case 'connecting':
-        return (
-          <div className="flex items-center gap-2 body-05 text-primary-500">
-            <Loader2 className="size-icon-xs animate-spin shrink-0" />
-            <span>{t.stream.states.connecting}</span>
-          </div>
-        );
-      case 'listening':
-        return (
-          <div className="flex items-center gap-2 body-05 text-primary-500">
-            <Radio className="size-icon-xs shrink-0" />
-            <span>{t.stream.states.listening}</span>
-          </div>
-        );
-      case 'error':
-        return (
-          <div className="flex items-center gap-2 body-04 text-red-500">
-            <AlertCircle className="size-icon-xs shrink-0" />
-            <span>{t.stream.states.error}</span>
-          </div>
-        );
-      case 'disconnected':
-      default:
-        return (
-          <div className="flex items-center gap-2 body-05 text-gray-500">
-            <WifiOff className="size-icon-xs shrink-0" />
-            <span>{t.stream.states.disconnected}</span>
-          </div>
-        );
-    }
-  };
-
   return (
     <section className="flex flex-col gap-3 h-full min-h-0">
       {/* Header Pill Bar */}
@@ -141,54 +93,13 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
         </div>
       </div>
 
-      {/* Transcript Container: Pinned Stream Status Bar + Internally Scrollable Transcript Feed */}
+      {/* 전사 목록은 이 안에서만 스크롤한다. 연결·마이크 상태는 회의 화면 토스트로 띄운다 */}
       <div className="bg-white border border-gray-100 rounded-4 flex-1 min-h-[260px] min-[720px]:min-h-0 flex flex-col overflow-hidden">
-        {/* Stream Connection & Demo Mode Status Strip */}
-        <div className="shrink-0 border-b border-gray-100 bg-gray-20 px-5 sm:px-6 py-2.5 flex items-center justify-between gap-3 flex-wrap">
-          {renderConnectionStatus()}
-
-          <span className="label-01 text-gray-600 truncate">
-            {isDemoMode && isStreamActive
-              ? t.stream.demoBanner
-              : connectionState === 'listening'
-                ? t.stream.liveStreamBanner
-                : t.stream.disconnectedHint}
-          </span>
-        </div>
-
         {/* Scrollable Transcript Feed */}
         <div
           ref={scrollRef}
           className="flex-1 min-h-0 overflow-y-auto loop-scroll px-5 sm:px-6 py-5 flex flex-col gap-5"
         >
-          {/* Stream Connection Error State */}
-          {streamError && (
-            <div
-              role="alert"
-              className="rounded-3 border border-red-100 bg-red-50 px-4 py-3 flex items-start justify-between gap-3"
-            >
-              <div className="flex items-start gap-2.5">
-                <AlertCircle className="size-icon-xs text-red-500 mt-0.5 shrink-0" />
-                <div>
-                  <p className="body-02 text-red-600">
-                    {t.stream.states.error}
-                  </p>
-                  <p className="body-04 text-red-700 mt-0.5">
-                    {streamError.message}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onClearStreamError}
-                className="text-red-600 hover:text-red-800 p-1 rounded-2 cursor-pointer"
-                aria-label={t.common.close}
-              >
-                <X className="size-icon-xs" />
-              </button>
-            </div>
-          )}
-
           {/* Transcript Feed: Finalized Segments + In-Progress Interim Segment */}
           {entries.length > 0 || interimSegment ? (
             <div className="flex flex-col gap-6">

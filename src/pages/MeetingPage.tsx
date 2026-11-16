@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnonymousOpinionModal } from '../components/AnonymousOpinionModal';
 import { LiveContextCard } from '../components/LiveContextCard';
@@ -6,7 +6,10 @@ import { LiveTranscriptPanel } from '../components/LiveTranscriptPanel';
 import { MeetingHeader } from '../components/MeetingHeader';
 import { OpinionSuggestionCard } from '../components/OpinionSuggestionCard';
 import { QuickActionBar } from '../components/QuickActionBar';
+import { ToastStack } from '../components/ToastStack';
+import { CONNECTION_TOAST, useMeetingStatusToasts } from '../hooks/useMeetingStatusToasts';
 import { useMicrophoneRecorder } from '../hooks/useMicrophoneRecorder';
+import { useToasts } from '../hooks/useToasts';
 import { useTranscriptStream } from '../hooks/useTranscriptStream';
 import { useI18n } from '../i18n/I18nContext';
 import type {
@@ -44,7 +47,7 @@ interface MeetingPageProps {
   ) => void;
 }
 
-const TOAST_MS = 2000;
+const SUBMITTED_TOAST_MS = 2000;
 
 export const MeetingPage: React.FC<MeetingPageProps> = ({
   session,
@@ -66,11 +69,11 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const navigate = useNavigate();
   const { t } = useI18n();
   const [isAnonymousModalOpen, setIsAnonymousModalOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-  const toastTimerRef = useRef<number | null>(null);
+  const { toasts, show: showToast, dismiss: dismissToast } = useToasts();
 
   const {
     status: recorderStatus,
+    error: recorderError,
     durationSeconds,
     startRecording,
     stopRecording,
@@ -95,21 +98,23 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     onOpinionSuggested,
   });
 
-  useEffect(
-    () => () => {
-      if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
-    },
-    []
-  );
+  useMeetingStatusToasts({
+    connectionState,
+    streamError,
+    recorderStatus,
+    recorderError,
+    show: showToast,
+    dismiss: dismissToast,
+  });
 
   const isRecording = recorderStatus === 'recording';
   const isRequesting = recorderStatus === 'requesting';
   const hasDemoData = transcript.some((entry) => entry.source === 'demo');
 
-  const showToast = (message: string) => {
-    setToast(message);
-    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
-    toastTimerRef.current = window.setTimeout(() => setToast(null), TOAST_MS);
+  // 연결 오류 토스트를 닫으면 스트림 오류 상태도 함께 지운다
+  const handleDismissToast = (id: string) => {
+    dismissToast(id);
+    if (id === CONNECTION_TOAST) clearStreamError();
   };
 
   const handleEndMeeting = () => {
@@ -121,7 +126,12 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const handleSubmitAnonymous = (text: string) => {
     onPublishOpinion(text, {}, true);
     setIsAnonymousModalOpen(false);
-    showToast(t.anonymousOpinion.submitted);
+    showToast({
+      id: 'anonymous-submitted',
+      tone: 'info',
+      message: t.anonymousOpinion.submitted,
+      durationMs: SUBMITTED_TOAST_MS,
+    });
   };
 
   return (
@@ -154,12 +164,10 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
               entries={transcript}
               interimSegment={interimSegment}
               connectionState={connectionState}
-              streamError={streamError}
               isDemoMode={isDemoMode}
               speechTargetLanguage={session.speechTargetLanguage}
               onStartDemoStream={startDemoStream}
               onStopStream={stopStream}
-              onClearStreamError={clearStreamError}
               onSendChat={onSendChat}
             />
           </div>
@@ -196,14 +204,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
         onSubmit={handleSubmitAnonymous}
       />
 
-      {toast && (
-        <div
-          role="status"
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-full bg-gray-800 px-4 py-2 body-02 text-white shadow-01"
-        >
-          {toast}
-        </div>
-      )}
+      <ToastStack toasts={toasts} onDismiss={handleDismissToast} />
     </div>
   );
 };
