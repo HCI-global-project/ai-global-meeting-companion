@@ -65,6 +65,18 @@ class OpinionSuggested(Event):
     suggestion: OpinionSuggestion
 
 
+@dataclass(frozen=True)
+class SpeakerAssigned(Event):
+    speaker_key: str
+    # None 이면 지정 해제
+    participant_id: str | None
+
+
+@dataclass(frozen=True)
+class RecordingChanged(Event):
+    recorder_id: str | None
+
+
 E = TypeVar("E", bound=Event)
 Handler = Callable[[Any], Awaitable[None] | None]
 

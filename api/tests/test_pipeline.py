@@ -104,6 +104,31 @@ async def test_opinion_skips_the_sender_of_a_chat(container, llm):
     assert {e.suggestion.participant_id for e in suggestions} == {"p-en", "p-ja"}
 
 
+async def test_opinion_skips_the_assigned_speaker(container, llm):
+    session = await room(container)
+    suggestions = record(session, OpinionSuggested)
+    await session.assign_speaker("r1:2", "p-en")
+    await session.add_segment(speech("금요일로 미루면 어떨까요?", speaker="r1:2"))
+    await session.add_segment(speech("음 생각해 볼게요", speaker="r1:1"))
+    await session.flush()
+    assert {e.suggestion.participant_id for e in suggestions} == {"p-ko", "p-ja"}
+    # 프롬프트에도 지정된 이름이 들어간다
+    assert any("(Joe) 금요일로" in call.prompt for call in llm.calls_for("opinion"))
+
+
+async def test_new_recording_run_keeps_old_assignments_on_old_lines(container):
+    session = await room(container)
+    await session.start_recording("p-ko")
+    first = await session.add_segment(speech("첫 회차", speaker=session.speakers.key("1")))
+    await session.assign_speaker(first.speaker, "p-ja")
+    await session.stop_recording("p-ko")
+    await session.start_recording("p-ko")
+    second = await session.add_segment(speech("둘째 회차", speaker=session.speakers.key("1")))
+    assert first.speaker != second.speaker
+    assert session.speaker_label(first) == "Kenji"
+    assert session.speaker_label(second) == "화자 1"
+
+
 async def test_outcome_accumulates_with_stable_ids(container, store):
     session = await room(container)
     updates = record(session, OutcomeUpdated)

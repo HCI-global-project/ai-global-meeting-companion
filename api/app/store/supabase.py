@@ -204,6 +204,25 @@ class SupabaseStore:
             },
         )
 
+    # --- 화자 지정 ---
+
+    async def save_speaker(self, meeting_id: str, speaker_key: str, participant_id: str | None) -> None:
+        # 해제도 행을 지우지 않고 participant_id 를 비운다. 누가 언제 바꿨는지 updated_at 으로 남는다
+        await self._request(
+            "POST",
+            "meeting_speakers",
+            json={"meeting_id": meeting_id, "speaker_key": speaker_key, "participant_id": participant_id},
+            headers=UPSERT,
+        )
+
+    async def list_speakers(self, meeting_id: str) -> dict[str, str]:
+        rows = await self._request(
+            "GET",
+            "meeting_speakers",
+            params={"meeting_id": f"eq.{meeting_id}", "participant_id": "not.is.null"},
+        )
+        return {r["speaker_key"]: r["participant_id"] for r in rows}
+
 
 def _segment(row: dict) -> Segment:
     return Segment(

@@ -46,12 +46,13 @@ class SessionRegistry:
 
     async def _restore(self, meeting_id: str) -> MeetingSession:
         store = self._store
-        primary, participants, segments, context, outcome = await asyncio.gather(
+        primary, participants, segments, context, outcome, speakers = await asyncio.gather(
             store.primary_language(meeting_id),
             store.list_participants(meeting_id),
             store.recent_segments(meeting_id, WINDOW_SIZE),
             store.load_context(meeting_id),
             store.load_outcome(meeting_id),
+            store.list_speakers(meeting_id),
         )
         session = MeetingSession(
             meeting_id=meeting_id,
@@ -62,6 +63,7 @@ class SessionRegistry:
             outcome=outcome,
         )
         session.window.extend(segments)
+        session.speakers.assignments.update(speakers)
         return session
 
     async def close_all(self) -> None:

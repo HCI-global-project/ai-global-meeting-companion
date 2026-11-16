@@ -26,6 +26,7 @@ class InMemoryStore:
         self.outcomes: dict[str, MeetingOutcome] = {}
         self.suggestions: list[OpinionSuggestion] = []
         self.notes: list[MeetingNote] = []
+        self.speakers: dict[str, dict[str, str]] = defaultdict(dict)
 
     async def append_segment(self, meeting_id: str, draft: SegmentDraft) -> Segment:
         async with self._lock:
@@ -83,3 +84,12 @@ class InMemoryStore:
 
     async def save_note(self, note: MeetingNote) -> None:
         self.notes.append(note)
+
+    async def save_speaker(self, meeting_id: str, speaker_key: str, participant_id: str | None) -> None:
+        if participant_id is None:
+            self.speakers[meeting_id].pop(speaker_key, None)
+        else:
+            self.speakers[meeting_id][speaker_key] = participant_id
+
+    async def list_speakers(self, meeting_id: str) -> dict[str, str]:
+        return dict(self.speakers[meeting_id])

@@ -75,8 +75,8 @@ class OpinionTask(MeetingTask):
         return [
             p
             for p in session.participants.values()
-            # 그 말을 한 본인에게는 추천하지 않는다(채팅·의견처럼 누가 보냈는지 알 때만 가린다)
-            if p.id != target.participant_id
+            # 그 말을 한 본인에게는 추천하지 않는다(채팅이거나, 화자가 누구인지 지정됐을 때)
+            if p.id != session.participant_of(target)
             and now - self._last_at.get((session.meeting_id, p.id), -self._cooldown_s) >= self._cooldown_s
         ]
 

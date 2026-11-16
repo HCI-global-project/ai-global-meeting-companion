@@ -40,3 +40,11 @@ class ConfigureMessage(CamelModel):
     type: Literal["session.configure"]
     topic: str = ""
     terms: list[str] = []
+
+
+class AssignSpeakerMessage(CamelModel):
+    """화면 → 서버: '화자 2 = 민지'. participantId 가 없으면 지정 해제."""
+
+    type: Literal["speaker.assign"]
+    speaker_key: str
+    participant_id: str | None = None

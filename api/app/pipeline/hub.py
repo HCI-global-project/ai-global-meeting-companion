@@ -9,13 +9,34 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Protocol
 
-from .events import ContextUpdated, Event, OpinionSuggested, OutcomeUpdated, SegmentCorrected, SegmentFinalized, SegmentTranslated
+from .events import (
+    ContextUpdated,
+    Event,
+    OpinionSuggested,
+    OutcomeUpdated,
+    ParticipantJoined,
+    RecordingChanged,
+    SegmentCorrected,
+    SegmentFinalized,
+    SegmentTranslated,
+    SpeakerAssigned,
+)
 from .session import MeetingSession
 from .wire import to_wire
 
 log = logging.getLogger(__name__)
 
-BROADCAST_EVENTS = (SegmentFinalized, SegmentCorrected, SegmentTranslated, ContextUpdated, OutcomeUpdated, OpinionSuggested)
+BROADCAST_EVENTS = (
+    ParticipantJoined,
+    SegmentFinalized,
+    SegmentCorrected,
+    SegmentTranslated,
+    ContextUpdated,
+    OutcomeUpdated,
+    OpinionSuggested,
+    SpeakerAssigned,
+    RecordingChanged,
+)
 
 
 class Socket(Protocol):
