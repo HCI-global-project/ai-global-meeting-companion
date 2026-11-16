@@ -25,14 +25,20 @@ export interface MeetingState {
 }
 
 export interface PipelineConnection {
+  /** 녹음 기기를 맡겠다고 알린다. 서버가 recording.changed 또는 recording.denied 로 답한다 */
+  startRecording(): void;
+  stopRecording(): void;
   /** 녹음 기기: 분절기가 확정한 발화를 보낸다 */
   sendSegment(segment: SegmentDraft, clientSegmentId?: string): void;
+  /** '화자 2 = 민지'. participantId 가 null 이면 지정 해제 */
+  assignSpeaker(speakerKey: string, participantId: string | null): void;
   /** 녹음 기기: 회의 주제·용어를 알려 보정 정확도를 높인다 */
   configure(info: { topic?: string; terms?: string[] }): void;
   close(): void;
 }
 
 export interface ConnectHandlers {
+  onOpen?: () => void;
   onEvent: (event: IncomingTranscriptEvent) => void;
   onClose?: () => void;
 }

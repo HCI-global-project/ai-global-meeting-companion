@@ -16,6 +16,10 @@ interface MeetingHeaderProps {
   isRecording: boolean;
   isRequesting?: boolean;
   recordingSeconds?: number;
+  // 녹음은 한 번에 한 기기만 한다. 다른 사람이 녹음 중이면 그 이름이 온다
+  recordingLockedBy?: string | null;
+  // 회의 서버에 연결되지 않아 녹음을 시작할 수 없다
+  recordingUnavailable?: boolean;
   activeView: Extract<AppView, 'meeting' | 'notes'>;
   onChangeLanguage: (lang: LanguageCode) => void;
   onChangeRoom: (room: string) => void;
@@ -29,6 +33,8 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
   isRecording,
   isRequesting = false,
   recordingSeconds = 0,
+  recordingLockedBy = null,
+  recordingUnavailable = false,
   activeView,
   onChangeLanguage,
   onChangeRoom,
@@ -232,14 +238,20 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
               <span>{t.transcript.stopRecording}</span>
               <span className="tabular-nums text-gray-500">{formatDuration(recordingSeconds)}</span>
             </button>
+          ) : recordingLockedBy ? (
+            <span className="inline-flex items-center gap-2 h-9 px-4 lg:px-5 rounded-2 bg-gray-100 text-gray-600 body-02 whitespace-nowrap shrink-0">
+              <span className="size-2 rounded-full bg-primary-500 animate-pulse" aria-hidden="true" />
+              <span>{t.live.recordingBy(recordingLockedBy)}</span>
+            </span>
           ) : (
             <button
               type="button"
               onClick={onToggleRecording}
-              disabled={isRequesting}
+              disabled={recordingUnavailable}
               className="inline-flex items-center justify-center gap-1.5 h-9 px-4 lg:px-5 rounded-2 bg-primary-500 hover:opacity-90 text-white body-02 transition-opacity whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Mic className="size-icon-xs" />
+              {/* 시작 중에도 누를 수 있게 둔다. 다시 누르면 취소된다 */}
               <span>{isRequesting ? t.header.starting : t.transcript.startRecording}</span>
             </button>
           )}

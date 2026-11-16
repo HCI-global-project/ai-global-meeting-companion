@@ -57,7 +57,10 @@ export class FastApiPipelineClient implements PipelineClient {
       else outbox.push(data);
     };
 
-    socket.onopen = () => outbox.splice(0).forEach((data) => socket.send(data));
+    socket.onopen = () => {
+      outbox.splice(0).forEach((data) => socket.send(data));
+      handlers.onOpen?.();
+    };
     socket.onmessage = (event) => {
       try {
         handlers.onEvent(JSON.parse(String(event.data)) as IncomingTranscriptEvent);
@@ -70,6 +73,9 @@ export class FastApiPipelineClient implements PipelineClient {
     socket.onclose = () => handlers.onClose?.();
 
     return {
+      startRecording: () => send({ type: 'recording.start' }),
+      stopRecording: () => send({ type: 'recording.stop' }),
+      assignSpeaker: (speakerKey, participantId) => send({ type: 'speaker.assign', speakerKey, participantId }),
       sendSegment: (segment, clientSegmentId) =>
         send({
           type: 'segment.final',

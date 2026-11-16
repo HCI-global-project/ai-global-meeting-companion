@@ -1,5 +1,6 @@
 import { Segmenter } from '../segmentation/Segmenter';
 import type { BoundaryRule, SegmentDraft, SttToken } from '../segmentation/types';
+import { micErrorCode, type MicErrorCode } from '../micErrors';
 import type { TokenLog } from '../tokenLog';
 import { buildSonioxConfig, SONIOX_URL, type MeetingSttContext } from './sonioxConfig';
 
@@ -20,6 +21,12 @@ type SonioxResponse = { tokens?: SonioxRawToken[]; error_code?: number; error_me
 
 export type TranscriberState = 'idle' | 'connecting' | 'listening' | 'error';
 
+/** 마이크 문제면 micCode 가 있어 화면이 번역된 안내를 고를 수 있다 */
+export interface TranscriberFailure {
+  message: string;
+  micCode?: MicErrorCode;
+}
+
 export interface SonioxTranscriberOptions {
   getApiKey: () => Promise<string>;
   rules: BoundaryRule[];
@@ -31,7 +38,7 @@ export interface SonioxTranscriberOptions {
   log?: TokenLog;
   onSegment: (segment: SegmentDraft) => void;
   onInterim?: (text: string) => void;
-  onStateChange?: (state: TranscriberState, error?: string) => void;
+  onStateChange?: (state: TranscriberState, error?: TranscriberFailure) => void;
 }
 
 /**
@@ -76,7 +83,7 @@ export class SonioxTranscriber {
       ]);
       this.open(apiKey, stream);
     } catch (e) {
-      this.fail(e instanceof Error ? e.message : String(e));
+      this.fail(e instanceof Error ? e.message : String(e), micErrorCode(e) ?? undefined);
     }
   }
 
@@ -143,9 +150,9 @@ export class SonioxTranscriber {
     if (!this.failed) this.setState('idle');
   }
 
-  private fail(message: string): void {
+  private fail(message: string, micCode?: MicErrorCode): void {
     this.failed = true;
-    this.options.onStateChange?.('error', message);
+    this.options.onStateChange?.('error', { message, micCode });
     this.socket?.close();
     if (!this.socket) this.cleanup();
   }

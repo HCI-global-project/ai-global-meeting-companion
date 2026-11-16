@@ -47,16 +47,21 @@ describe('FastApiPipelineClient', () => {
     assert.match(socket.url, /^ws:\/\/localhost:8000\/ws\/meetings\/%EB%B0%A9%201\?/);
     assert.match(socket.url, /participantId=p-en&name=Joe&role=Dev&language=en/);
 
+    connection.startRecording();
     connection.sendSegment({ text: '안녕하세요', speaker: '1', language: 'ko', reason: 'pause' }, 'c1');
     assert.equal(socket.sent.length, 0);
     socket.open();
-    assert.deepEqual(JSON.parse(socket.sent[0]), {
+    assert.deepEqual(JSON.parse(socket.sent[0]), { type: 'recording.start' });
+    assert.deepEqual(JSON.parse(socket.sent[1]), {
       type: 'segment.final',
       text: '안녕하세요',
       speaker: '1',
       language: 'ko',
       clientSegmentId: 'c1',
     });
+
+    connection.assignSpeaker('r1:1', 'p-en');
+    assert.deepEqual(JSON.parse(socket.sent[2]), { type: 'speaker.assign', speakerKey: 'r1:1', participantId: 'p-en' });
 
     socket.onmessage?.({ data: JSON.stringify({ type: 'status', state: 'listening' }) });
     socket.onmessage?.({ data: 'not json' });

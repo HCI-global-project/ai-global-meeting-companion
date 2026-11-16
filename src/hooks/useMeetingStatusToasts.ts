@@ -1,71 +1,80 @@
 import { useEffect } from 'react';
+import type { TranscriberFailure } from '../features/stt/soniox/SonioxTranscriber';
 import { useI18n } from '../i18n/I18nContext';
-import type { StreamConnectionState } from '../types/streaming';
-import type { RecorderError, RecorderStatus } from './useMicrophoneRecorder';
+import type { LiveState } from './useLiveTranscription';
+import type { PipelineStatus } from './useMeetingConnection';
 import type { StreamErrorInfo } from './useTranscriptStream';
 import type { Toast } from './useToasts';
 
-export const CONNECTION_TOAST = 'connection';
+export const SERVER_TOAST = 'server';
 export const MIC_TOAST = 'mic';
+export const STREAM_TOAST = 'stream';
 const LISTENING_TOAST_MS = 2000;
 
 interface StatusSources {
-  connectionState: StreamConnectionState;
+  pipelineStatus: PipelineStatus;
+  liveState: LiveState;
+  liveFailure: TranscriberFailure | null;
   streamError: StreamErrorInfo | null;
-  recorderStatus: RecorderStatus;
-  recorderError: RecorderError | null;
   show: (toast: Toast) => void;
   dismiss: (id: string) => void;
 }
 
 /**
- * 연결·마이크 상태를 토스트로 옮긴다. 상태마다 같은 id 를 써서
+ * 서버 연결·녹음·스트림 상태를 토스트로 옮긴다. 출처마다 id 하나를 써서
  * 연결 중 → 듣는 중 → 오류가 한 자리에서 바뀌게 한다.
  */
 export function useMeetingStatusToasts({
-  connectionState,
+  pipelineStatus,
+  liveState,
+  liveFailure,
   streamError,
-  recorderStatus,
-  recorderError,
   show,
   dismiss,
 }: StatusSources) {
   const { t } = useI18n();
 
   useEffect(() => {
-    if (streamError) {
-      show({ id: CONNECTION_TOAST, tone: 'error', message: streamError.message });
-      return;
+    if (pipelineStatus === 'connecting') {
+      show({ id: SERVER_TOAST, tone: 'progress', message: t.live.connectingServer });
+    } else if (pipelineStatus === 'unavailable') {
+      show({ id: SERVER_TOAST, tone: 'error', message: t.live.serverUnavailable });
+    } else {
+      dismiss(SERVER_TOAST);
     }
-    switch (connectionState) {
+  }, [pipelineStatus, show, dismiss, t]);
+
+  useEffect(() => {
+    switch (liveState) {
+      case 'requesting':
       case 'connecting':
-        show({ id: CONNECTION_TOAST, tone: 'progress', message: t.stream.states.connecting });
+        show({ id: MIC_TOAST, tone: 'progress', message: t.transcript.waitingPermission });
         break;
       case 'listening':
         show({
-          id: CONNECTION_TOAST,
+          id: MIC_TOAST,
           tone: 'info',
           message: t.stream.states.listening,
           durationMs: LISTENING_TOAST_MS,
         });
         break;
-      case 'disconnected':
-        dismiss(CONNECTION_TOAST);
+      case 'error':
+        show({
+          id: MIC_TOAST,
+          tone: 'error',
+          message: liveFailure?.micCode
+            ? t.transcript.micErrors[liveFailure.micCode]
+            : liveFailure?.message || t.transcript.micErrors.unknown,
+        });
+        break;
+      case 'idle':
+        dismiss(MIC_TOAST);
         break;
     }
-  }, [connectionState, streamError, show, dismiss, t]);
+  }, [liveState, liveFailure, show, dismiss, t]);
 
   useEffect(() => {
-    if (recorderError) {
-      show({
-        id: MIC_TOAST,
-        tone: 'error',
-        message: t.transcript.micErrors[recorderError.code] ?? recorderError.message,
-      });
-    } else if (recorderStatus === 'requesting') {
-      show({ id: MIC_TOAST, tone: 'progress', message: t.transcript.waitingPermission });
-    } else {
-      dismiss(MIC_TOAST);
-    }
-  }, [recorderStatus, recorderError, show, dismiss, t]);
+    if (streamError) show({ id: STREAM_TOAST, tone: 'error', message: streamError.message });
+    else dismiss(STREAM_TOAST);
+  }, [streamError, show, dismiss]);
 }

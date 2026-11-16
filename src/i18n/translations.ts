@@ -1,4 +1,4 @@
-import type { RecorderErrorCode } from "../hooks/useMicrophoneRecorder";
+import type { MicErrorCode } from "../features/stt/micErrors";
 import type { LanguageCode } from "../types/meeting";
 
 export interface TranslationDictionary {
@@ -40,7 +40,7 @@ export interface TranslationDictionary {
     stopRecording: string;
     requestingMic: string;
     micUnavailableTitle: string;
-    micErrors: Record<RecorderErrorCode, string>;
+    micErrors: Record<MicErrorCode, string>;
     waitingPermission: string;
     recordingLocallyNotice: (speakerName: string) => string;
     recordedPlaybackTitle: string;
@@ -140,6 +140,14 @@ export interface TranslationDictionary {
     clear: string;
     noParticipants: string;
     assignHint: string;
+  };
+  // 회의 서버 연결과 녹음 기기 한 대 규칙
+  live: {
+    connectingServer: string;
+    serverUnavailable: string;
+    recorderBusy: (name: string) => string;
+    recordingBy: (name: string) => string;
+    sendFailed: string;
   };
   meetingEnd: {
     backToMeeting: string;
@@ -330,6 +338,13 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       clear: 'Clear',
       noParticipants: 'No one else has joined yet',
       assignHint: 'Tap a speaker name to set who it is',
+    },
+    live: {
+      connectingServer: 'Connecting to the meeting server...',
+      serverUnavailable: 'Cannot reach the meeting server. Check that it is running.',
+      recorderBusy: (name) => `${name || 'Someone else'} is already recording`,
+      recordingBy: (name) => `${name} is recording`,
+      sendFailed: 'Could not send. Please try again.',
     },
     meetingEnd: {
       backToMeeting: 'Back to Meeting Page',
@@ -522,6 +537,13 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       noParticipants: '아직 들어온 참여자가 없어요',
       assignHint: '화자 이름을 누르면 누구인지 지정할 수 있어요',
     },
+    live: {
+      connectingServer: '회의 서버에 연결하는 중...',
+      serverUnavailable: '회의 서버에 연결할 수 없어요. 서버가 켜져 있는지 확인해 주세요.',
+      recorderBusy: (name) => `${name || '다른 참여자'}님이 이미 녹음하고 있어요`,
+      recordingBy: (name) => `${name} 녹음 중`,
+      sendFailed: '보내지 못했어요. 다시 시도해 주세요.',
+    },
     meetingEnd: {
       backToMeeting: '회의 페이지로 돌아가기',
       notesTitle: '회의 노트',
@@ -711,6 +733,13 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       clear: '指定を解除',
       noParticipants: 'まだ参加者がいません',
       assignHint: '話者名を押すと誰かを指定できます',
+    },
+    live: {
+      connectingServer: '会議サーバーに接続中...',
+      serverUnavailable: '会議サーバーに接続できません。サーバーが起動しているか確認してください。',
+      recorderBusy: (name) => `${name || '他の参加者'}さんがすでに録音しています`,
+      recordingBy: (name) => `${name}が録音中`,
+      sendFailed: '送信できませんでした。もう一度お試しください。',
     },
     meetingEnd: {
       backToMeeting: '会議ページに戻る',
@@ -902,6 +931,13 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       noParticipants: 'ပါဝင်သူ မရှိသေးပါ',
       assignHint: 'ပြောသူအမည်ကို နှိပ်၍ မည်သူဖြစ်ကြောင်း သတ်မှတ်နိုင်သည်',
     },
+    live: {
+      connectingServer: 'အစည်းအဝေး ဆာဗာသို့ ချိတ်ဆက်နေသည်...',
+      serverUnavailable: 'အစည်းအဝေး ဆာဗာသို့ ချိတ်ဆက်၍ မရပါ။ ဆာဗာ ဖွင့်ထားခြင်း ရှိမရှိ စစ်ဆေးပါ။',
+      recorderBusy: (name) => `${name || 'အခြားပါဝင်သူ'} က အသံဖမ်းနေပြီ ဖြစ်သည်`,
+      recordingBy: (name) => `${name} အသံဖမ်းနေသည်`,
+      sendFailed: 'ပို့၍ မရပါ။ ထပ်စမ်းကြည့်ပါ။',
+    },
     meetingEnd: {
       backToMeeting: 'အစည်းအဝေး စာမျက်နှာသို့ ပြန်သွားရန်',
       notesTitle: 'အစည်းအဝေး မှတ်စုများ',
@@ -1091,6 +1127,13 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       clear: 'Сбросить',
       noParticipants: 'Пока никто не присоединился',
       assignHint: 'Нажмите на имя спикера, чтобы указать, кто это',
+    },
+    live: {
+      connectingServer: 'Подключение к серверу встречи...',
+      serverUnavailable: 'Не удаётся подключиться к серверу встречи. Проверьте, что он запущен.',
+      recorderBusy: (name) => `${name || 'Другой участник'} уже ведёт запись`,
+      recordingBy: (name) => `Запись: ${name}`,
+      sendFailed: 'Не удалось отправить. Попробуйте ещё раз.',
     },
     meetingEnd: {
       backToMeeting: 'Назад ко встрече',
@@ -1282,6 +1325,13 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       clear: 'Quitar',
       noParticipants: 'Aún no se ha unido nadie',
       assignHint: 'Toca el nombre del hablante para indicar quién es',
+    },
+    live: {
+      connectingServer: 'Conectando con el servidor de la reunión...',
+      serverUnavailable: 'No se puede conectar con el servidor de la reunión. Comprueba que esté en marcha.',
+      recorderBusy: (name) => `${name || 'Otra persona'} ya está grabando`,
+      recordingBy: (name) => `Graba ${name}`,
+      sendFailed: 'No se pudo enviar. Inténtalo de nuevo.',
     },
     meetingEnd: {
       backToMeeting: 'Volver a la reunión',

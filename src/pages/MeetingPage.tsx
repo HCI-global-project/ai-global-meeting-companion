@@ -7,9 +7,11 @@ import { MeetingHeader } from '../components/MeetingHeader';
 import { OpinionSuggestionCard } from '../components/OpinionSuggestionCard';
 import { QuickActionBar } from '../components/QuickActionBar';
 import { ToastStack } from '../components/ToastStack';
-import { CONNECTION_TOAST, useMeetingStatusToasts } from '../hooks/useMeetingStatusToasts';
+import { isRosterEvent } from '../features/roster/roster';
+import { useLiveTranscription } from '../hooks/useLiveTranscription';
+import { useMeetingConnection } from '../hooks/useMeetingConnection';
 import { useMeetingRoster } from '../hooks/useMeetingRoster';
-import { useMicrophoneRecorder } from '../hooks/useMicrophoneRecorder';
+import { MIC_TOAST, STREAM_TOAST, useMeetingStatusToasts } from '../hooks/useMeetingStatusToasts';
 import { useToasts } from '../hooks/useToasts';
 import { useTranscriptStream } from '../hooks/useTranscriptStream';
 import { useI18n } from '../i18n/I18nContext';
@@ -21,6 +23,7 @@ import type {
   RoomSession,
   TranscriptEntry,
 } from '../types/meeting';
+import type { IncomingTranscriptEvent } from '../types/streaming';
 
 interface MeetingPageProps {
   session: RoomSession;
@@ -38,18 +41,25 @@ interface MeetingPageProps {
   ) => void;
   onContextUpdated: (context: LiveContext) => void;
   onOutcomeUpdated: (outcome: MeetingOutcome) => void;
+  // 아래 세 가지는 서버에 연결되지 않았을 때 내 화면에만 띄우는 대체 동작이다
   onSendChat: (text: string) => void;
-  onOpinionSuggested: (suggestion: OpinionSuggestion) => void;
   onRequestWait: () => void;
   onPublishOpinion: (
     originalText: string,
     translations: Partial<Record<LanguageCode, string>>,
     isAnonymous: boolean
   ) => void;
+  onOpinionSuggested: (suggestion: OpinionSuggestion) => void;
 }
 
-const SUBMITTED_TOAST_MS = 2000;
+const SHORT_TOAST_MS = 2000;
 const SPEAKER_HINT_MS = 4000;
+const PRIMARY_LANGUAGE: LanguageCode = 'ko';
+
+function clock(): string {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+}
 
 export const MeetingPage: React.FC<MeetingPageProps> = ({
   session,
@@ -72,25 +82,17 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const { t } = useI18n();
   const [isAnonymousModalOpen, setIsAnonymousModalOpen] = useState(false);
   const { toasts, show: showToast, dismiss: dismissToast } = useToasts();
-  const { roster, assignLocally } = useMeetingRoster();
+  const { roster, handleRosterEvent, assignLocally } = useMeetingRoster();
   const speakerHintShownRef = useRef(false);
-
-  const {
-    status: recorderStatus,
-    error: recorderError,
-    durationSeconds,
-    startRecording,
-    stopRecording,
-    releaseMicrophone,
-  } = useMicrophoneRecorder();
 
   const {
     connectionState,
     streamError,
-    interimSegment,
+    interimSegment: demoInterim,
     isDemoMode,
     startDemoStream,
     stopStream,
+    handleIncomingEvent,
     clearError: clearStreamError,
   } = useTranscriptStream({
     speechTargetLanguage: session.speechTargetLanguage,
@@ -102,18 +104,98 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     onOpinionSuggested,
   });
 
+  const pipeline = useMeetingConnection({ session, onEvent: handlePipelineEvent });
+  const online = pipeline.status === 'open';
+
+  const languageHints = [
+    ...new Set([PRIMARY_LANGUAGE, ...roster.participants.map((p) => p.language)]),
+  ];
+  const live = useLiveTranscription({
+    client: pipeline.client,
+    getConnection: pipeline.getConnection,
+    selfId: session.participantId,
+    recorderId: roster.recorderId,
+    languageHints,
+    participantNames: roster.participants.map((p) => p.name),
+  });
+
+  // 서버 이벤트를 받을 곳으로 나눈다: 명단, 짧게 알릴 오류, 나머지는 전사 스트림
+  function handlePipelineEvent(event: IncomingTranscriptEvent) {
+    if (isRosterEvent(event)) {
+      handleRosterEvent(event);
+      if (event.type === 'recording.denied') {
+        live.cancelRequest();
+        showToast({
+          id: 'recorder-busy',
+          tone: 'info',
+          message: t.live.recorderBusy(event.recorderName),
+          durationMs: SPEAKER_HINT_MS,
+        });
+      }
+      return;
+    }
+    if (event.type === 'status' || event.type === 'segment.saved' || event.type === 'pong') return;
+    if (event.type === 'error' && event.recoverable) {
+      showToast({ id: 'server-error', tone: 'error', message: event.message });
+      return;
+    }
+    handleIncomingEvent(event);
+  }
+
+  // 늦게 들어왔거나 다시 붙었을 때 지난 발화·맥락을 채운다. 같은 id 는 App 에서 덮어쓴다
+  const { client } = pipeline;
+  const { roomCode } = session;
+  useEffect(() => {
+    if (!online) return;
+    let cancelled = false;
+    client
+      .fetchState(roomCode)
+      .then((state) => {
+        if (cancelled) return;
+        state.segments.forEach((segment) => handleIncomingEvent(segment));
+        if (state.context) onContextUpdated(state.context);
+        if (state.outcome) onOutcomeUpdated(state.outcome);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [online, client, roomCode, handleIncomingEvent, onContextUpdated, onOutcomeUpdated]);
+
   useMeetingStatusToasts({
-    connectionState,
+    pipelineStatus: pipeline.status,
+    liveState: live.state,
+    liveFailure: live.failure,
     streamError,
-    recorderStatus,
-    recorderError,
     show: showToast,
     dismiss: dismissToast,
   });
 
-  const isRecording = recorderStatus === 'recording';
-  const isRequesting = recorderStatus === 'requesting';
+  const isRecording = live.state === 'listening';
+  const isRequesting = live.state === 'requesting' || live.state === 'connecting';
+  const otherRecorder =
+    roster.recorderId && roster.recorderId !== session.participantId
+      ? roster.participants.find((p) => p.id === roster.recorderId)
+      : undefined;
   const hasDemoData = transcript.some((entry) => entry.source === 'demo');
+
+  // 녹음 기기에서만 보이는 말하는 중인 문장. 데모 스트림이 돌면 데모 쪽을 보여 준다
+  const interimSegment: TranscriptEntry | null =
+    demoInterim ??
+    (live.interimText
+      ? {
+          id: 'live-interim',
+          speakerId: 'live',
+          speakerName: '',
+          timestamp: clock(),
+          originalLanguage: 'auto',
+          originalText: live.interimText,
+          translations: {},
+          badgeVariant: 'neutral',
+          status: 'interim',
+          source: 'stream',
+        }
+      : null);
 
   // 지정 안 된 화자가 처음 보이면 이름을 눌러 지정할 수 있다고 한 번만 알려 준다
   const hasUnassignedSpeaker = transcript.some(
@@ -130,31 +212,61 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     });
   }, [hasUnassignedSpeaker, showToast, t]);
 
+  const sendFailed = () =>
+    showToast({ id: 'send-failed', tone: 'error', message: t.live.sendFailed });
+
   const handleAssignSpeaker = (speakerKey: string, participantId: string | null) => {
     assignLocally(speakerKey, participantId);
+    pipeline.getConnection()?.assignSpeaker(speakerKey, participantId);
   };
 
-  // 연결 오류 토스트를 닫으면 스트림 오류 상태도 함께 지운다
-  const handleDismissToast = (id: string) => {
-    dismissToast(id);
-    if (id === CONNECTION_TOAST) clearStreamError();
+  const handleSendChat = (text: string) => {
+    if (!online) return onSendChat(text);
+    pipeline.client
+      .sendMessage(roomCode, { participantId: session.participantId, text, kind: 'chat' })
+      .catch(sendFailed);
   };
 
-  const handleEndMeeting = () => {
-    releaseMicrophone();
-    stopStream();
-    navigate('/meeting-end');
+  const handleRequestWait = () => {
+    if (!online) return onRequestWait();
+    pipeline.client.requestWait(roomCode).catch(sendFailed);
   };
 
   const handleSubmitAnonymous = (text: string) => {
-    onPublishOpinion(text, {}, true);
     setIsAnonymousModalOpen(false);
-    showToast({
-      id: 'anonymous-submitted',
-      tone: 'info',
-      message: t.anonymousOpinion.submitted,
-      durationMs: SUBMITTED_TOAST_MS,
-    });
+    const done = () =>
+      showToast({
+        id: 'anonymous-submitted',
+        tone: 'info',
+        message: t.anonymousOpinion.submitted,
+        durationMs: SHORT_TOAST_MS,
+      });
+    if (!online) {
+      onPublishOpinion(text, {}, true);
+      done();
+      return;
+    }
+    pipeline.client
+      .sendMessage(roomCode, {
+        participantId: session.participantId,
+        text,
+        kind: 'opinion',
+        anonymous: true,
+      })
+      .then(done, sendFailed);
+  };
+
+  // 오류 토스트를 닫으면 그 오류 상태도 함께 지운다
+  const handleDismissToast = (id: string) => {
+    dismissToast(id);
+    if (id === STREAM_TOAST) clearStreamError();
+    if (id === MIC_TOAST) live.clearFailure();
+  };
+
+  const handleEndMeeting = () => {
+    live.stop();
+    stopStream();
+    navigate('/meeting-end');
   };
 
   return (
@@ -164,11 +276,13 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
           session={session}
           isRecording={isRecording}
           isRequesting={isRequesting}
-          recordingSeconds={durationSeconds}
+          recordingSeconds={live.seconds}
+          recordingLockedBy={otherRecorder?.name ?? null}
+          recordingUnavailable={!online}
           activeView="meeting"
           onChangeLanguage={onChangeLanguage}
           onChangeRoom={onChangeRoom}
-          onToggleRecording={isRecording ? stopRecording : () => void startRecording()}
+          onToggleRecording={isRecording || isRequesting ? live.stop : live.start}
           onSwitchView={(view) => {
             if (view === 'notes') {
               handleEndMeeting();
@@ -191,7 +305,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
               speechTargetLanguage={session.speechTargetLanguage}
               onStartDemoStream={startDemoStream}
               onStopStream={stopStream}
-              onSendChat={onSendChat}
+              onSendChat={handleSendChat}
               roster={roster}
               selfId={session.participantId}
               onAssignSpeaker={handleAssignSpeaker}
@@ -202,7 +316,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
           <aside className="min-h-0 flex flex-col gap-4">
             <div className="shrink-0">
               <QuickActionBar
-                onRequestWait={onRequestWait}
+                onRequestWait={handleRequestWait}
                 onOpenAnonymousOpinion={() => setIsAnonymousModalOpen(true)}
               />
             </div>
