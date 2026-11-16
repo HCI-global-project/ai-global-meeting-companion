@@ -32,9 +32,11 @@ export interface SegmentState {
  * 끊는 규칙. 둘 중 필요한 것만 구현한다.
  * - cutBefore: 다음 확정 토큰을 붙이기 전에 끊을지
  * - cutAfter: 토큰을 붙인 직후 끊을지
+ * - cutOnEndpoint: Soniox 가 발화 끝(<end>)을 알렸을 때 끊을지
  */
 export interface BoundaryRule {
   readonly name: string;
   cutBefore?(state: SegmentState, next: SttToken): boolean;
   cutAfter?(state: SegmentState): boolean;
+  cutOnEndpoint?(state: SegmentState): boolean;
 }

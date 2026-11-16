@@ -37,6 +37,17 @@ export function sentenceEnd(minChars: number): BoundaryRule {
   };
 }
 
+/**
+ * Soniox 의 발화 끝 신호. 짧은 쉼에도 오므로 짧은 조각("그래서", "네")은 끊지 않고
+ * 다음 말과 붙인다. 정말 말이 끝났으면 전사기의 쉼 타이머가 내보낸다.
+ */
+export function endpoint(minChars: number): BoundaryRule {
+  return {
+    name: 'endpoint',
+    cutOnEndpoint: (state) => length(state) >= minChars,
+  };
+}
+
 /** 말 사이 쉼. 토큰 시각이 있을 때만 쓴다 */
 export function pause(minGapMs: number, minChars: number): BoundaryRule {
   return {

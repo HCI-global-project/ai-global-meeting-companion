@@ -3,6 +3,9 @@ import type { BoundaryRule, SegmentDraft, SegmentState, SttToken } from './types
 // Soniox 가 보내는 특수 토큰. <end> 는 발화 끝(endpoint), <fin> 은 수동 확정 표시
 const END_TOKEN = '<end>';
 const FIN_TOKEN = '<fin>';
+// 글자나 숫자가 하나라도 있어야 발화로 친다. 마침표·쉼표만 있는 조각은 발화가 아니다
+const HAS_WORD = /[\p{L}\p{N}]/u;
+const LEADING_PUNCTUATION = /^[\s\p{P}]+/u;
 
 /**
  * STT 토큰을 발화 단위로 끊는다. 언제 끊을지는 규칙 목록이 정한다.
@@ -27,7 +30,9 @@ export class Segmenter {
     let pending = '';
     for (const token of tokens) {
       if (token.text === END_TOKEN) {
-        this.flush('endpoint');
+        const state = this.state();
+        const rule = this.rules.find((r) => r.cutOnEndpoint?.(state));
+        if (rule) this.flush(rule.name);
         continue;
       }
       if (token.text === FIN_TOKEN) continue;
@@ -42,8 +47,9 @@ export class Segmenter {
 
   /** 지금까지 쌓인 것을 발화로 내보낸다(쉼 타이머, 녹음 종료) */
   flush(reason: string): void {
-    const text = this.text.trim();
-    if (text) {
+    // 앞 발화를 끊은 뒤에 늦게 온 문장부호가 맨 앞에 남을 수 있어 떼어 낸다
+    const text = this.text.trim().replace(LEADING_PUNCTUATION, '');
+    if (HAS_WORD.test(text)) {
       this.onSegment({
         text,
         speaker: this.speaker ?? '',
@@ -64,7 +70,10 @@ export class Segmenter {
   }
 
   private accept(token: SttToken): void {
-    const before = this.rules.find((rule) => rule.cutBefore?.(this.state(), token));
+    // 문장부호 토큰은 앞말에 붙인다. 그 앞에서 끊으면 '.' 하나짜리 발화가 생긴다
+    const before = HAS_WORD.test(token.text)
+      ? this.rules.find((rule) => rule.cutBefore?.(this.state(), token))
+      : undefined;
     if (before) this.flush(before.name);
 
     if (!this.text.trim() && token.startMs !== undefined) this.startMs = token.startMs;

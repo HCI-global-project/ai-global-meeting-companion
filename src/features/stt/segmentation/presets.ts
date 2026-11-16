@@ -1,4 +1,4 @@
-import { koreanEnding, languageChange, maxLength, pause, sentenceEnd, speakerChange } from './rules';
+import { endpoint, koreanEnding, languageChange, maxLength, pause, sentenceEnd, speakerChange } from './rules';
 import type { BoundaryRule } from './types';
 
 /**
@@ -10,22 +10,26 @@ export type SegmentationPreset = 'lab' | 'clause';
 
 export interface ClauseOptions {
   pauseMs: number;
+  // 쉼·발화 끝 신호·문장부호로 끊을 최소 길이. 이보다 짧으면 다음 말과 붙인다
+  minChars: number;
   maxChars: number;
   terminalMinChars: number;
   connectiveMinChars: number;
   languageSwitchGapMs: number;
 }
 
+// 실제 회의에서 0.5초 쉼·8자 기준은 문장 중간에서 너무 자주 끊었다. 짧은 조각은 붙이는 쪽으로 잡는다
 export const DEFAULT_CLAUSE_OPTIONS: ClauseOptions = {
-  pauseMs: 500,
-  maxChars: 70,
-  terminalMinChars: 8,
-  connectiveMinChars: 35,
+  pauseMs: 900,
+  minChars: 12,
+  maxChars: 80,
+  terminalMinChars: 15,
+  connectiveMinChars: 40,
   languageSwitchGapMs: 250,
 };
 
 export function labRules(): BoundaryRule[] {
-  return [speakerChange, maxLength(150, Number.POSITIVE_INFINITY), sentenceEnd(40)];
+  return [speakerChange, maxLength(150, Number.POSITIVE_INFINITY), sentenceEnd(40), endpoint(1)];
 }
 
 export function clauseRules(options: Partial<ClauseOptions> = {}): BoundaryRule[] {
@@ -33,10 +37,11 @@ export function clauseRules(options: Partial<ClauseOptions> = {}): BoundaryRule[
   return [
     speakerChange,
     languageChange(o.languageSwitchGapMs),
-    pause(o.pauseMs, 1),
+    pause(o.pauseMs, o.minChars),
     koreanEnding(o.terminalMinChars, o.connectiveMinChars),
     maxLength(o.maxChars),
-    sentenceEnd(2),
+    sentenceEnd(o.minChars),
+    endpoint(o.minChars),
   ];
 }
 

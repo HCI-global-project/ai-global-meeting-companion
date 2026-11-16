@@ -83,10 +83,37 @@ describe('other boundaries', () => {
     assert.deepEqual(out.map((s) => [s.speaker, s.reason]), [['1', 'speaker'], ['2', 'stop']]);
   });
 
-  it('cuts on a pause even for a one-character reply', () => {
-    const out = segment(new TokenScript().speak('네').speak('그럼 그렇게 진행하죠', { gapBeforeMs: 800 }).tokens);
-    assert.deepEqual(out.map((s) => s.text), ['네', '그럼 그렇게 진행하죠']);
+  it('cuts on a pause once the line is long enough', () => {
+    const out = segment(
+      new TokenScript().speak('그럼 일정은 그렇게 가는 걸로').speak('다음 안건 볼게요', { gapBeforeMs: 1000 }).tokens
+    );
+    assert.deepEqual(out.map((s) => s.text), ['그럼 일정은 그렇게 가는 걸로', '다음 안건 볼게요']);
     assert.equal(out[0].reason, 'pause');
+  });
+
+  it('joins a short reply to what the same speaker says next', () => {
+    const out = segment(new TokenScript().speak('네').speak('그럼 그렇게 진행하죠', { gapBeforeMs: 1000 }).tokens);
+    assert.deepEqual(out.map((s) => s.text), ['네 그럼 그렇게 진행하죠']);
+  });
+
+  it('keeps a late period with the sentence instead of a lone "." line', () => {
+    const tokens = new TokenScript().speak('목요일까지 시안을 정리해서 공유할게요').tokens;
+    const last = tokens[tokens.length - 1];
+    // Soniox 가 마침표를 한참 뒤 시각으로 따로 보내는 경우
+    tokens.push({ text: '.', isFinal: true, speaker: '1', language: 'ko', startMs: (last.endMs ?? 0) + 1500, endMs: (last.endMs ?? 0) + 1510 });
+    tokens.push(...new TokenScript().speak('다음은 예산 이야기예요').tokens.map((t) => ({ ...t, startMs: (t.startMs ?? 0) + 9000, endMs: (t.endMs ?? 0) + 9000 })));
+    const out = segment(tokens);
+    assert.deepEqual(out.map((s) => s.text), ['목요일까지 시안을 정리해서 공유할게요.', '다음은 예산 이야기예요']);
+  });
+
+  it('never emits a punctuation-only segment and strips leading punctuation', () => {
+    const out: SegmentDraft[] = [];
+    const segmenter = new Segmenter(clauseRules(), (s) => out.push(s));
+    segmenter.push([{ text: '.', isFinal: true, speaker: '1' }]);
+    segmenter.flush('idle');
+    segmenter.push([{ text: '. 그다음은', isFinal: true, speaker: '1' }]);
+    segmenter.flush('idle');
+    assert.deepEqual(out.map((s) => s.text), ['그다음은']);
   });
 
   it('cuts long unpunctuated English at a word boundary', () => {
@@ -99,10 +126,21 @@ describe('other boundaries', () => {
   it('flushes on the Soniox endpoint token and records timing', () => {
     const out: SegmentDraft[] = [];
     const segmenter = new Segmenter(clauseRules(), (s) => out.push(s));
-    segmenter.push(new TokenScript().speak('회의 시작할게요').end().tokens);
+    segmenter.push(new TokenScript().speak('그럼 오늘 회의 바로 시작할게요').end().tokens);
     assert.equal(out.length, 1);
+    assert.equal(out[0].reason, 'endpoint');
     assert.equal(out[0].startMs, 0);
     assert.ok((out[0].endMs ?? 0) > 0);
+  });
+
+  it('does not cut a short fragment at the endpoint token', () => {
+    const out: SegmentDraft[] = [];
+    const segmenter = new Segmenter(clauseRules(), (s) => out.push(s));
+    segmenter.push(new TokenScript().speak('그래서').end().tokens);
+    assert.equal(out.length, 0);
+    segmenter.push([{ text: ' 금요일로 옮기자는 거예요', isFinal: true, speaker: '1', language: 'ko' }]);
+    segmenter.flush('idle');
+    assert.deepEqual(out.map((s) => s.text), ['그래서 금요일로 옮기자는 거예요']);
   });
 
   it('returns final plus interim text for display', () => {
