@@ -93,6 +93,9 @@ class OpinionTask(MeetingTask):
                     metadata={"focus": target.best_text, "participant": participant.id},
                 )
             )
+        # 만드는 사이 이 화자가 본인으로 지정됐으면 보내지 않는다
+        if session.participant_of(target) == participant.id:
+            return
         data = response.data
         suggestion = OpinionSuggestion(
             id=f"s-{uuid.uuid4().hex[:10]}",

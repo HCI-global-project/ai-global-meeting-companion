@@ -116,6 +116,16 @@ async def test_opinion_skips_the_assigned_speaker(container, llm):
     assert any("(Joe) 금요일로" in call.prompt for call in llm.calls_for("opinion"))
 
 
+async def test_opinion_is_dropped_if_speaker_is_assigned_while_generating(container, llm):
+    session = await room(container)
+    suggestions = record(session, OpinionSuggested)
+    target = await session.add_segment(speech("금요일로 미루면 어떨까요?", speaker="r1:2"))
+    task = container.opinion.request(session, session.participants["p-en"], target, source="manual")
+    await session.assign_speaker("r1:2", "p-en")
+    await task
+    assert suggestions == []
+
+
 async def test_new_recording_run_keeps_old_assignments_on_old_lines(container):
     session = await room(container)
     await session.start_recording("p-ko")
