@@ -1,12 +1,37 @@
 import type { BoundaryRule, SegmentState, SttToken } from './types';
 
 const SENTENCE_END = /[.?!。？！]["')\]]*\s*$/;
-// 한국어 종결어미. 문장부호 없이 와도 여기서 말이 끝난 경우가 많다.
-// '자'(참가자), '지'(까지), '네'(네 명) 처럼 명사·조사와 겹치는 끝은 넣지 않는다
-const KOREAN_TERMINAL = /(다|요|죠|까)$/;
 // 연결어미. 문장은 이어지지만 길어졌으면 여기서 끊어도 뜻이 통한다.
 // '서'(보고서), '면'(화면) 처럼 한 글자만 보면 명사와 헷갈려서 두 글자 이상으로 본다
 const KOREAN_CONNECTIVE = /(는데|은데|인데|니까|거든|지만|하고|이고|어서|아서|해서|으면|하면|려면)$/;
+
+// --- 한국어 종결어미 ---
+// 문장부호 없이 와도 여기서 말이 끝난 경우가 많다. 끝 글자(다·요·죠·까)만 보면 '아까', '아나바다',
+// '그러다', '필요' 같은 부사·명사에서 잘못 끊어서(실제 녹음에서 나온 예) 앞 글자 받침까지 본다.
+// '자'(참가자), '지'(까지), '네'(네 명) 처럼 명사·조사와 겹치는 끝은 처음부터 넣지 않는다
+const HANGUL_BASE = 0xac00;
+const RIEUL_FINAL = 8;
+// 받침(종성) 번호. 0 이면 받침 없음, 한글 음절이 아니면 -1
+function finalConsonant(syllable: string | undefined): number {
+  const code = syllable ? syllable.charCodeAt(0) - HANGUL_BASE : -1;
+  return code >= 0 && code <= 11_171 ? code % 28 : -1;
+}
+// 받침 없는 글자 + 다 로 끝나는 서술형. 그 밖의 받침 없는 '-다'(바다, 그러다)는 명사·부사로 본다
+const OPEN_DECLARATIVE = /(니다|거다|이다|크다|쁘다|프다|쓰다)$/;
+// '요'로 끝나는 명사. 해요·있어요 처럼 받침 없는 글자 뒤에도 오는 어미라 받침으로는 못 가른다
+const NOUNS_ENDING_IN_YO = new Set(['필요', '중요', '주요', '수요', '강요', '요요']);
+
+export function isKoreanTerminal(word: string): boolean {
+  const last = word.at(-1);
+  const before = word.at(-2);
+  if (last === '죠') return true;
+  if (last === '요') return !NOUNS_ENDING_IN_YO.has(word.slice(-2));
+  // 할까·어떨까 처럼 의문형 '-ㄹ까' 이거나 '-니까'. '아까' 는 부사다
+  if (last === '까') return finalConsonant(before) === RIEUL_FINAL || word.endsWith('니까');
+  // 했다·있다·한다·같다 처럼 받침 뒤에 오거나 '-니다'·'-거다' 같은 서술형
+  if (last === '다') return finalConsonant(before) > 0 || OPEN_DECLARATIVE.test(word);
+  return false;
+}
 
 const length = (state: SegmentState) => state.text.trim().length;
 // 마지막 어절. "다 같이"의 '다' 처럼 한 글자 어절은 어미로 보지 않는다
@@ -14,6 +39,10 @@ const lastWord = (text: string) => text.trimEnd().split(/\s+/).pop() ?? '';
 const endsWith = (text: string, pattern: RegExp) => {
   const word = lastWord(text);
   return word.length >= 2 && pattern.test(word);
+};
+const endsTerminal = (text: string) => {
+  const word = lastWord(text);
+  return word.length >= 2 && isKoreanTerminal(word);
 };
 // Soniox 토큰은 새 단어를 공백으로 시작한다. 단어 중간("했어" + "요")에서 끊지 않으려고 본다
 const startsWord = (token: SttToken) => /^\s/.test(token.text);
@@ -68,7 +97,7 @@ export function koreanEnding(terminalMinChars: number, connectiveMinChars: numbe
       if (!startsWord(next)) return false;
       const n = length(state);
       return (
-        (n >= terminalMinChars && endsWith(state.text, KOREAN_TERMINAL)) ||
+        (n >= terminalMinChars && endsTerminal(state.text)) ||
         (n >= connectiveMinChars && endsWith(state.text, KOREAN_CONNECTIVE))
       );
     },
@@ -88,7 +117,7 @@ export function languageChange(minGapMs: number): BoundaryRule {
       return (
         gapMs(state, next) >= minGapMs ||
         SENTENCE_END.test(state.text) ||
-        endsWith(state.text, KOREAN_TERMINAL)
+        endsTerminal(state.text)
       );
     },
   };

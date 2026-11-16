@@ -214,3 +214,16 @@ describe('split-comma: lab-split plus a cut after commas once the segment is lon
     assert.equal(out.length, 1);
   });
 });
+
+describe('Korean ending false positives from real recordings', () => {
+  it('does not cut after adverbs or nouns ending in 다/까', () => {
+    for (const text of [
+      '자 로딩하면 얘가 지금 프로그램 로딩해서 아마 아까 말씀드렸던 것처럼 이 안티그라비티 자체적으로',
+      '그리고 제가 아까 약간 힘을 주어서 12월 아나바다 마켓 만들었다고 했는데 여기 약간',
+      '우리가 사실 AI가 잘 풀 수 있는 문제들에 익숙해져 있잖아 그러다 보니까 우리가 풀 수 있는',
+    ]) {
+      const out = segment(new TokenScript().speak(text).tokens, labSplitRules());
+      assert.equal(out.length, 1, out.map((s) => s.text).join(' | '));
+    }
+  });
+});
