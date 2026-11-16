@@ -98,13 +98,19 @@ export function useLiveTranscription({
     void transcriber.start();
   }, [client, getConnection, release]);
 
-  // 서버가 녹음 자리를 나에게 주면 시작한다. 자리를 잃으면(서버 재시작 등) 멈춘다
+  // 서버가 녹음 자리를 나에게 주면 시작한다. 녹음 중에 자리가 비면(재연결·서버 재시작) 다시 맡고,
+  // 다른 사람이 가져갔으면 멈춘다
   useEffect(() => {
     if (wantRef.current && recorderId === selfId && !transcriberRef.current) begin();
-    if (transcriberRef.current && recorderId !== selfId && state === 'listening') {
-      transcriberRef.current.stop();
-    }
-  }, [recorderId, selfId, begin, state]);
+    if (!transcriberRef.current || state !== 'listening') return;
+    if (recorderId === null) getConnection()?.startRecording();
+    else if (recorderId !== selfId) transcriberRef.current.stop();
+  }, [recorderId, selfId, begin, state, getConnection]);
+
+  /** 서버가 이 연결을 녹음 기기로 모를 때(같은 참여자의 다른 연결이 자리를 쥐고 있을 때) 다시 맡는다 */
+  const reclaim = useCallback(() => {
+    if (transcriberRef.current) getConnection()?.startRecording();
+  }, [getConnection]);
 
   const start = useCallback(() => {
     const connection = getConnection();
@@ -144,5 +150,5 @@ export function useLiveTranscription({
     []
   );
 
-  return { state, failure, interimText, seconds, start, stop, cancelRequest, clearFailure };
+  return { state, failure, interimText, seconds, start, stop, cancelRequest, clearFailure, reclaim };
 }

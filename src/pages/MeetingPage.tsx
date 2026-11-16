@@ -135,6 +135,11 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
       return;
     }
     if (event.type === 'status' || event.type === 'segment.saved' || event.type === 'pong') return;
+    // 녹음 중인데 서버가 이 연결을 녹음 기기로 모르면 조용히 자리를 다시 맡는다
+    if (event.type === 'error' && event.code === 'NOT_RECORDER') {
+      live.reclaim();
+      return;
+    }
     if (event.type === 'error' && event.recoverable) {
       showToast({ id: 'server-error', tone: 'error', message: event.message });
       return;

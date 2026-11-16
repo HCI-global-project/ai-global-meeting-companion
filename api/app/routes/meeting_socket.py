@@ -54,8 +54,7 @@ async def meeting_socket(socket: WebSocket, meeting_id: str) -> None:
         pass
     finally:
         c.hub.remove(meeting_id, connection)
-        if participant_id:
-            await session.stop_recording(participant_id)
+        await session.stop_recording(connection)
 
 
 async def _handle(session: MeetingSession, connection: Connection, message: dict) -> None:
@@ -65,7 +64,7 @@ async def _handle(session: MeetingSession, connection: Connection, message: dict
     try:
         if kind == "segment.final":
             body = SegmentMessage.model_validate(message)
-            if not me or session.speakers.recorder_id != me:
+            if not session.speakers.is_recorder(connection):
                 await _error(socket, "NOT_RECORDER", "녹음을 시작한 기기만 발화를 보낼 수 있어요.")
                 return
             if not body.text.strip():
@@ -83,14 +82,13 @@ async def _handle(session: MeetingSession, connection: Connection, message: dict
         elif kind == "recording.start":
             if not me:
                 await _error(socket, "NOT_PARTICIPANT", "참여자로 들어와야 녹음할 수 있어요.")
-            elif not await session.start_recording(me):
+            elif not await session.start_recording(me, connection):
                 recorder = session.participants.get(session.speakers.recorder_id or "")
                 await socket.send_json(
                     {"type": "recording.denied", "recorderId": session.speakers.recorder_id, "recorderName": recorder.name if recorder else ""}
                 )
         elif kind == "recording.stop":
-            if me:
-                await session.stop_recording(me)
+            await session.stop_recording(connection)
         elif kind == "speaker.assign":
             body = AssignSpeakerMessage.model_validate(message)
             try:

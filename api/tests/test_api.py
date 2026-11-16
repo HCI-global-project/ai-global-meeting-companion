@@ -133,6 +133,33 @@ def test_only_one_device_records_at_a_time(client):
         start_recording(ws)
 
 
+def test_closing_a_duplicate_tab_keeps_the_recorder(client):
+    """복제한 탭은 같은 참여자 id 를 갖는다. 그 탭이 닫혀도 녹음 중인 탭의 자리는 그대로다."""
+    url = f"{WS}?participantId=p-ko&name=민지&language=ko"
+    with client.websocket_connect(url) as recorder:
+        joined(recorder)
+        start_recording(recorder)
+        with client.websocket_connect(url) as duplicate:
+            joined(duplicate)
+        recorder.send_json({"type": "segment.final", "text": "계속 녹음 중이에요", "language": "ko", "clientSegmentId": "c9"})
+        saved = receive_until(recorder, "segment.saved")[-1]
+        assert saved["clientSegmentId"] == "c9"
+
+
+def test_reconnected_recorder_takes_the_slot_back(client):
+    url = f"{WS}?participantId=p-ko&name=민지&language=ko"
+    with client.websocket_connect(url) as old:
+        joined(old)
+        start_recording(old)
+        with client.websocket_connect(url) as new:
+            joined(new)
+            new.send_json({"type": "segment.final", "text": "새 연결로 보냄", "language": "ko"})
+            assert receive_until(new, "error")[-1]["code"] == "NOT_RECORDER"
+            start_recording(new)
+            new.send_json({"type": "segment.final", "text": "다시 맡고 보냄", "language": "ko", "clientSegmentId": "c2"})
+            assert receive_until(new, "segment.saved")[-1]["clientSegmentId"] == "c2"
+
+
 def test_assigned_speaker_is_named_on_every_screen(client, store):
     with client.websocket_connect(f"{WS}?participantId=p-ko&name=민지&language=ko") as recorder:
         joined(recorder)

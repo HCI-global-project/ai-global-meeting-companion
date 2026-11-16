@@ -20,21 +20,29 @@ class SpeakerDirectory:
     assignments: dict[str, str] = field(default_factory=dict)
     recorder_id: str | None = None
     run_id: str = ""
+    # 자리를 맡은 연결. 같은 참여자의 다른 연결(복제한 탭, 끊기기 전의 옛 연결)이
+    # 닫혀도 자리가 풀리지 않게 참여자가 아니라 연결로 잠근다
+    recorder_owner: object | None = None
 
-    def start(self, participant_id: str) -> bool:
-        """녹음 기기를 맡는다. 다른 참여자가 녹음 중이면 False."""
+    def start(self, participant_id: str, owner: object) -> bool:
+        """녹음 기기를 맡는다. 다른 참여자가 녹음 중이면 False. 같은 참여자면 새 연결이 넘겨받는다."""
         if self.recorder_id and self.recorder_id != participant_id:
             return False
         if self.recorder_id != participant_id:
             self.run_id = uuid.uuid4().hex[:6]
             self.recorder_id = participant_id
+        self.recorder_owner = owner
         return True
 
-    def stop(self, participant_id: str) -> bool:
-        if self.recorder_id != participant_id:
+    def stop(self, owner: object) -> bool:
+        if self.recorder_owner is not owner:
             return False
         self.recorder_id = None
+        self.recorder_owner = None
         return True
+
+    def is_recorder(self, owner: object) -> bool:
+        return self.recorder_owner is not None and self.recorder_owner is owner
 
     def key(self, speaker: str) -> str:
         return f"{self.run_id}:{speaker or UNKNOWN_SPEAKER}"

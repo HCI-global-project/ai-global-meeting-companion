@@ -128,11 +128,12 @@ async def test_opinion_is_dropped_if_speaker_is_assigned_while_generating(contai
 
 async def test_new_recording_run_keeps_old_assignments_on_old_lines(container):
     session = await room(container)
-    await session.start_recording("p-ko")
+    device = object()
+    await session.start_recording("p-ko", device)
     first = await session.add_segment(speech("첫 회차", speaker=session.speakers.key("1")))
     await session.assign_speaker(first.speaker, "p-ja")
-    await session.stop_recording("p-ko")
-    await session.start_recording("p-ko")
+    await session.stop_recording(device)
+    await session.start_recording("p-ko", device)
     second = await session.add_segment(speech("둘째 회차", speaker=session.speakers.key("1")))
     assert first.speaker != second.speaker
     assert session.speaker_label(first) == "Kenji"

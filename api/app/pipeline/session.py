@@ -46,14 +46,15 @@ class MeetingSession:
         await self.bus.publish(SegmentFinalized(self.meeting_id, segment))
         return segment
 
-    async def start_recording(self, participant_id: str) -> bool:
-        if not self.speakers.start(participant_id):
+    async def start_recording(self, participant_id: str, owner: object) -> bool:
+        """owner 는 자리를 맡는 연결. 그 연결이 닫히거나 멈출 때만 자리가 풀린다."""
+        if not self.speakers.start(participant_id, owner):
             return False
         await self.bus.publish(RecordingChanged(self.meeting_id, participant_id))
         return True
 
-    async def stop_recording(self, participant_id: str) -> None:
-        if self.speakers.stop(participant_id):
+    async def stop_recording(self, owner: object) -> None:
+        if self.speakers.stop(owner):
             await self.bus.publish(RecordingChanged(self.meeting_id, None))
 
     async def assign_speaker(self, speaker_key: str, participant_id: str | None) -> None:
