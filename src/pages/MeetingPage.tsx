@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AnonymousOpinionModal } from '../components/AnonymousOpinionModal';
 import { LiveContextCard } from '../components/LiveContextCard';
 import { LiveTranscriptPanel } from '../components/LiveTranscriptPanel';
+import { MeetingNoticeStack } from '../components/MeetingNoticeStack';
 import { MeetingHeader } from '../components/MeetingHeader';
 import { OpinionSuggestionCard } from '../components/OpinionSuggestionCard';
 import { QuickActionBar } from '../components/QuickActionBar';
@@ -10,6 +11,7 @@ import { ToastStack } from '../components/ToastStack';
 import { isRosterEvent } from '../features/roster/roster';
 import { useLiveTranscription } from '../hooks/useLiveTranscription';
 import { useMeetingConnection } from '../hooks/useMeetingConnection';
+import { useMeetingNotices } from '../hooks/useMeetingNotices';
 import { useMeetingRoster } from '../hooks/useMeetingRoster';
 import { MIC_TOAST, STREAM_TOAST, useMeetingStatusToasts } from '../hooks/useMeetingStatusToasts';
 import { useToasts } from '../hooks/useToasts';
@@ -52,7 +54,6 @@ interface MeetingPageProps {
   onOpinionSuggested: (suggestion: OpinionSuggestion) => void;
 }
 
-const SHORT_TOAST_MS = 2000;
 const SPEAKER_HINT_MS = 4000;
 const PRIMARY_LANGUAGE: LanguageCode = 'ko';
 
@@ -84,6 +85,9 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const { toasts, show: showToast, dismiss: dismissToast } = useToasts();
   const { roster, handleRosterEvent, assignLocally } = useMeetingRoster();
   const speakerHintShownRef = useRef(false);
+  const { notices, notify, dismiss: dismissNotice } = useMeetingNotices();
+  // 이미 본 줄. 들어오기 전 줄과 불러온 지난 기록에는 알림을 띄우지 않는다
+  const seenEntryIdsRef = useRef(new Set(transcript.map((entry) => entry.id)));
 
   const {
     connectionState,
@@ -166,7 +170,10 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
       .fetchState(roomCode)
       .then((state) => {
         if (cancelled) return;
-        state.segments.forEach((segment) => handleIncomingEvent(segment));
+        state.segments.forEach((segment) => {
+          seenEntryIdsRef.current.add(segment.segmentId);
+          handleIncomingEvent(segment);
+        });
         if (state.context) onContextUpdated(state.context);
         if (state.outcome) onOutcomeUpdated(state.outcome);
       })
@@ -226,6 +233,18 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     });
   }, [hasUnassignedSpeaker, showToast, t]);
 
+  // 새로 들어온 '잠깐 기다려 주세요'·익명 의견은 헤더 아래 알림으로 띄운다
+  useEffect(() => {
+    for (const entry of transcript) {
+      if (seenEntryIdsRef.current.has(entry.id)) continue;
+      seenEntryIdsRef.current.add(entry.id);
+      if (entry.source === 'signal') notify({ entryId: entry.id, kind: 'wait' });
+      else if (entry.source === 'opinion' && entry.isAnonymous) {
+        notify({ entryId: entry.id, kind: 'anonymous' });
+      }
+    }
+  }, [transcript, notify]);
+
   const sendFailed = () =>
     showToast({ id: 'send-failed', tone: 'error', message: t.live.sendFailed });
 
@@ -246,18 +265,11 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     pipeline.client.requestWait(roomCode).catch(sendFailed);
   };
 
+  // 보낸 의견도 헤더 아래 알림으로 보이므로 따로 '보냈어요' 토스트는 띄우지 않는다
   const handleSubmitAnonymous = (text: string) => {
     setIsAnonymousModalOpen(false);
-    const done = () =>
-      showToast({
-        id: 'anonymous-submitted',
-        tone: 'info',
-        message: t.anonymousOpinion.submitted,
-        durationMs: SHORT_TOAST_MS,
-      });
     if (!online) {
       onPublishOpinion(text, {}, true);
-      done();
       return;
     }
     pipeline.client
@@ -267,7 +279,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
         kind: 'opinion',
         anonymous: true,
       })
-      .then(done, sendFailed);
+      .catch(sendFailed);
   };
 
   // 오류 토스트를 닫으면 그 오류 상태도 함께 지운다
@@ -307,7 +319,14 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
         />
       </div>
 
-      <main className="flex-1 min-h-0 w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-4 flex flex-col gap-4">
+      <main className="relative flex-1 min-h-0 w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-4 flex flex-col gap-4">
+        <MeetingNoticeStack
+          notices={notices}
+          entries={transcript}
+          targetLanguage={session.speechTargetLanguage}
+          onDismiss={dismissNotice}
+        />
+
         {/* 왼쪽 실시간 전사(약 58%) + 오른쪽 보조 패널(약 42%) */}
         <div className="flex-1 min-h-0 grid grid-cols-1 min-[720px]:grid-cols-[minmax(0,58fr)_minmax(0,42fr)] gap-4 items-stretch">
           <div className="min-h-0 flex flex-col">
@@ -326,15 +345,16 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
             />
           </div>
 
-          {/* 오른쪽 칸: lab 처럼 카드는 내용만큼 높이를 갖고, 넘치면 칸 전체가 스크롤한다.
-              카드마다 높이를 반씩 나누면 둘 다 일부만 보여서 한눈에 읽을 수 없었다 */}
-          <aside className="min-h-0 flex flex-col gap-4 overflow-y-auto loop-scroll">
+          {/* 오른쪽 칸: 빠른 요청 버튼은 위에 고정하고, 그 아래 카드들은 lab 처럼 내용만큼 높이를 갖고
+              넘치면 함께 스크롤한다. 카드마다 높이를 반씩 나누면 둘 다 일부만 보여 읽을 수 없었다 */}
+          <aside className="min-h-0 flex flex-col gap-4">
             <div className="shrink-0">
               <QuickActionBar
                 onRequestWait={handleRequestWait}
                 onOpenAnonymousOpinion={() => setIsAnonymousModalOpen(true)}
               />
             </div>
+            <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-y-auto loop-scroll">
             <div className="shrink-0">
               <OpinionSuggestionCard
                 suggestions={suggestions}
@@ -348,6 +368,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
                 targetLanguage={session.speechTargetLanguage}
                 isDemo={hasDemoData}
               />
+            </div>
             </div>
           </aside>
         </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Hand, Play, Square } from 'lucide-react';
+import { Play, Square } from 'lucide-react';
 import { speakerOf, type Roster } from '../features/roster/roster';
 import { useI18n } from '../i18n/I18nContext';
 import { SpeakerAssignMenu } from './SpeakerAssignMenu';
@@ -38,6 +38,10 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
   const { t } = useI18n();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [chatDraft, setChatDraft] = useState('');
+  // '잠깐 기다려 주세요'·익명 의견은 대화창이 아니라 헤더 아래 알림으로 띄운다(회의 기록에는 남는다)
+  const visibleEntries = entries.filter(
+    (entry) => entry.source !== 'signal' && !(entry.source === 'opinion' && entry.isAnonymous)
+  );
 
   // Auto-scroll ONLY inside the transcript panel whenever finalized or interim segments update
   useEffect(() => {
@@ -45,7 +49,7 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
     if (!container) return;
     container.scrollTop = container.scrollHeight;
   }, [
-    entries.length,
+    visibleEntries.length,
     interimSegment?.originalText,
     interimSegment?.translations[speechTargetLanguage],
   ]);
@@ -109,19 +113,9 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
           className="flex-1 min-h-0 overflow-y-auto loop-scroll px-5 sm:px-6 py-5 flex flex-col gap-5"
         >
           {/* Transcript Feed: Finalized Segments + In-Progress Interim Segment */}
-          {entries.length > 0 || interimSegment ? (
+          {visibleEntries.length > 0 || interimSegment ? (
             <div className="flex flex-col gap-6">
-              {entries.map((entry) => {
-                if (entry.source === 'signal') {
-                  return (
-                    <div key={entry.id} className="self-center flex items-center gap-1.5 rounded-full bg-primary-50 px-3 py-1 body-05 text-primary-600">
-                      <Hand className="size-3.5 shrink-0" />
-                      <span>{t.quickActions.waitNotice}</span>
-                      <span className="label-01 text-primary-400 tabular-nums">{entry.timestamp}</span>
-                    </div>
-                  );
-                }
-
+              {visibleEntries.map((entry) => {
                 const showTranslation = needsTranslation(entry);
                 const translatedLine = entry.translations[speechTargetLanguage];
 
