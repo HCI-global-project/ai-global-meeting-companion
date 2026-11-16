@@ -25,8 +25,8 @@ export const OpinionSuggestionCard: React.FC<OpinionSuggestionCardProps> = ({
   const latest = suggestions[0];
 
   return (
-    <section className="h-full min-h-0 flex flex-col gap-4 rounded-4 border border-gray-100 bg-white p-5">
-      <header className="shrink-0 flex items-baseline gap-2">
+    <section className="flex flex-col gap-4 rounded-4 border border-gray-100 bg-white p-5">
+      <header className="flex items-baseline gap-2">
         <h2 className="heading-06 text-gray-900">{t.opinion.title}</h2>
         {isDemo && <span className="label-02 text-gray-500">· {t.opinion.demoLabel}</span>}
       </header>
@@ -34,10 +34,7 @@ export const OpinionSuggestionCard: React.FC<OpinionSuggestionCardProps> = ({
       {!latest ? (
         <p className="body-03 text-gray-400">{t.opinion.emptyState}</p>
       ) : (
-        // 칸을 넘치면 카드 안에서만 스크롤한다
-        <div className="flex-1 min-h-0 overflow-y-auto loop-scroll pr-1">
-          <SuggestionGroup key={latest.id} suggestion={latest} targetLanguage={targetLanguage} />
-        </div>
+        <SuggestionGroup key={latest.id} suggestion={latest} targetLanguage={targetLanguage} />
       )}
     </section>
   );

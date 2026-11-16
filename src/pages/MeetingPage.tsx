@@ -326,22 +326,23 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
             />
           </div>
 
-          {/* 오른쪽 칸: 빠른 요청은 고정, 의견 추천·대화 맥락은 남은 높이를 반씩 나눠 갖고 각자 안에서 스크롤 */}
-          <aside className="min-h-0 flex flex-col gap-4">
+          {/* 오른쪽 칸: lab 처럼 카드는 내용만큼 높이를 갖고, 넘치면 칸 전체가 스크롤한다.
+              카드마다 높이를 반씩 나누면 둘 다 일부만 보여서 한눈에 읽을 수 없었다 */}
+          <aside className="min-h-0 flex flex-col gap-4 overflow-y-auto loop-scroll">
             <div className="shrink-0">
               <QuickActionBar
                 onRequestWait={handleRequestWait}
                 onOpenAnonymousOpinion={() => setIsAnonymousModalOpen(true)}
               />
             </div>
-            <div className="flex-1 min-h-0 min-[720px]:min-h-[200px]">
+            <div className="shrink-0">
               <OpinionSuggestionCard
                 suggestions={suggestions}
                 targetLanguage={session.speechTargetLanguage}
                 isDemo={hasDemoData}
               />
             </div>
-            <div className="flex-1 min-h-0 min-[720px]:min-h-[200px]">
+            <div className="shrink-0">
               <LiveContextCard
                 context={liveContext}
                 targetLanguage={session.speechTargetLanguage}
