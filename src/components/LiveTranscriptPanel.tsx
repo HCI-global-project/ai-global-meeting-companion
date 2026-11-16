@@ -1,25 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertCircle,
-  FileAudio,
   Hand,
   Loader2,
-  Mic,
   Play,
   Radio,
   Square,
-  Trash2,
-  Volume2,
   WifiOff,
   X,
 } from 'lucide-react';
-import type { RecorderError, RecorderStatus } from '../hooks/useMicrophoneRecorder';
 import type { StreamErrorInfo } from '../hooks/useTranscriptStream';
 import { useI18n } from '../i18n/I18nContext';
-import {
-  transcribeRecordedAudio,
-  TranscriptionRequestError,
-} from '../services/transcriptionApi';
 import type { LanguageCode, TranscriptEntry } from '../types/meeting';
 import type { StreamConnectionState } from '../types/streaming';
 
@@ -30,29 +21,13 @@ interface LiveTranscriptPanelProps {
   streamError: StreamErrorInfo | null;
   isDemoMode: boolean;
   speechTargetLanguage: LanguageCode;
-  speakerName: string;
-  recorderStatus: RecorderStatus;
-  recorderError: RecorderError | null;
-  audioUrl: string | null;
-  audioBlob: Blob | null;
-  mimeType: string | null;
-  durationSeconds: number;
   onStartDemoStream: () => void;
   onStopStream: () => void;
   onClearStreamError: () => void;
-  onStartRecording: () => void;
-  onClearRecording: () => void;
-  onAddTranscriptText: (recognizedText: string) => void;
   onSendChat: (text: string) => void;
 }
 
 const MEETING_LANGUAGE: LanguageCode = 'ko';
-
-function formatDuration(totalSeconds: number): string {
-  const mins = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60;
-  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-}
 
 export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
   entries,
@@ -61,30 +36,14 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
   streamError,
   isDemoMode,
   speechTargetLanguage,
-  speakerName,
-  recorderStatus,
-  recorderError,
-  audioUrl,
-  audioBlob,
-  mimeType,
-  durationSeconds,
   onStartDemoStream,
   onStopStream,
   onClearStreamError,
-  onStartRecording,
-  onClearRecording,
-  onAddTranscriptText,
   onSendChat,
 }) => {
   const { t } = useI18n();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [isTranscribing, setIsTranscribing] = useState(false);
-  const [transcribeError, setTranscribeError] = useState<string | null>(null);
-  const [emptySpeechNotice, setEmptySpeechNotice] = useState<string | null>(null);
   const [chatDraft, setChatDraft] = useState('');
-  const [transcribedAudioUrl, setTranscribedAudioUrl] = useState<string | null>(
-    null
-  );
 
   // Auto-scroll ONLY inside the transcript panel whenever finalized or interim segments update
   useEffect(() => {
@@ -97,15 +56,6 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
     interimSegment?.translations[speechTargetLanguage],
   ]);
 
-  useEffect(() => {
-    if (recorderStatus === 'recording' || recorderStatus === 'idle') {
-      setTranscribeError(null);
-      setEmptySpeechNotice(null);
-    }
-  }, [recorderStatus]);
-
-  const isRecording = recorderStatus === 'recording';
-  const isRequesting = recorderStatus === 'requesting';
   const isStreamActive =
     connectionState === 'connecting' || connectionState === 'listening';
 
@@ -124,47 +74,6 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
     onSendChat(text);
     setChatDraft('');
   };
-
-  const handleTranscribeRecording = async () => {
-    if (!audioBlob || isTranscribing) return;
-
-    setIsTranscribing(true);
-    setTranscribeError(null);
-    setEmptySpeechNotice(null);
-
-    try {
-      const result = await transcribeRecordedAudio({
-        audioBlob,
-        mimeType,
-        languageHint: speechTargetLangLabel,
-      });
-
-      if (result.emptySpeech || !result.text.trim()) {
-        setEmptySpeechNotice(t.transcript.emptySpeechNotice);
-        return;
-      }
-
-      onAddTranscriptText(result.text.trim());
-      setTranscribedAudioUrl(audioUrl);
-    } catch (err) {
-      if (err instanceof TranscriptionRequestError) {
-        setTranscribeError(err.message);
-      } else {
-        setTranscribeError(
-          err instanceof Error ? err.message : t.transcript.unableToTranscribe
-        );
-      }
-    } finally {
-      setIsTranscribing(false);
-    }
-  };
-
-  const hasTranscribedCurrentClip =
-    Boolean(audioUrl) && transcribedAudioUrl === audioUrl;
-
-  const localizedMicError = recorderError
-    ? t.transcript.micErrors[recorderError.code] ?? recorderError.message
-    : null;
 
   const renderConnectionStatus = () => {
     switch (connectionState) {
@@ -277,146 +186,6 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
               >
                 <X className="size-icon-xs" />
               </button>
-            </div>
-          )}
-
-          {/* Microphone Permission / Device Error State */}
-          {localizedMicError && (
-            <div
-              role="alert"
-              className="rounded-3 border border-red-100 bg-red-50 px-4 py-4 flex items-start justify-between gap-3"
-            >
-              <div className="flex items-start gap-2.5">
-                <AlertCircle className="size-icon-xs text-red-500 mt-0.5 shrink-0" />
-                <div>
-                  <p className="body-02 text-red-600">
-                    {t.transcript.micUnavailableTitle}
-                  </p>
-                  <p className="body-04 text-red-700 mt-0.5">
-                    {localizedMicError}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onStartRecording}
-                className="body-05 text-red-600 hover:text-red-800 bg-white border border-red-100 rounded-2 px-2.5 py-1 whitespace-nowrap shrink-0 cursor-pointer"
-              >
-                {t.common.tryAgain}
-              </button>
-            </div>
-          )}
-
-          {/* Requesting Permission Loading State */}
-          {isRequesting && (
-            <div className="rounded-3 border border-gray-200 bg-gray-50 px-4 py-3 flex items-center gap-2.5 body-04 text-gray-700">
-              <Loader2 className="size-icon-xs text-primary-500 animate-spin shrink-0" />
-              <span>{t.transcript.waitingPermission}</span>
-            </div>
-          )}
-
-          {/* Active Local Recording Notice */}
-          {isRecording && (
-            <div className="rounded-3 border border-primary-200 bg-primary-50 px-4 py-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <Mic className="size-icon-xs text-primary-500 shrink-0" />
-                <span className="body-02 text-gray-800">
-                  {t.transcript.recordingLocallyNotice(speakerName)}
-                </span>
-              </div>
-              <span className="body-02 text-primary-500 tabular-nums">
-                {formatDuration(durationSeconds)}
-              </span>
-            </div>
-          )}
-
-          {/* Local Recorded Audio Playback + Optional Post-Recording Fallback Transcription */}
-          {recorderStatus === 'stopped' && audioUrl && (
-            <div className="rounded-3 border border-gray-200 bg-gray-50 p-4 flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2 body-02 text-gray-800">
-                  <Volume2 className="size-icon-xs text-primary-500" />
-                  <span>{t.transcript.recordedPlaybackTitle}</span>
-                  <span className="text-gray-500 font-normal tabular-nums">
-                    · {formatDuration(durationSeconds)}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => void handleTranscribeRecording()}
-                    disabled={isTranscribing || !audioBlob}
-                    className="inline-flex items-center gap-1.5 body-05 text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 rounded-2 px-3 h-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:cursor-not-allowed"
-                  >
-                    {isTranscribing ? (
-                      <>
-                        <Loader2 className="size-icon-xs animate-spin" />
-                        <span>{t.transcript.transcribing}</span>
-                      </>
-                    ) : (
-                      <>
-                        <FileAudio className="size-icon-xs" />
-                        <span>
-                          {hasTranscribedCurrentClip
-                            ? t.transcript.transcribeAgain
-                            : t.transcript.transcribeRecording}
-                        </span>
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTranscribeError(null);
-                      setEmptySpeechNotice(null);
-                      setTranscribedAudioUrl(null);
-                      onClearRecording();
-                    }}
-                    disabled={isTranscribing}
-                    className="inline-flex items-center gap-1 label-01 text-gray-600 hover:text-gray-800 px-2 h-8 rounded-2 hover:bg-gray-100 disabled:opacity-50 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:cursor-not-allowed"
-                  >
-                    <Trash2 className="size-icon-xs" />
-                    <span>{t.common.clear}</span>
-                  </button>
-                </div>
-              </div>
-
-              <audio
-                controls
-                src={audioUrl}
-                className="w-full h-10"
-                aria-label={t.transcript.recordedPlaybackTitle}
-              />
-
-              {transcribeError && (
-                <div
-                  role="alert"
-                  className="rounded-2 border border-red-100 bg-red-50 px-4 py-2.5 flex items-start justify-between gap-3"
-                >
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="size-icon-xs text-red-500 mt-0.5 shrink-0" />
-                    <p className="body-04 text-red-700">
-                      {transcribeError}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => void handleTranscribeRecording()}
-                    disabled={isTranscribing}
-                    className="body-05 text-red-600 hover:text-red-800 bg-white border border-red-100 rounded-2 px-2.5 py-1 whitespace-nowrap shrink-0 cursor-pointer"
-                  >
-                    {t.common.retry}
-                  </button>
-                </div>
-              )}
-
-              {emptySpeechNotice && (
-                <div className="rounded-2 border border-gray-200 bg-white px-4 py-2.5 label-01 text-gray-600">
-                  {emptySpeechNotice}
-                </div>
-              )}
             </div>
           )}
 

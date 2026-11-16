@@ -5,10 +5,7 @@ import { LiveContextCard } from '../components/LiveContextCard';
 import { LiveTranscriptPanel } from '../components/LiveTranscriptPanel';
 import { MeetingHeader } from '../components/MeetingHeader';
 import { OpinionSuggestionCard } from '../components/OpinionSuggestionCard';
-import { ParticipantsGrid } from '../components/ParticipantsGrid';
 import { QuickActionBar } from '../components/QuickActionBar';
-import { SummaryCard } from '../components/SummaryCard';
-import { MOCK_PARTICIPANTS } from '../data/mockMeetingData';
 import { useMicrophoneRecorder } from '../hooks/useMicrophoneRecorder';
 import { useTranscriptStream } from '../hooks/useTranscriptStream';
 import { useI18n } from '../i18n/I18nContext';
@@ -25,11 +22,9 @@ interface MeetingPageProps {
   session: RoomSession;
   transcript: TranscriptEntry[];
   liveContext: LiveContext | null;
-  outcome: MeetingOutcome | null;
   suggestions: OpinionSuggestion[];
   onChangeLanguage: (lang: LanguageCode) => void;
   onChangeRoom: (room: string) => void;
-  onAddTranscriptText: (recognizedText: string) => void;
   onAddFinalStreamEntry: (entry: TranscriptEntry) => void;
   onCorrectSegment: (segmentId: string, text: string) => void;
   onUpdateSegmentTranslation: (
@@ -55,11 +50,9 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   session,
   transcript,
   liveContext,
-  outcome,
   suggestions,
   onChangeLanguage,
   onChangeRoom,
-  onAddTranscriptText,
   onAddFinalStreamEntry,
   onCorrectSegment,
   onUpdateSegmentTranslation,
@@ -78,14 +71,9 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
 
   const {
     status: recorderStatus,
-    error: recorderError,
-    audioUrl,
-    audioBlob,
-    mimeType,
     durationSeconds,
     startRecording,
     stopRecording,
-    clearRecording,
     releaseMicrophone,
   } = useMicrophoneRecorder();
 
@@ -136,13 +124,6 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     showToast(t.anonymousOpinion.submitted);
   };
 
-  const matchedSelfParticipant = MOCK_PARTICIPANTS.find(
-    (p) => p.name.toLowerCase() === session.userName.trim().toLowerCase()
-  );
-  const activeSpeakerId =
-    interimSegment?.speakerId ||
-    (isRecording && matchedSelfParticipant ? matchedSelfParticipant.id : undefined);
-
   return (
     <div className="min-h-dvh min-[720px]:h-dvh w-full flex flex-col bg-gray-50 min-[720px]:overflow-hidden">
       <div className="shrink-0">
@@ -176,45 +157,29 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
               streamError={streamError}
               isDemoMode={isDemoMode}
               speechTargetLanguage={session.speechTargetLanguage}
-              speakerName={session.userName}
-              recorderStatus={recorderStatus}
-              recorderError={recorderError}
-              audioUrl={audioUrl}
-              audioBlob={audioBlob}
-              mimeType={mimeType}
-              durationSeconds={durationSeconds}
               onStartDemoStream={startDemoStream}
               onStopStream={stopStream}
               onClearStreamError={clearStreamError}
-              onStartRecording={() => void startRecording()}
-              onClearRecording={clearRecording}
-              onAddTranscriptText={onAddTranscriptText}
               onSendChat={onSendChat}
             />
           </div>
 
-          {/* 오른쪽 칸: 참여자·빠른 요청은 고정, 의견 추천·대화 맥락은 남은 높이를 나눠 갖고 각자 안에서 스크롤 */}
+          {/* 오른쪽 칸: 빠른 요청은 고정, 의견 추천·대화 맥락은 남은 높이를 반씩 나눠 갖고 각자 안에서 스크롤 */}
           <aside className="min-h-0 flex flex-col gap-4">
-            <div className="shrink-0">
-              <ParticipantsGrid
-                participants={MOCK_PARTICIPANTS}
-                activeSpeakerId={activeSpeakerId}
-              />
-            </div>
             <div className="shrink-0">
               <QuickActionBar
                 onRequestWait={onRequestWait}
                 onOpenAnonymousOpinion={() => setIsAnonymousModalOpen(true)}
               />
             </div>
-            <div className="flex-1 min-h-0 min-[720px]:min-h-[160px]">
+            <div className="flex-1 min-h-0 min-[720px]:min-h-[200px]">
               <OpinionSuggestionCard
                 suggestions={suggestions}
                 targetLanguage={session.speechTargetLanguage}
                 isDemo={hasDemoData}
               />
             </div>
-            <div className="flex-1 min-h-0 min-[720px]:min-h-[160px]">
+            <div className="flex-1 min-h-0 min-[720px]:min-h-[200px]">
               <LiveContextCard
                 context={liveContext}
                 targetLanguage={session.speechTargetLanguage}
@@ -223,16 +188,6 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
             </div>
           </aside>
         </div>
-
-        {/* 요약(회의 결과 누적)은 아래 전체 폭 */}
-        <div className="shrink-0">
-          <SummaryCard
-            outcome={outcome}
-            targetLanguage={session.speechTargetLanguage}
-            isDemo={hasDemoData}
-          />
-        </div>
-
       </main>
 
       <AnonymousOpinionModal

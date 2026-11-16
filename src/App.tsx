@@ -36,7 +36,6 @@ export default function App() {
   const [notes, setNotes] = useState<MeetingNote[]>([]);
   const [decisions, setDecisions] = useState<DecisionItem[]>([]);
   const [liveContext, setLiveContext] = useState<LiveContext | null>(null);
-  const [outcome, setOutcome] = useState<MeetingOutcome | null>(null);
   // 최신 추천이 앞에 온다
   const [suggestions, setSuggestions] = useState<OpinionSuggestion[]>([]);
 
@@ -54,30 +53,6 @@ export default function App() {
       speechTargetLanguage: lang,
     }));
   };
-
-  const handleAddTranscriptText = useCallback(
-    (recognizedText: string) => {
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, '0');
-      const mm = String(now.getMinutes()).padStart(2, '0');
-
-      const newEntry: TranscriptEntry = {
-        id: `t-mic-${Date.now()}`,
-        speakerId: 'p-self',
-        speakerName: session.userName,
-        timestamp: `${hh}:${mm}`,
-        originalLanguage: 'auto',
-        originalText: recognizedText,
-        translations: {},
-        badgeVariant: 'lavender',
-        status: 'final',
-        source: 'microphone',
-      };
-
-      setTranscript((prev) => [...prev, newEntry]);
-    },
-    [session.userName]
-  );
 
   const handleAddFinalStreamEntry = useCallback((entry: TranscriptEntry) => {
     setTranscript((prev) => {
@@ -121,10 +96,9 @@ export default function App() {
     setLiveContext(context);
   }, []);
 
-  // 회의 결과가 갱신되면 회의 종료 화면의 결정 사항에도 반영한다 (직접 추가한 항목은 유지)
+  // 회의 결과는 회의 화면에 따로 보이지 않고, 회의 종료 화면의 결정 사항으로 모인다 (직접 추가한 항목은 유지)
   const handleOutcomeUpdated = useCallback(
     (next: MeetingOutcome) => {
-      setOutcome(next);
       const now = new Date();
       const stamp = `${session.roomCode} · ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       const fromOutcome: DecisionItem[] = [
@@ -304,7 +278,6 @@ export default function App() {
     setNotes([]);
     setDecisions([]);
     setLiveContext(null);
-    setOutcome(null);
     setSuggestions([]);
   }, []);
 
@@ -336,12 +309,10 @@ export default function App() {
                 onChangeRoom={(room) =>
                   setSession((prev) => ({ ...prev, roomCode: room }))
                 }
-                onAddTranscriptText={handleAddTranscriptText}
                 onAddFinalStreamEntry={handleAddFinalStreamEntry}
                 onCorrectSegment={handleCorrectSegment}
                 onUpdateSegmentTranslation={handleUpdateSegmentTranslation}
                 liveContext={liveContext}
-                outcome={outcome}
                 suggestions={suggestions}
                 onContextUpdated={handleContextUpdated}
                 onOutcomeUpdated={handleOutcomeUpdated}
