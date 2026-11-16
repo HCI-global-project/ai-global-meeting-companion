@@ -35,6 +35,8 @@ class ParticipantJoined(Event):
 @dataclass(frozen=True)
 class SegmentFinalized(Event):
     segment: Segment
+    # False 면 화면에는 보내되 AI 작업(번역·맥락 등)은 건너뛴다. 녹음 기기가 사용량 한도를 넘었을 때
+    run_ai: bool = True
 
 
 @dataclass(frozen=True)

@@ -8,6 +8,7 @@ import { MeetingHeader } from '../components/MeetingHeader';
 import { OpinionSuggestionCard } from '../components/OpinionSuggestionCard';
 import { QuickActionBar } from '../components/QuickActionBar';
 import { ToastStack } from '../components/ToastStack';
+import { PipelineRequestError } from '../features/pipeline/FastApiPipelineClient';
 import { isRosterEvent } from '../features/roster/roster';
 import { useLiveTranscription } from '../hooks/useLiveTranscription';
 import { useMeetingConnection } from '../hooks/useMeetingConnection';
@@ -245,8 +246,12 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     }
   }, [transcript, notify]);
 
-  const sendFailed = () =>
-    showToast({ id: 'send-failed', tone: 'error', message: t.live.sendFailed });
+  // 사용량 한도에 걸렸으면 몇 초 뒤 다시 되는지 알려 준다. 조용히 실패하지 않게
+  const sendFailed = (error?: unknown) => {
+    const limited = error instanceof PipelineRequestError && error.status === 429;
+    const message = limited ? t.live.slowDown(error.retryAfterSeconds ?? 60) : t.live.sendFailed;
+    showToast({ id: 'send-failed', tone: 'error', message });
+  };
 
   const handleAssignSpeaker = (speakerKey: string, participantId: string | null) => {
     assignLocally(speakerKey, participantId);

@@ -2,7 +2,7 @@
 
 from collections.abc import Sequence
 
-from .events import Event
+from .events import Event, SegmentFinalized
 from .session import MeetingSession
 from .tasks.base import MeetingTask
 
@@ -24,6 +24,8 @@ class Pipeline:
         session.policies.append(policy)
 
         def offer(event: Event) -> None:
+            if isinstance(event, SegmentFinalized) and not event.run_ai:
+                return
             if task.accepts(session, event):
                 policy.offer(event)
 

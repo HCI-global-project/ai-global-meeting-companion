@@ -2,16 +2,18 @@
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from ..container import Container
 from ..domain.models import MeetingNote, SegmentDraft
 from ..pipeline.wire import transcript_final
 from ..services.languages import translation_targets
+from .access import client_ip, enforce, require_access
 from .deps import container, participant_or_404
 from .schemas import MessageRequest, NoteRequest, OpinionRequest
 
-router = APIRouter(prefix="/api/meetings/{meeting_id}")
+# 모든 회의 요청은 접속 코드를 확인한다
+router = APIRouter(prefix="/api/meetings/{meeting_id}", dependencies=[Depends(require_access)])
 
 
 @router.get("/state")
@@ -30,6 +32,7 @@ async def state(meeting_id: str, c: Container = Depends(container)) -> dict:
 async def send_message(meeting_id: str, body: MessageRequest, c: Container = Depends(container)) -> dict:
     session = await c.registry.get(meeting_id)
     sender = participant_or_404(session, body.participant_id)
+    enforce(c.limits.messages, sender.id, "messages")
     text = body.text.strip()
     if not text:
         raise HTTPException(400, "내용이 비어 있습니다.")
@@ -50,8 +53,12 @@ async def send_message(meeting_id: str, body: MessageRequest, c: Container = Dep
 
 
 @router.post("/signals/wait", status_code=201)
-async def request_wait(meeting_id: str, c: Container = Depends(container)) -> dict:
-    """'잠깐 기다려 주세요' — 누가 보냈는지 남기지 않는 요청 알림. LLM 은 부르지 않는다."""
+async def request_wait(meeting_id: str, request: Request, c: Container = Depends(container)) -> dict:
+    """'잠깐 기다려 주세요' — 누가 보냈는지 남기지 않는 요청 알림. LLM 은 부르지 않는다.
+
+    보낸 사람을 받지 않으므로 IP 로 센다. 같은 Wi-Fi 의 여러 명이 함께 세지지만 드물게 쓰는 버튼이라 충분하다.
+    """
+    enforce(c.limits.messages, f"wait:{client_ip(request)}", "wait")
     session = await c.registry.get(meeting_id)
     segment = await session.add_segment(SegmentDraft(text="", source="signal", is_anonymous=True))
     return {"segmentId": segment.id}
@@ -61,6 +68,7 @@ async def request_wait(meeting_id: str, c: Container = Depends(container)) -> di
 async def request_opinion(meeting_id: str, body: OpinionRequest, c: Container = Depends(container)) -> dict:
     session = await c.registry.get(meeting_id)
     participant = participant_or_404(session, body.participant_id)
+    enforce(c.limits.opinions, participant.id, "opinions")
     target = session.find_segment(body.segment_id)
     if target is None:
         raise HTTPException(404, "발화를 찾을 수 없습니다.")
@@ -74,6 +82,7 @@ async def add_note(meeting_id: str, body: NoteRequest, c: Container = Depends(co
     content = body.content.strip()
     if not content:
         raise HTTPException(400, "내용이 비어 있습니다.")
+    enforce(c.limits.messages, f"note:{meeting_id}:{body.author}", "notes")
     targets = translation_targets(session.languages, body.language)
     translated = await c.translator.translate([content], targets) if targets else {}
     note = MeetingNote(

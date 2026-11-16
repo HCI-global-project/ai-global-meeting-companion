@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPipelineClient } from '../features/pipeline/createPipelineClient';
+import { ACCESS_DENIED_CLOSE } from '../features/pipeline/FastApiPipelineClient';
 import type { PipelineConnection } from '../features/pipeline/PipelineClient';
 import type { RoomSession } from '../types/meeting';
 import type { IncomingTranscriptEvent } from '../types/streaming';
 
-export type PipelineStatus = 'connecting' | 'open' | 'unavailable';
+// denied: 접속 코드가 없거나 틀려서 서버가 거절했다. 다시 붙어도 같으므로 재시도하지 않는다
+export type PipelineStatus = 'connecting' | 'open' | 'unavailable' | 'denied';
 
 const RETRY_BASE_MS = 1_500;
 const RETRY_MAX_MS = 10_000;
@@ -44,13 +46,17 @@ export function useMeetingConnection({ session, onEvent }: Options) {
             setStatus('open');
           },
           onEvent: (event) => {
-            // 소켓 오류는 바로 뒤따르는 onClose 에서 상태로 다룬다
-            if (event.type === 'error' && event.code === 'WEBSOCKET_ERROR') return;
+            // 소켓 오류와 접속 거절은 바로 뒤따르는 onClose 에서 상태로 다룬다
+            if (event.type === 'error' && (event.code === 'WEBSOCKET_ERROR' || event.code === 'ACCESS_DENIED')) return;
             onEventRef.current(event);
           },
-          onClose: () => {
+          onClose: (code) => {
             if (disposed) return;
             connectionRef.current = null;
+            if (code === ACCESS_DENIED_CLOSE) {
+              setStatus('denied');
+              return;
+            }
             failures += 1;
             setStatus('unavailable');
             retryTimer = setTimeout(open, Math.min(RETRY_MAX_MS, RETRY_BASE_MS * failures));

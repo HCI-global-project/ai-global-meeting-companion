@@ -1,6 +1,6 @@
 """회의 WebSocket. 참여자가 들어오고, 녹음 기기 한 대가 확정 발화를 보내고, 모두 처리 결과를 받는다.
 
-연결 주소: /ws/meetings/{meetingId}?participantId=...&name=...&role=...&language=ko
+연결 주소: /ws/meetings/{meetingId}?participantId=...&name=...&role=...&language=ko&code=<접속 코드>
 
 녹음은 한 번에 한 기기만 한다(recording.start). 같은 방에서 여러 기기가 녹음하면
 같은 말이 여러 번 전사되기 때문이다. 녹음 기기 연결이 끊기면 자리가 풀린다.
@@ -17,6 +17,8 @@ from ..domain.models import Participant, SegmentDraft
 from ..pipeline.hub import Connection
 from ..pipeline.session import MeetingSession
 from ..pipeline.wire import snapshot
+from ..services.rate_limit import RateLimiter
+from .access import ACCESS_DENIED_CLOSE, socket_code_ok
 from .schemas import AssignSpeakerMessage, ConfigureMessage, SegmentMessage
 
 log = logging.getLogger(__name__)
@@ -28,6 +30,13 @@ async def meeting_socket(socket: WebSocket, meeting_id: str) -> None:
     c: Container = socket.app.state.container
     query = socket.query_params
     await socket.accept()
+    # 받아들인 뒤 이유를 알려 주고 닫는다. 받기 전에 닫으면 브라우저는 이유를 모른다
+    if not socket_code_ok(socket, c.settings):
+        await socket.send_json(
+            {"type": "error", "code": "ACCESS_DENIED", "message": "초대 링크로 들어와 주세요.", "recoverable": False}
+        )
+        await socket.close(code=ACCESS_DENIED_CLOSE)
+        return
     session = await c.registry.get(meeting_id)
 
     participant_id = query.get("participantId")
@@ -49,7 +58,7 @@ async def meeting_socket(socket: WebSocket, meeting_id: str) -> None:
     await socket.send_json(snapshot(session))
     try:
         while True:
-            await _handle(session, connection, await socket.receive_json())
+            await _handle(session, connection, await socket.receive_json(), c.limits.segments)
     except WebSocketDisconnect:
         pass
     finally:
@@ -57,7 +66,7 @@ async def meeting_socket(socket: WebSocket, meeting_id: str) -> None:
         await session.stop_recording(connection)
 
 
-async def _handle(session: MeetingSession, connection: Connection, message: dict) -> None:
+async def _handle(session: MeetingSession, connection: Connection, message: dict, segment_limit: RateLimiter) -> None:
     socket = connection.socket
     me = connection.participant_id
     kind = message.get("type")
@@ -69,12 +78,17 @@ async def _handle(session: MeetingSession, connection: Connection, message: dict
                 return
             if not body.text.strip():
                 return
+            # 한도를 넘어도 말한 내용은 버리지 않는다. 화면에는 보내고 번역·맥락 같은 AI 작업만 건너뛴다
+            run_ai = segment_limit.hit(me or "recorder") is None
+            if not run_ai:
+                log.warning("발화 사용량 제한 (%s): AI 처리를 건너뜀", me)
             segment = await session.add_segment(
                 SegmentDraft(
                     text=body.text.strip(),
                     speaker=session.speakers.key(body.speaker),
                     language=normalize(body.language),
-                )
+                ),
+                run_ai=run_ai,
             )
             await socket.send_json(
                 {"type": "segment.saved", "clientSegmentId": body.client_segment_id, "segmentId": segment.id}

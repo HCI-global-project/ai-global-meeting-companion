@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { FastApiPipelineClient, PipelineRequestError } from './FastApiPipelineClient';
+import { ACCESS_DENIED_CLOSE, FastApiPipelineClient, PipelineRequestError } from './FastApiPipelineClient';
 import type { IncomingTranscriptEvent } from '../../types/streaming';
 
 class FakeSocket {
@@ -88,5 +88,51 @@ describe('FastApiPipelineClient', () => {
       assert.equal(e.message, '참여자를 찾을 수 없습니다');
       return true;
     });
+  });
+
+  it("sends the invite access code on requests and the socket url", async () => {
+    let socket!: FakeSocket;
+    const calls: { url: string; init?: RequestInit }[] = [];
+    const fetchImpl = (async (url: string, init?: RequestInit) => {
+      calls.push({ url, init });
+      return new Response(JSON.stringify({ apiKey: "k" }), { status: 200 });
+    }) as typeof fetch;
+    const client = new FastApiPipelineClient("http://api", {
+      fetchImpl,
+      openSocket: (url) => (socket = new FakeSocket(url)) as unknown as WebSocket,
+      accessCode: () => "loop-2611",
+    });
+
+    await client.getSonioxKey("p1");
+    const headers = calls[0].init?.headers as Record<string, string>;
+    assert.equal(headers["X-Access-Code"], "loop-2611");
+    // 서버가 참여자별로 키 발급 횟수를 센다
+    assert.deepEqual(JSON.parse(String(calls[0].init?.body)), { participantId: "p1" });
+
+    client.connect("r1", { id: "p1", name: "A", role: "", language: "ko" }, { onEvent: () => undefined });
+    assert.match(socket.url, /[?&]code=loop-2611(&|$)/);
+  });
+
+  it("tells how long to wait when rate limited", async () => {
+    const fetchImpl = (async () =>
+      new Response(JSON.stringify({ detail: "잠시 후" }), { status: 429, headers: { "Retry-After": "42" } })) as typeof fetch;
+    const client = new FastApiPipelineClient("http://api", { fetchImpl });
+    await assert.rejects(client.sendMessage("r1", { participantId: "p1", text: "hi", kind: "chat" }), (e: unknown) => {
+      assert.ok(e instanceof PipelineRequestError);
+      assert.equal(e.status, 429);
+      assert.equal(e.retryAfterSeconds, 42);
+      return true;
+    });
+  });
+
+  it("passes the close code so an access denial is not retried", () => {
+    let socket!: FakeSocket;
+    const client = new FastApiPipelineClient("http://api", {
+      openSocket: (url) => (socket = new FakeSocket(url)) as unknown as WebSocket,
+    });
+    const codes: (number | undefined)[] = [];
+    client.connect("r1", { id: "p1", name: "A", role: "", language: "ko" }, { onEvent: () => undefined, onClose: (c) => codes.push(c) });
+    (socket.onclose as unknown as (e: { code: number }) => void)({ code: ACCESS_DENIED_CLOSE });
+    assert.deepEqual(codes, [ACCESS_DENIED_CLOSE]);
   });
 });

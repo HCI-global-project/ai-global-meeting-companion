@@ -40,11 +40,12 @@ export interface PipelineConnection {
 export interface ConnectHandlers {
   onOpen?: () => void;
   onEvent: (event: IncomingTranscriptEvent) => void;
-  onClose?: () => void;
+  // 서버가 닫은 이유 코드. 4403 이면 접속 코드가 없거나 틀렸다(다시 붙지 않는다)
+  onClose?: (code?: number) => void;
 }
 
 export interface PipelineClient {
-  getSonioxKey(): Promise<string>;
+  getSonioxKey(participantId?: string): Promise<string>;
   connect(meetingId: string, participant: PipelineParticipant, handlers: ConnectHandlers): PipelineConnection;
   sendMessage(
     meetingId: string,

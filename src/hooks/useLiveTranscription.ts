@@ -72,7 +72,7 @@ export function useLiveTranscription({
     unsavedRef.current.clear();
     logRef.current = KEEP_TOKEN_LOG ? new TokenLog({ preset: PRESET, model: MODEL }) : null;
     const transcriber = new SonioxTranscriber({
-      getApiKey: () => client.getSonioxKey(),
+      getApiKey: () => client.getSonioxKey(selfId),
       rules: rulesFor(PRESET),
       languageHints: hints,
       context: { participants: names },
@@ -104,7 +104,7 @@ export function useLiveTranscription({
     });
     transcriberRef.current = transcriber;
     void transcriber.start();
-  }, [client, getConnection, release]);
+  }, [client, getConnection, release, selfId]);
 
   // 서버가 녹음 자리를 나에게 주면 시작한다. 녹음 중에 자리가 비면(재연결·서버 재시작) 다시 맡고,
   // 다른 사람이 가져갔으면 멈춘다

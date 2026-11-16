@@ -39,6 +39,8 @@ export function useMeetingStatusToasts({
       show({ id: SERVER_TOAST, tone: 'progress', message: t.live.connectingServer });
     } else if (pipelineStatus === 'unavailable') {
       show({ id: SERVER_TOAST, tone: 'error', message: t.live.serverUnavailable });
+    } else if (pipelineStatus === 'denied') {
+      show({ id: SERVER_TOAST, tone: 'error', message: t.live.accessDenied });
     } else {
       dismiss(SERVER_TOAST);
     }

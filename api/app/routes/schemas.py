@@ -48,3 +48,7 @@ class AssignSpeakerMessage(CamelModel):
     type: Literal["speaker.assign"]
     speaker_key: str
     participant_id: str | None = None
+
+
+class SonioxKeyRequest(CamelModel):
+    participant_id: str | None = None

@@ -16,6 +16,7 @@ from .pipeline.tasks.live_context import LiveContextTask
 from .pipeline.tasks.opinion import OpinionTask
 from .pipeline.tasks.outcome import OutcomeTask
 from .pipeline.tasks.translation import TranslationTask
+from .services.rate_limit import RateLimits
 from .services.translation import CachedTranslator, LlmTranslator, Translator
 from .store.base import MeetingStore
 from .store.memory import InMemoryStore
@@ -33,6 +34,7 @@ class Container:
     pipeline: Pipeline
     registry: SessionRegistry
     hub: ConnectionHub
+    limits: RateLimits
 
     @property
     def opinion(self) -> OpinionTask:
@@ -80,6 +82,7 @@ def build_container(
         pipeline=pipeline,
         registry=registry,
         hub=hub,
+        limits=RateLimits.from_settings(settings),
     )
 
 

@@ -30,6 +30,8 @@ def create_app(
         allow_origins=settings.cors_origins,
         allow_methods=["*"],
         allow_headers=["*"],
+        # 사용량 제한에 걸렸을 때 몇 초 뒤 다시 되는지 프론트가 읽는다
+        expose_headers=["Retry-After"],
     )
     for module in (health, soniox, meetings, meeting_socket):
         app.include_router(module.router)

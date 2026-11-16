@@ -148,6 +148,10 @@ export interface TranslationDictionary {
     recorderBusy: (name: string) => string;
     recordingBy: (name: string) => string;
     sendFailed: string;
+    // 사용량 한도에 걸렸을 때. 몇 초 뒤 다시 되는지 알려 준다
+    slowDown: (seconds: number) => string;
+    // 초대 링크 없이 들어왔거나 접속 코드가 바뀌었을 때
+    accessDenied: string;
   };
   meetingEnd: {
     backToMeeting: string;
@@ -345,6 +349,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       recorderBusy: (name) => `${name || 'Someone else'} is already recording`,
       recordingBy: (name) => `${name} is recording`,
       sendFailed: 'Could not send. Please try again.',
+      slowDown: (seconds) => `Too many requests. Please try again in ${seconds}s.`,
+      accessDenied: 'Please join with the invite link.',
     },
     meetingEnd: {
       backToMeeting: 'Back to Meeting Page',
@@ -543,6 +549,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       recorderBusy: (name) => `${name || '다른 참여자'}님이 이미 녹음하고 있어요`,
       recordingBy: (name) => `${name} 녹음 중`,
       sendFailed: '보내지 못했어요. 다시 시도해 주세요.',
+      slowDown: (seconds) => `요청이 너무 많아요. ${seconds}초 뒤에 다시 시도해 주세요.`,
+      accessDenied: '초대 링크로 들어와 주세요.',
     },
     meetingEnd: {
       backToMeeting: '회의 페이지로 돌아가기',
@@ -740,6 +748,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       recorderBusy: (name) => `${name || '他の参加者'}さんがすでに録音しています`,
       recordingBy: (name) => `${name}が録音中`,
       sendFailed: '送信できませんでした。もう一度お試しください。',
+      slowDown: (seconds) => `リクエストが多すぎます。${seconds}秒後にもう一度お試しください。`,
+      accessDenied: '招待リンクから参加してください。',
     },
     meetingEnd: {
       backToMeeting: '会議ページに戻る',
@@ -937,6 +947,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       recorderBusy: (name) => `${name || 'အခြားပါဝင်သူ'} က အသံဖမ်းနေပြီ ဖြစ်သည်`,
       recordingBy: (name) => `${name} အသံဖမ်းနေသည်`,
       sendFailed: 'ပို့၍ မရပါ။ ထပ်စမ်းကြည့်ပါ။',
+      slowDown: (seconds) => `တောင်းဆိုမှု များလွန်းနေပါသည်။ ${seconds} စက္ကန့်အကြာတွင် ထပ်စမ်းကြည့်ပါ။`,
+      accessDenied: 'ဖိတ်ကြားလင့်ခ်ဖြင့် ဝင်ရောက်ပါ။',
     },
     meetingEnd: {
       backToMeeting: 'အစည်းအဝေး စာမျက်နှာသို့ ပြန်သွားရန်',
@@ -1134,6 +1146,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       recorderBusy: (name) => `${name || 'Другой участник'} уже ведёт запись`,
       recordingBy: (name) => `Запись: ${name}`,
       sendFailed: 'Не удалось отправить. Попробуйте ещё раз.',
+      slowDown: (seconds) => `Слишком много запросов. Повторите через ${seconds} с.`,
+      accessDenied: 'Войдите по ссылке-приглашению.',
     },
     meetingEnd: {
       backToMeeting: 'Назад ко встрече',
@@ -1332,6 +1346,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       recorderBusy: (name) => `${name || 'Otra persona'} ya está grabando`,
       recordingBy: (name) => `Graba ${name}`,
       sendFailed: 'No se pudo enviar. Inténtalo de nuevo.',
+      slowDown: (seconds) => `Demasiadas solicitudes. Inténtalo de nuevo en ${seconds} s.`,
+      accessDenied: 'Únete con el enlace de invitación.',
     },
     meetingEnd: {
       backToMeeting: 'Volver a la reunión',
