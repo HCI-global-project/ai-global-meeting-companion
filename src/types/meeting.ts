@@ -34,6 +34,8 @@ export interface TranscriptEntry {
   speakerNumber?: string | null;
   // 서버가 아는 말한 사람. 채팅이거나 화자가 지정됐을 때 있다
   participantId?: string | null;
+  // 진행 중인 문장에서 STT 가 아직 확정하지 않은 뒷부분. 확정되며 바뀔 수 있어 흐리게 보여 준다
+  interimGuess?: string;
 }
 
 /**

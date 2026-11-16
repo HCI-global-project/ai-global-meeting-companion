@@ -65,6 +65,11 @@ export class Segmenter {
     // 화자와 마지막 토큰 시각은 다음 발화의 판단(화자 전환·쉼)에 필요해서 남긴다
   }
 
+  /** 확정된 부분의 길이. 화면이 확정 글자와 아직 바뀔 수 있는 추측을 나눠 보여 줄 때 쓴다 */
+  get confirmedLength(): number {
+    return this.text.trimStart().length;
+  }
+
   get hasPending(): boolean {
     return this.text.trim().length > 0;
   }

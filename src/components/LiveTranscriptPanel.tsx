@@ -223,6 +223,10 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
 
                   <p className="mt-2.5 body-01 text-gray-800">
                     {interimSegment.originalText}
+                    {/* 아직 확정되지 않은 부분. Soniox 가 확정하면서 단어가 바뀔 수 있다 */}
+                    {interimSegment.interimGuess && (
+                      <span className="text-gray-400">{interimSegment.interimGuess}</span>
+                    )}
                   </p>
 
                   {needsTranslation(interimSegment) && (
