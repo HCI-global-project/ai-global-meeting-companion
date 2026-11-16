@@ -143,6 +143,7 @@ export function useTranscriptStream({
           speakerKey: event.speakerKey,
           speakerNumber: event.speakerNumber,
           participantId: event.participantId,
+          createdAt: event.createdAt,
         };
 
         setInterimSegment((prev) =>

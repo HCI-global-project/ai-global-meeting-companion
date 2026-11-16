@@ -128,6 +128,8 @@ export interface TranscriptFinalEvent {
   speakerKey?: string | null;
   speakerNumber?: string | null;
   participantId?: string | null;
+  // 서버가 발화를 저장한 시각(ISO). 화면에서 이어 말한 줄을 한 카드로 묶을 때 쓴다
+  createdAt?: string;
 }
 
 /** 서버가 STT 오인식을 고친 뒤 보내는 보정본. 번역은 보정본 기준으로 다시 온다 */
