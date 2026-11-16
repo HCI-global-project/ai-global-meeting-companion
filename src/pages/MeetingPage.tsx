@@ -123,6 +123,10 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   function handlePipelineEvent(event: IncomingTranscriptEvent) {
     if (isRosterEvent(event)) {
       handleRosterEvent(event);
+      // 녹음 자리를 (다시) 받았으면 끊긴 사이 저장되지 못한 발화를 다시 보낸다
+      if (event.type === 'recording.changed' && event.recorderId === session.participantId) {
+        live.resendUnsaved();
+      }
       if (event.type === 'recording.denied') {
         live.cancelRequest();
         showToast({
@@ -134,7 +138,11 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
       }
       return;
     }
-    if (event.type === 'status' || event.type === 'segment.saved' || event.type === 'pong') return;
+    if (event.type === 'segment.saved') {
+      live.markSaved(event.clientSegmentId);
+      return;
+    }
+    if (event.type === 'status' || event.type === 'pong') return;
     // 녹음 중인데 서버가 이 연결을 녹음 기기로 모르면 조용히 자리를 다시 맡는다
     if (event.type === 'error' && event.code === 'NOT_RECORDER') {
       live.reclaim();

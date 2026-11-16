@@ -5,6 +5,7 @@ import {
   SonioxTranscriber,
   type TranscriberFailure,
 } from '../features/stt/soniox/SonioxTranscriber';
+import type { SegmentDraft } from '../features/stt/segmentation/types';
 import { TokenLog } from '../features/stt/tokenLog';
 
 export type LiveState = 'idle' | 'requesting' | 'connecting' | 'listening' | 'error';
@@ -47,6 +48,8 @@ export function useLiveTranscription({
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const logRef = useRef<TokenLog | null>(null);
   const segmentCountRef = useRef(0);
+  // 서버가 저장했다고(segment.saved) 답하기 전까지 들고 있다가, 연결이 끊겼다 붙으면 다시 보낸다
+  const unsavedRef = useRef(new Map<string, SegmentDraft>());
   const hintsRef = useRef({ languageHints, participantNames });
   useEffect(() => {
     hintsRef.current = { languageHints, participantNames };
@@ -64,6 +67,7 @@ export function useLiveTranscription({
 
   const begin = useCallback(() => {
     const { languageHints: hints, participantNames: names } = hintsRef.current;
+    unsavedRef.current.clear();
     logRef.current = KEEP_TOKEN_LOG ? new TokenLog({ preset: PRESET, model: MODEL }) : null;
     const transcriber = new SonioxTranscriber({
       getApiKey: () => client.getSonioxKey(),
@@ -74,7 +78,9 @@ export function useLiveTranscription({
       log: logRef.current ?? undefined,
       onSegment: (segment) => {
         segmentCountRef.current += 1;
-        getConnection()?.sendSegment(segment, `c-${segmentCountRef.current}`);
+        const id = `c-${segmentCountRef.current}`;
+        unsavedRef.current.set(id, segment);
+        getConnection()?.sendSegment(segment, id);
       },
       onInterim: setInterimText,
       onStateChange: (next, error) => {
@@ -137,6 +143,17 @@ export function useLiveTranscription({
     setState('idle');
   }, []);
 
+  const markSaved = useCallback((clientSegmentId: string | null) => {
+    if (clientSegmentId) unsavedRef.current.delete(clientSegmentId);
+  }, []);
+
+  /** 서버가 이 연결을 다시 녹음 기기로 받아들였을 때, 저장 확인을 못 받은 발화를 순서대로 다시 보낸다 */
+  const resendUnsaved = useCallback(() => {
+    const connection = getConnection();
+    if (!connection) return;
+    unsavedRef.current.forEach((segment, id) => connection.sendSegment(segment, id));
+  }, [getConnection]);
+
   const clearFailure = useCallback(() => {
     setFailure(null);
     setState((prev) => (prev === 'error' ? 'idle' : prev));
@@ -150,5 +167,17 @@ export function useLiveTranscription({
     []
   );
 
-  return { state, failure, interimText, seconds, start, stop, cancelRequest, clearFailure, reclaim };
+  return {
+    state,
+    failure,
+    interimText,
+    seconds,
+    start,
+    stop,
+    cancelRequest,
+    clearFailure,
+    reclaim,
+    markSaved,
+    resendUnsaved,
+  };
 }
