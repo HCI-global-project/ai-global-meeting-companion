@@ -10,8 +10,11 @@ import { TokenLog } from '../features/stt/tokenLog';
 
 export type LiveState = 'idle' | 'requesting' | 'connecting' | 'listening' | 'error';
 
-// 분절 규칙 A/B: VITE_SEGMENTATION=lab 이면 lab 의 150자 규칙으로 돌아간다
-const PRESET: SegmentationPreset = import.meta.env.VITE_SEGMENTATION === 'lab' ? 'lab' : 'clause';
+// 분절 규칙 A/B: VITE_SEGMENTATION=lab | lab-split(기본) | clause
+const PRESETS: SegmentationPreset[] = ['lab', 'lab-split', 'clause'];
+const PRESET: SegmentationPreset = PRESETS.includes(import.meta.env.VITE_SEGMENTATION)
+  ? import.meta.env.VITE_SEGMENTATION
+  : 'lab-split';
 const MODEL = import.meta.env.VITE_SONIOX_MODEL as string | undefined;
 // 실제 회의 토큰을 모아 분절 규칙 fixture·발화 길이 분석에 쓴다. 녹음을 멈추면 JSON 을 내려받는다
 const KEEP_TOKEN_LOG = import.meta.env.VITE_TOKEN_LOG === 'true';

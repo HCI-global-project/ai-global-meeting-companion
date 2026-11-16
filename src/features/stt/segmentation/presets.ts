@@ -4,9 +4,10 @@ import type { BoundaryRule } from './types';
 /**
  * 끊기 규칙 묶음. 실험 조건으로 바꿔 가며 비교한다.
  * - lab: synq-realtime-lab 과 같은 규칙. 쉬지 않고 말하면 150자 덩어리가 된다(비교 기준)
- * - clause: 쉼·한국어 어미·언어 전환까지 보고 짧게 끊는다(기본)
+ * - lab-split: lab 그대로 두고 긴 덩어리만 푼다(기본). 50자를 넘긴 뒤 한국어 종결어미가 오면 끊고, 상한을 100자로 낮춘다
+ * - clause: 쉼·한국어 어미·언어 전환까지 보고 짧게 끊는다. 실제 회의에서 문장이 너무 잘게 잘려 기본에서 뺐다
  */
-export type SegmentationPreset = 'lab' | 'clause';
+export type SegmentationPreset = 'lab' | 'lab-split' | 'clause';
 
 export interface ClauseOptions {
   pauseMs: number;
@@ -32,6 +33,17 @@ export function labRules(): BoundaryRule[] {
   return [speakerChange, maxLength(150, Number.POSITIVE_INFINITY), sentenceEnd(40), endpoint(1)];
 }
 
+export function labSplitRules(): BoundaryRule[] {
+  return [
+    speakerChange,
+    // 연결어미는 사실상 쓰지 않는다(상한보다 크게). 끝난 문장에서만 끊는다
+    koreanEnding(50, Number.POSITIVE_INFINITY),
+    maxLength(100),
+    sentenceEnd(40),
+    endpoint(1),
+  ];
+}
+
 export function clauseRules(options: Partial<ClauseOptions> = {}): BoundaryRule[] {
   const o = { ...DEFAULT_CLAUSE_OPTIONS, ...options };
   return [
@@ -46,5 +58,7 @@ export function clauseRules(options: Partial<ClauseOptions> = {}): BoundaryRule[
 }
 
 export function rulesFor(preset: SegmentationPreset, options?: Partial<ClauseOptions>): BoundaryRule[] {
-  return preset === 'lab' ? labRules() : clauseRules(options);
+  if (preset === 'lab') return labRules();
+  if (preset === 'clause') return clauseRules(options);
+  return labSplitRules();
 }

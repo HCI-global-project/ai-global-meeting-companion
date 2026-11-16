@@ -6,8 +6,8 @@ import { buildSonioxConfig, SONIOX_URL, type MeetingSttContext } from './sonioxC
 
 // MediaRecorder 가 이 간격마다 webm 조각을 내보낸다. 짧을수록 전사가 빨리 오지만 메시지가 많아진다
 const CHUNK_MS = 250;
-// <end> 가 오지 않을 때를 대비한 안전망. 마지막 확정 토큰 뒤로 이만큼 조용하면 확정한다
-const IDLE_FLUSH_MS = 2_000;
+// <end> 가 오지 않을 때를 대비한 안전망. 마지막 확정 토큰 뒤로 이만큼 조용하면 확정한다(lab 과 같은 5초)
+const IDLE_FLUSH_MS = 5_000;
 
 type SonioxRawToken = {
   text: string;

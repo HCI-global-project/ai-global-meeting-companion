@@ -108,7 +108,8 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const online = pipeline.status === 'open';
 
   const languageHints = [
-    ...new Set([PRIMARY_LANGUAGE, ...roster.participants.map((p) => p.language)]),
+    // lab 처럼 영어는 늘 넣는다. 한국어 회의 중에도 영어로 잠깐 말하는 경우가 있다
+    ...new Set([PRIMARY_LANGUAGE, 'en', ...roster.participants.map((p) => p.language)]),
   ];
   const live = useLiveTranscription({
     client: pipeline.client,

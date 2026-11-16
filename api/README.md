@@ -72,6 +72,7 @@ eval/                       # CER, 발화 길이 분포
 
 | 변수 | 기본 | 의미 |
 |---|---|---|
+| `CORRECTION_ENABLED` | false | STT 보정. 켜도 원문과 많이 다르거나 앞 발화와 같은 결과는 버린다 |
 | `TRANSLATION_CONTEXT_SIZE` | 3 | 번역에 같이 보낼 앞 발화 수 |
 | `TRANSLATION_REFINE_PREVIOUS` | false | 다음 발화가 오면 직전 번역을 다시 다듬기 |
 | `CONTEXT_BATCH_SIZE` / `CONTEXT_MAX_WAIT_S` | 3 / 10 | 맥락 갱신 단위 |
@@ -84,7 +85,7 @@ eval/                       # CER, 발화 길이 분포
 
 | 변수 | 기본 | 의미 |
 |---|---|---|
-| `VITE_SEGMENTATION` | clause | `lab` 이면 lab 의 150자 규칙으로 끊는다(A/B) |
+| `VITE_SEGMENTATION` | lab-split | `lab`: lab 그대로(150자) · `lab-split`: lab + 50자 넘은 종결어미·100자 상한 · `clause`: 쉼·어미·언어 전환까지(잘게 끊김) |
 | `VITE_SONIOX_MODEL` | stt-rt-preview | Soniox 실시간 모델 |
 | `VITE_TOKEN_LOG` | false | 녹음을 멈출 때 토큰·분절 로그 JSON 을 내려받는다(`eval/segment_stats.py` 입력) |
 

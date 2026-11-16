@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { TokenScript } from './__fixtures__/tokens';
-import { clauseRules, labRules } from './presets';
+import { clauseRules, labRules, labSplitRules } from './presets';
 import { Segmenter } from './Segmenter';
 import type { BoundaryRule, SegmentDraft, SttToken } from './types';
 
@@ -43,6 +43,36 @@ describe('continuous Korean speech without punctuation', () => {
   it('does not treat nouns like 참가자 / 까지 / 화면 as endings', () => {
     const out = segment(new TokenScript().speak('이번 테스트 참가자 모집은 목요일까지 화면 시안이랑 같이 할게요').tokens);
     assert.equal(out.length, 1);
+  });
+});
+
+describe('lab-split (default): lab rules, only long chunks are broken up', () => {
+  it('splits the 140-char continuous speech at a Korean ending after 50+ chars', () => {
+    const out = segment(new TokenScript().speak(CONTINUOUS).tokens, labSplitRules());
+    assert.ok(out.length >= 2, `expected 2+ segments, got ${out.length}`);
+    assert.ok(out.every((s) => s.text.length <= 130), out.map((s) => s.text.length).join(','));
+    assert.ok(out.every((s) => s.text.length >= 40), out.map((s) => s.text.length).join(','));
+    assert.equal(out.map((s) => s.text).join(' '), CONTINUOUS);
+  });
+
+  it('keeps short sentences whole like lab (no pause or language cuts)', () => {
+    const out = segment(
+      new TokenScript()
+        .speak('네')
+        .speak('그럼 그렇게 진행하죠', { gapBeforeMs: 1000 })
+        .speak('Can we push it', { language: 'en', gapBeforeMs: 400 })
+        .tokens,
+      labSplitRules()
+    );
+    assert.deepEqual(out.map((s) => s.text), ['네 그럼 그렇게 진행하죠 Can we push it']);
+  });
+
+  it('still cuts at the Soniox endpoint and on speaker change, like lab', () => {
+    const out = segment(
+      new TokenScript().speak('그래서').end().speak('좋습니다', { speaker: '2' }).speak('네', { speaker: '1' }).tokens,
+      labSplitRules()
+    );
+    assert.deepEqual(out.map((s) => [s.speaker, s.text]), [['1', '그래서'], ['2', '좋습니다'], ['1', '네']]);
   });
 });
 
