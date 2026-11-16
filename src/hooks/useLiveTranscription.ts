@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PipelineClient, PipelineConnection } from '../features/pipeline/PipelineClient';
-import { rulesFor, type SegmentationPreset } from '../features/stt/segmentation/presets';
+import { rulesFor, SEGMENTATION_PRESETS, type SegmentationPreset } from '../features/stt/segmentation/presets';
 import {
   SonioxTranscriber,
   type TranscriberFailure,
@@ -10,9 +10,8 @@ import { TokenLog } from '../features/stt/tokenLog';
 
 export type LiveState = 'idle' | 'requesting' | 'connecting' | 'listening' | 'error';
 
-// 분절 규칙 A/B: VITE_SEGMENTATION=lab | lab-split(기본) | clause
-const PRESETS: SegmentationPreset[] = ['lab', 'lab-split', 'clause'];
-const PRESET: SegmentationPreset = PRESETS.includes(import.meta.env.VITE_SEGMENTATION)
+// 분절 규칙 A/B: VITE_SEGMENTATION=lab | lab-split(기본) | clause | split-comma
+const PRESET: SegmentationPreset = SEGMENTATION_PRESETS.includes(import.meta.env.VITE_SEGMENTATION)
   ? import.meta.env.VITE_SEGMENTATION
   : 'lab-split';
 const MODEL = import.meta.env.VITE_SONIOX_MODEL as string | undefined;

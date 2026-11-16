@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { TokenScript } from './__fixtures__/tokens';
-import { clauseRules, labRules, labSplitRules } from './presets';
+import { clauseRules, labRules, labSplitRules, splitCommaRules } from './presets';
 import { Segmenter } from './Segmenter';
 import type { BoundaryRule, SegmentDraft, SttToken } from './types';
 
@@ -181,5 +181,36 @@ describe('other boundaries', () => {
     ]);
     assert.equal(display, '지금 말하는');
     assert.equal(segmenter.push([]), '지금');
+  });
+});
+
+// 강의처럼 쉼표로 이어 말한 문장. 실제 녹음에서 lab-split 은 100자 상한에서 구 중간을 잘랐다
+const COMMA_CHAINED =
+  '온라인 강의 시 즉각 피드백이 어렵다, 이건 이제 온라인 수업을 한 번 했으니까, ' +
+  '어, 숙제를 내야만 하는 이 불편함이 있는데, 다음에 온라인 수업을 하게 되면 숙제를, ' +
+  '어, 프로젝트형으로 내지 말고 그냥 조사, 이런 걸 시켜야겠구나';
+
+describe('split-comma: lab-split plus a cut after commas once the segment is long', () => {
+  it('lab-split cuts the comma-chained speech at the length cap', () => {
+    const out = segment(new TokenScript().speak(COMMA_CHAINED).tokens, labSplitRules());
+    assert.equal(out[0].reason, 'max-length');
+  });
+
+  it('split-comma cuts at commas after 40 chars and keeps every segment short', () => {
+    const out = segment(new TokenScript().speak(COMMA_CHAINED).tokens, splitCommaRules());
+    assert.deepEqual(
+      out.map((s) => s.text),
+      [
+        '온라인 강의 시 즉각 피드백이 어렵다, 이건 이제 온라인 수업을 한 번 했으니까,',
+        '어, 숙제를 내야만 하는 이 불편함이 있는데, 다음에 온라인 수업을 하게 되면 숙제를,',
+        '어, 프로젝트형으로 내지 말고 그냥 조사, 이런 걸 시켜야겠구나',
+      ],
+    );
+    assert.ok(out.every((s) => s.text.length <= 80));
+  });
+
+  it('does not cut short comma phrases', () => {
+    const out = segment(new TokenScript().speak('네, 좋아요, 그렇게 하죠').tokens, splitCommaRules());
+    assert.equal(out.length, 1);
   });
 });

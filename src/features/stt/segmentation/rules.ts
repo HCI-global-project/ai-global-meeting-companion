@@ -94,6 +94,17 @@ export function languageChange(minGapMs: number): BoundaryRule {
   };
 }
 
+/**
+ * 길어진 발화가 쉼표로 끝나면 다음 단어 앞에서 끊는다.
+ * 강의처럼 쉼표로 길게 이어 말하면 마침표가 안 와서 글자 수 상한에서 구 중간이 잘리던 것을 줄인다.
+ */
+export function commaBreak(minChars: number): BoundaryRule {
+  return {
+    name: 'comma',
+    cutBefore: (state, next) => length(state) >= minChars && /,\s*$/.test(state.text) && startsWord(next),
+  };
+}
+
 /** 길이 상한. 단어 경계에서 끊고, 경계가 안 나오면 여유분을 넘긴 뒤 그냥 끊는다 */
 export function maxLength(maxChars: number, slackChars = 30): BoundaryRule {
   return {

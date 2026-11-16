@@ -9,7 +9,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "replay:segments": "tsx scripts/replay-segmentation.ts"
   },
   "dependencies": {
     "@google/genai": "^2.32.0",
