@@ -1,0 +1,98 @@
+{
+  "task": "opinion",
+  "cases": [
+    {
+      "id": "korean-recipient",
+      "note": "한국인 참여자: 한국어 존댓말, 한 문장씩, 세 입장이 서로 다름",
+      "input": {
+        "participants": [
+          {"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"},
+          {"id": "p-sujin", "name": "수진", "role": "Developer", "language": "ko"}
+        ],
+        "context": {
+          "currentTopic": "사용자 테스트 일정",
+          "rollingSummary": "다음 주 사용자 테스트 일정을 정하고 있다. 프로토타입은 목요일까지 마무리된다.",
+          "keywords": ["사용자 테스트", "프로토타입", "목요일"]
+        },
+        "before": [{"speaker": "p-sujin", "text": "프로토타입은 목요일까지 마무리할 수 있을 것 같아요."}],
+        "focus": {"speaker": "p-minji", "text": "그럼 테스트는 금요일 오후에 진행하는 게 어떨까요?"},
+        "recipient": "p-sujin"
+      },
+      "checks": [
+        {"check": "script", "field": "all", "script": "hangul"},
+        {"check": "length", "field": "all", "min": 8, "max": 90},
+        {"check": "distinct", "field": "all"},
+        {"check": "contains_any", "field": "agree", "values": ["요", "니다"]},
+        {"check": "contains_any", "field": "disagree", "values": ["요", "니다"]},
+        {"check": "contains_any", "field": "alternative", "values": ["요", "니다"]}
+      ]
+    },
+    {
+      "id": "foreign-recipient-gets-gloss",
+      "note": "영어권 참여자: 문장은 한국어로, 뜻은 영어 gloss 로",
+      "input": {
+        "participants": [
+          {"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"},
+          {"id": "p-joe", "name": "Joe", "role": "Developer", "language": "en"}
+        ],
+        "context": {
+          "currentTopic": "사용자 테스트 일정",
+          "rollingSummary": "다음 주 사용자 테스트 일정을 정하고 있다.",
+          "keywords": ["사용자 테스트"]
+        },
+        "focus": {"speaker": "p-minji", "text": "그럼 테스트는 금요일 오후에 진행하는 게 어떨까요?"},
+        "recipient": "p-joe"
+      },
+      "checks": [
+        {"check": "script", "field": "all", "script": "hangul"},
+        {"check": "count", "field": "gloss.all", "min": 3, "max": 3},
+        {"check": "script", "field": "gloss.all", "script": "latin", "min_ratio": 0.9},
+        {"check": "distinct", "field": "gloss.all"}
+      ]
+    },
+    {
+      "id": "no-invented-numbers",
+      "note": "회의에 없던 숫자(인원·날짜)를 지어내지 않는다",
+      "input": {
+        "participants": [
+          {"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"},
+          {"id": "p-sujin", "name": "수진", "role": "Developer", "language": "ko"}
+        ],
+        "context": {
+          "currentTopic": "테스트 참가자 수",
+          "rollingSummary": "사용자 테스트 참가자를 몇 명으로 할지 논의하고 있다.",
+          "keywords": ["참가자"]
+        },
+        "focus": {"speaker": "p-minji", "text": "참가자는 5명이면 충분할 것 같아요."},
+        "recipient": "p-sujin"
+      },
+      "checks": [
+        {"check": "numbers_from", "field": "all", "source": ["참가자는 5명이면 충분할 것 같아요."]},
+        {"check": "distinct", "field": "all"}
+      ]
+    },
+    {
+      "id": "extra-english",
+      "note": "영어 추천 조건: 바로 말할 수 있는 영어 문장도 같이",
+      "input": {
+        "extraEnglish": true,
+        "participants": [
+          {"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"},
+          {"id": "p-kenji", "name": "Kenji", "role": "Designer", "language": "ja"}
+        ],
+        "context": {
+          "currentTopic": "온보딩 범위",
+          "rollingSummary": "첫 테스트에서 온보딩 튜토리얼을 뺄지 논의하고 있다.",
+          "keywords": ["온보딩", "튜토리얼"]
+        },
+        "focus": {"speaker": "p-minji", "text": "첫 테스트에서는 온보딩 튜토리얼을 빼는 게 어떨까요?"},
+        "recipient": "p-kenji"
+      },
+      "checks": [
+        {"check": "count", "field": "english.all", "min": 3, "max": 3},
+        {"check": "script", "field": "english.all", "script": "latin", "min_ratio": 0.9},
+        {"check": "script", "field": "gloss.all", "script": "japanese"}
+      ]
+    }
+  ]
+}

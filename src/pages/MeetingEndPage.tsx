@@ -1,31 +1,90 @@
-import { useNavigate, useParams } from 'react-router-dom'
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { LavenderBackdrop } from '../components/LavenderBackdrop';
+import { MeetingHeader } from '../components/MeetingHeader';
+import { NotesReviewView } from '../components/NotesReviewView';
+import type {
+  DecisionItem,
+  LanguageCode,
+  MeetingNote,
+  RoomSession,
+  TranscriptEntry,
+} from '../types/meeting';
 
-/**
- * 회의 종료 화면
- * TODO
- *  - 회의 요약 / 주요 결정사항 / 액션 아이템 표시
- *  - 전체 스크립트(원문 + 번역) 보기
- *  - 회의록 내보내기(PDF, 공유 링크 등)
- */
-export default function MeetingEndPage() {
-  const { meetingId } = useParams()
-  const navigate = useNavigate()
+interface MeetingEndPageProps {
+  session: RoomSession;
+  notes: MeetingNote[];
+  transcript: TranscriptEntry[];
+  decisions: DecisionItem[];
+  onChangeLanguage: (lang: LanguageCode) => void;
+  onChangeRoom: (room: string) => void;
+  onAddNote: (content: string) => void;
+  onAddDecision: (title: string) => void;
+  onToggleDecisionStatus: (id: string) => void;
+  onLoadDemoNotes: () => void;
+  onLoadDemoDecisions: () => void;
+  onExit: () => void;
+}
+
+export const MeetingEndPage: React.FC<MeetingEndPageProps> = ({
+  session,
+  notes,
+  transcript,
+  decisions,
+  onChangeLanguage,
+  onChangeRoom,
+  onAddNote,
+  onAddDecision,
+  onToggleDecisionStatus,
+  onLoadDemoNotes,
+  onLoadDemoDecisions,
+  onExit,
+}) => {
+  const navigate = useNavigate();
+
+  const handleBackToMeeting = () => {
+    navigate('/meeting');
+  };
+
+  const handleExit = () => {
+    onExit();
+    navigate('/');
+  };
 
   return (
-    <main className="page">
-      <h1>회의가 종료되었습니다</h1>
-      <p>회의 ID: {meetingId}</p>
+    <div className="min-h-screen w-full flex flex-col relative">
+      <LavenderBackdrop />
 
-      {/* 회의 요약 자리 */}
-      <section className="placeholder">회의 요약 영역</section>
+      <MeetingHeader
+        session={session}
+        isRecording={false}
+        activeView="notes"
+        onChangeLanguage={onChangeLanguage}
+        onChangeRoom={onChangeRoom}
+        onToggleRecording={handleBackToMeeting}
+        onSwitchView={(view) => {
+          if (view === 'meeting') {
+            handleBackToMeeting();
+          }
+        }}
+        onExit={handleExit}
+      />
 
-      {/* 액션 아이템 자리 */}
-      <section className="placeholder">액션 아이템 영역</section>
-
-      {/* 전체 스크립트 자리 */}
-      <section className="placeholder">전체 스크립트 영역</section>
-
-      <button onClick={() => navigate('/login')}>처음으로</button>
-    </main>
-  )
-}
+      <main className="flex-1">
+        <NotesReviewView
+          notes={notes}
+          transcript={transcript}
+          decisions={decisions}
+          speechTargetLanguage={session.speechTargetLanguage}
+          userName={session.userName}
+          onAddNote={onAddNote}
+          onAddDecision={onAddDecision}
+          onToggleDecisionStatus={onToggleDecisionStatus}
+          onLoadDemoNotes={onLoadDemoNotes}
+          onLoadDemoDecisions={onLoadDemoDecisions}
+          onBackToMeeting={handleBackToMeeting}
+        />
+      </main>
+    </div>
+  );
+};

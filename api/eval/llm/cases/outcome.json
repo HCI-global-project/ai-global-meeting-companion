@@ -1,0 +1,90 @@
+{
+  "task": "outcome",
+  "cases": [
+    {
+      "id": "decision-and-action-with-owner",
+      "note": "결정은 decided, 맡은 일은 담당자와 함께 actionItems",
+      "input": {
+        "participants": [
+          {"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"},
+          {"id": "p-joe", "name": "Joe", "role": "Developer", "language": "en"}
+        ],
+        "segments": [
+          {"speaker": "p-minji", "text": "테스트는 금요일 오후로 확정할게요."},
+          {"speaker": "p-joe", "text": "참가자 모집은 제가 수요일까지 할게요."}
+        ]
+      },
+      "checks": [
+        {"check": "any_item", "field": "decided", "groups": [["금요일"]]},
+        {"check": "any_item", "field": "actionItems", "groups": [["모집"], ["Joe"]]},
+        {"check": "contains_any", "field": "actionItems", "values": ["수요일"]},        {"check": "count", "field": "decided", "max": 1}
+      ]
+    },
+    {
+      "id": "undecided-moves-to-decided",
+      "note": "미정이던 쟁점이 정해지면 옮긴다 (새로 add 하고 미정을 남기지 않는다)",
+      "input": {
+        "participants": [{"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"}],
+        "outcome": {
+          "undecided": [{"id": "u-date", "text": "테스트 날짜: 금요일 오후 vs 다음 주 월요일"}]
+        },
+        "segments": [
+          {"speaker": "p-minji", "text": "논의해 보니 월요일이 낫겠네요. 테스트는 다음 주 월요일로 정할게요."}
+        ]
+      },
+      "checks": [
+        {"check": "any_item", "field": "decided", "groups": [["월요일"]]},
+        {"check": "count", "field": "undecided", "max": 0},
+        {"check": "count", "field": "decided", "max": 1}
+      ]
+    },
+    {
+      "id": "no-duplicate-of-existing",
+      "note": "이미 있는 결정을 다시 말해도 중복으로 넣지 않는다",
+      "input": {
+        "participants": [{"id": "p-joe", "name": "Joe", "role": "Developer", "language": "en"}],
+        "outcome": {
+          "decided": [{"id": "d-proto", "text": "프로토타입은 목요일까지 완성"}]
+        },
+        "segments": [
+          {"speaker": "p-joe", "text": "다시 말씀드리면 프로토타입은 목요일까지예요."},
+          {"speaker": "1", "text": "네 알겠습니다."}
+        ]
+      },
+      "checks": [
+        {"check": "count", "field": "decided", "min": 1, "max": 1},
+        {"check": "range", "field": "total", "max": 1}
+      ]
+    },
+    {
+      "id": "reverted-decision",
+      "note": "번복된 결정은 decided 에서 빠진다",
+      "input": {
+        "participants": [{"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"}],
+        "outcome": {
+          "decided": [{"id": "d-fri", "text": "테스트는 금요일 오후"}]
+        },
+        "segments": [
+          {"speaker": "p-minji", "text": "아 금요일은 회의실이 안 돼서 테스트 날짜는 다시 정해야겠어요."}
+        ]
+      },
+      "checks": [
+        {"check": "count", "field": "decided", "max": 0}
+      ]
+    },
+    {
+      "id": "small-talk-adds-nothing",
+      "note": "잡담에서 결과를 지어내지 않는다",
+      "input": {
+        "participants": [{"id": "p-minji", "name": "민지", "role": "PM", "language": "ko"}],
+        "segments": [
+          {"speaker": "p-minji", "text": "다들 점심 맛있게 드셨어요?"},
+          {"speaker": "1", "text": "네 저는 김치찌개 먹었어요."}
+        ]
+      },
+      "checks": [
+        {"check": "range", "field": "total", "max": 0}
+      ]
+    }
+  ]
+}

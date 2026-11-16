@@ -1,43 +1,128 @@
-/* 전역 기본 스타일 — 디자인 시스템이 정해지면 여기서 교체 */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@import "tailwindcss";
+
+/*
+ * 디자인 토큰 — OMO 디자인 시스템 구조(숫자 radius, 타이포 클래스, 아이콘 크기)를 따르되
+ * 색은 기존 Loop 라벤더 팔레트를 그대로 스케일로 옮겼다.
+ * 컴포넌트에서는 hex 대신 이 토큰만 쓴다.
+ */
+@theme {
+  --font-sans: "Pretendard Variable", "Pretendard", "Noto Sans Myanmar", -apple-system,
+    BlinkMacSystemFont, system-ui, sans-serif;
+
+  /* Primary — Loop 라벤더 */
+  --color-primary-900: #1c145c;
+  --color-primary-800: #2a1f8a;
+  --color-primary-700: #3a2bb8;
+  --color-primary-600: #4b3ad8;
+  --color-primary-500: #5b49ea;
+  --color-primary-400: #8e82f6;
+  --color-primary-300: #bfb8f7;
+  --color-primary-200: #cfc9f5;
+  --color-primary-100: #e7e3fc;
+  --color-primary-50: #f3f1fc;
+
+  /* Gray — 라벤더 톤이 섞인 중립색 */
+  --color-gray-900: #1a1826;
+  --color-gray-800: #3e3b52;
+  --color-gray-700: #5a5770;
+  --color-gray-600: #6b6780;
+  --color-gray-500: #8e8ba3;
+  --color-gray-400: #9a97ad;
+  --color-gray-300: #c6c3d6;
+  --color-gray-200: #dfdde9;
+  --color-gray-100: #eceaf4;
+  --color-gray-50: #f7f6fc;
+  --color-gray-20: #faf9fe;
+
+  /* Red — 에러·되돌릴 수 없는 동작 전용 */
+  --color-red-800: #6b1e2f;
+  --color-red-700: #7a3544;
+  --color-red-600: #8e2b40;
+  --color-red-500: #b43c54;
+  --color-red-400: #c94a63;
+  --color-red-100: #e7c6cc;
+  --color-red-50: #fdf6f7;
+
+  --color-black: #1a1826;
+  --color-white: #ffffff;
+
+  --radius-1: 4px;
+  --radius-2: 8px;
+  --radius-3: 12px;
+  --radius-4: 16px;
+  --radius-5: 20px;
+  --radius-full: 9999px;
+
+  /* 그림자는 검정 대신 gray-900 계열로 */
+  --shadow-01: 0px 16px 36px rgba(26, 24, 38, 0.12);
+  --shadow-02: 0px 16px 24px rgba(26, 24, 38, 0.1);
+  --shadow-03: 0px 3px 8px 0px rgba(26, 24, 38, 0.06);
+
+  --spacing-icon-xs: 16px;
+  --spacing-icon-sm: 20px;
+  --spacing-icon-md: 24px;
+  --spacing-icon-lg: 28px;
+  --spacing-icon-xl: 32px;
 }
 
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background: #f7f7f8;
-  color: #1a1a1a;
+@layer base {
+  html,
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-gray-50);
+    color: var(--color-gray-800);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
-/* 페이지 자리 표시용 공통 레이아웃 */
-.page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 24px;
+/* 타이포 — 크기·굵기·행간·자간을 클래스 하나로. @utility라서 lg: 같은 variant와 같이 쓸 수 있다 */
+@utility heading-01 { font-weight: 700; font-size: 40px; line-height: 130%; letter-spacing: -0.03em; }
+@utility heading-02 { font-weight: 700; font-size: 36px; line-height: 130%; letter-spacing: -0.03em; }
+@utility heading-03 { font-weight: 700; font-size: 32px; line-height: 130%; letter-spacing: -0.03em; }
+@utility heading-04 { font-weight: 600; font-size: 28px; line-height: 130%; letter-spacing: -0.03em; }
+@utility heading-05 { font-weight: 600; font-size: 22px; line-height: 140%; letter-spacing: -0.03em; }
+@utility heading-06 { font-weight: 600; font-size: 18px; line-height: 140%; letter-spacing: -0.02em; }
+@utility title-01 { font-weight: 500; font-size: 18px; line-height: 140%; letter-spacing: -0.02em; }
+@utility title-02 { font-weight: 500; font-size: 16px; line-height: 140%; letter-spacing: -0.02em; }
+@utility title-03 { font-weight: 500; font-size: 14px; line-height: 140%; letter-spacing: -0.02em; }
+@utility title-04 { font-weight: 400; font-size: 18px; line-height: 140%; letter-spacing: -0.02em; }
+@utility title-05 { font-weight: 600; font-size: 16px; line-height: 140%; letter-spacing: -0.02em; }
+@utility body-01 { font-weight: 500; font-size: 16px; line-height: 140%; letter-spacing: -0.02em; }
+@utility body-02 { font-weight: 500; font-size: 14px; line-height: 140%; letter-spacing: -0.02em; }
+@utility body-03 { font-weight: 400; font-size: 14px; line-height: 140%; letter-spacing: -0.02em; }
+@utility body-04 { font-weight: 400; font-size: 13px; line-height: 140%; letter-spacing: -0.02em; }
+@utility body-05 { font-weight: 500; font-size: 12px; line-height: 140%; letter-spacing: -0.02em; }
+@utility label-01 { font-weight: 400; font-size: 12px; line-height: 140%; letter-spacing: -0.02em; }
+@utility label-02 { font-weight: 500; font-size: 11px; line-height: 140%; letter-spacing: -0.02em; }
+@utility label-03 { font-weight: 400; font-size: 10px; line-height: 140%; letter-spacing: -0.02em; }
+
+/* 전사·패널 내부 스크롤바 */
+.loop-scroll::-webkit-scrollbar {
+  width: 6px;
 }
 
-.placeholder {
-  width: 100%;
-  max-width: 480px;
-  padding: 24px;
-  border: 2px dashed #c4c4c8;
-  border-radius: 12px;
-  text-align: center;
-  color: #6b6b70;
+.loop-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  background: #3b5bdb;
-  color: #fff;
-  font-size: 14px;
-  cursor: pointer;
+.loop-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--color-gray-200);
+  border-radius: var(--radius-full);
+}
+
+.loop-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-gray-300);
+}
+
+/* 새로 들어온 추천·키워드가 살짝 떠오르며 나타난다 */
+@keyframes fade-up {
+  from {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
