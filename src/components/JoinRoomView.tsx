@@ -35,6 +35,7 @@ export const JoinRoomView: React.FC<JoinRoomViewProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onStartMeeting({
+      participantId: initialSession.participantId,
       roomCode: roomCode.trim() || initialSession.roomCode || 'Lab-5',
       userName: userName.trim() || initialSession.userName || 'Joe',
       userRole: userRole.trim() || initialSession.userRole || 'designer',

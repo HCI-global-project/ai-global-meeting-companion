@@ -6,6 +6,7 @@
 import { useCallback, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { INITIAL_NOTES, MOCK_DECISIONS } from './data/mockMeetingData';
+import { getParticipantId } from './features/pipeline/participantIdentity';
 import { I18nProvider } from './i18n/I18nContext';
 import { TRANSLATIONS } from './i18n/translations';
 import { LoginPage } from './pages/LoginPage';
@@ -23,13 +24,14 @@ import type {
 } from './types/meeting';
 
 export default function App() {
-  const [session, setSession] = useState<RoomSession>({
+  const [session, setSession] = useState<RoomSession>(() => ({
+    participantId: getParticipantId(),
     roomCode: 'Lab-5',
     userName: 'Joe',
     userRole: 'designer',
     uiLanguage: 'ko',
     speechTargetLanguage: 'ko',
-  });
+  }));
 
   // Real session state starts empty so hardcoded mock records never masquerade as meeting data
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);

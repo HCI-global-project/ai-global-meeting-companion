@@ -29,6 +29,11 @@ export interface TranscriptEntry {
   // signal: '잠깐 기다려주세요' 같은 참여자 요청 알림, chat: 전사 패널에서 직접 입력한 채팅
   source?: 'microphone' | 'opinion' | 'stream' | 'demo' | 'signal' | 'chat';
   isAnonymous?: boolean;
+  // 마이크 하나로 녹음한 음성 발화의 화자('녹음 회차:번호'). 참여자가 누구인지 지정할 수 있다
+  speakerKey?: string | null;
+  speakerNumber?: string | null;
+  // 서버가 아는 말한 사람. 채팅이거나 화자가 지정됐을 때 있다
+  participantId?: string | null;
 }
 
 /**
@@ -111,6 +116,8 @@ export interface DecisionItem {
 }
 
 export interface RoomSession {
+  // 이 탭의 참여자 id (features/pipeline/participantIdentity)
+  participantId: string;
   roomCode: string;
   userName: string;
   userRole: string;

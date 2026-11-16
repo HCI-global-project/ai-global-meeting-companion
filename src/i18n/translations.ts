@@ -131,6 +131,16 @@ export interface TranslationDictionary {
     send: string;
     badge: string;
   };
+  // 마이크 하나로 녹음한 화자 번호를 참여자에 잇는 메뉴
+  speakers: {
+    unassigned: (n: string) => string;
+    assignTitle: string;
+    assignLabel: (label: string) => string;
+    me: (name: string) => string;
+    clear: string;
+    noParticipants: string;
+    assignHint: string;
+  };
   meetingEnd: {
     backToMeeting: string;
     notesTitle: string;
@@ -311,6 +321,15 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       placeholder: 'Type a message (Enter to send)',
       send: 'Send',
       badge: 'Chat',
+    },
+    speakers: {
+      unassigned: (n) => `Speaker ${n}`,
+      assignTitle: 'Who is this speaker?',
+      assignLabel: (label) => `Set who ${label} is`,
+      me: (name) => `Me (${name})`,
+      clear: 'Clear',
+      noParticipants: 'No one else has joined yet',
+      assignHint: 'Tap a speaker name to set who it is',
     },
     meetingEnd: {
       backToMeeting: 'Back to Meeting Page',
@@ -494,6 +513,15 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       send: '보내기',
       badge: '채팅',
     },
+    speakers: {
+      unassigned: (n) => `화자 ${n}`,
+      assignTitle: '이 화자는 누구인가요?',
+      assignLabel: (label) => `${label} 지정하기`,
+      me: (name) => `나 (${name})`,
+      clear: '지정 해제',
+      noParticipants: '아직 들어온 참여자가 없어요',
+      assignHint: '화자 이름을 누르면 누구인지 지정할 수 있어요',
+    },
     meetingEnd: {
       backToMeeting: '회의 페이지로 돌아가기',
       notesTitle: '회의 노트',
@@ -674,6 +702,15 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       placeholder: 'チャットで発言（Enterで送信）',
       send: '送信',
       badge: 'チャット',
+    },
+    speakers: {
+      unassigned: (n) => `話者${n}`,
+      assignTitle: 'この話者は誰ですか？',
+      assignLabel: (label) => `${label}を指定`,
+      me: (name) => `自分 (${name})`,
+      clear: '指定を解除',
+      noParticipants: 'まだ参加者がいません',
+      assignHint: '話者名を押すと誰かを指定できます',
     },
     meetingEnd: {
       backToMeeting: '会議ページに戻る',
@@ -856,6 +893,15 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       send: 'ပို့ရန်',
       badge: 'ချတ်',
     },
+    speakers: {
+      unassigned: (n) => `ပြောသူ ${n}`,
+      assignTitle: 'ဤပြောသူသည် မည်သူနည်း?',
+      assignLabel: (label) => `${label} ကို သတ်မှတ်ရန်`,
+      me: (name) => `ကျွန်ုပ် (${name})`,
+      clear: 'ဖယ်ရှားရန်',
+      noParticipants: 'ပါဝင်သူ မရှိသေးပါ',
+      assignHint: 'ပြောသူအမည်ကို နှိပ်၍ မည်သူဖြစ်ကြောင်း သတ်မှတ်နိုင်သည်',
+    },
     meetingEnd: {
       backToMeeting: 'အစည်းအဝေး စာမျက်နှာသို့ ပြန်သွားရန်',
       notesTitle: 'အစည်းအဝေး မှတ်စုများ',
@@ -1036,6 +1082,15 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       placeholder: 'Напишите сообщение (Enter — отправить)',
       send: 'Отправить',
       badge: 'Чат',
+    },
+    speakers: {
+      unassigned: (n) => `Спикер ${n}`,
+      assignTitle: 'Кто этот спикер?',
+      assignLabel: (label) => `Указать: ${label}`,
+      me: (name) => `Я (${name})`,
+      clear: 'Сбросить',
+      noParticipants: 'Пока никто не присоединился',
+      assignHint: 'Нажмите на имя спикера, чтобы указать, кто это',
     },
     meetingEnd: {
       backToMeeting: 'Назад ко встрече',
@@ -1218,6 +1273,15 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       placeholder: 'Escribe un mensaje (Enter para enviar)',
       send: 'Enviar',
       badge: 'Chat',
+    },
+    speakers: {
+      unassigned: (n) => `Hablante ${n}`,
+      assignTitle: '¿Quién es este hablante?',
+      assignLabel: (label) => `Indicar quién es ${label}`,
+      me: (name) => `Yo (${name})`,
+      clear: 'Quitar',
+      noParticipants: 'Aún no se ha unido nadie',
+      assignHint: 'Toca el nombre del hablante para indicar quién es',
     },
     meetingEnd: {
       backToMeeting: 'Volver a la reunión',

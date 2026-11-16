@@ -5,6 +5,7 @@ import type {
   OpinionSuggestion,
   TranscriptEntry,
 } from './meeting';
+import type { PipelineParticipant } from '../features/pipeline/PipelineClient';
 
 /**
  * Connection lifecycle states for the real-time transcription & translation stream.
@@ -28,7 +29,58 @@ export type IncomingTranscriptEvent =
   | ContextUpdatedEvent
   | OutcomeUpdatedEvent
   | OpinionSuggestedEvent
+  | RosterEvent
+  | SegmentSavedEvent
+  | PongEvent
   | StreamErrorEvent;
+
+/** 참여자·화자 지정·녹음 기기 상태. 회의 명단(useMeetingRoster)이 받는다 */
+export type RosterEvent =
+  | SessionSnapshotEvent
+  | ParticipantJoinedEvent
+  | SpeakerAssignedEvent
+  | RecordingChangedEvent
+  | RecordingDeniedEvent;
+
+export interface SessionSnapshotEvent {
+  type: 'session.snapshot';
+  participants: PipelineParticipant[];
+  speakers: Record<string, string>;
+  recorderId: string | null;
+}
+
+export interface ParticipantJoinedEvent {
+  type: 'participant.joined';
+  participant: PipelineParticipant;
+}
+
+export interface SpeakerAssignedEvent {
+  type: 'speaker.assigned';
+  speakerKey: string;
+  participantId: string | null;
+}
+
+export interface RecordingChangedEvent {
+  type: 'recording.changed';
+  recorderId: string | null;
+}
+
+/** 다른 기기가 이미 녹음 중이라 녹음을 시작하지 못했다 */
+export interface RecordingDeniedEvent {
+  type: 'recording.denied';
+  recorderId: string | null;
+  recorderName: string;
+}
+
+export interface SegmentSavedEvent {
+  type: 'segment.saved';
+  clientSegmentId: string | null;
+  segmentId: string;
+}
+
+export interface PongEvent {
+  type: 'pong';
+}
 
 export interface StreamStatusEvent {
   type: 'status';
@@ -73,6 +125,9 @@ export interface TranscriptFinalEvent {
   // 서버는 음성(stream) 외에 채팅·의견·요청 알림도 같은 이벤트로 보낸다
   source?: TranscriptEntry['source'];
   isAnonymous?: boolean;
+  speakerKey?: string | null;
+  speakerNumber?: string | null;
+  participantId?: string | null;
 }
 
 /** 서버가 STT 오인식을 고친 뒤 보내는 보정본. 번역은 보정본 기준으로 다시 온다 */

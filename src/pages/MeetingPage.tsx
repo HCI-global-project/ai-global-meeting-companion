@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnonymousOpinionModal } from '../components/AnonymousOpinionModal';
 import { LiveContextCard } from '../components/LiveContextCard';
@@ -8,6 +8,7 @@ import { OpinionSuggestionCard } from '../components/OpinionSuggestionCard';
 import { QuickActionBar } from '../components/QuickActionBar';
 import { ToastStack } from '../components/ToastStack';
 import { CONNECTION_TOAST, useMeetingStatusToasts } from '../hooks/useMeetingStatusToasts';
+import { useMeetingRoster } from '../hooks/useMeetingRoster';
 import { useMicrophoneRecorder } from '../hooks/useMicrophoneRecorder';
 import { useToasts } from '../hooks/useToasts';
 import { useTranscriptStream } from '../hooks/useTranscriptStream';
@@ -48,6 +49,7 @@ interface MeetingPageProps {
 }
 
 const SUBMITTED_TOAST_MS = 2000;
+const SPEAKER_HINT_MS = 4000;
 
 export const MeetingPage: React.FC<MeetingPageProps> = ({
   session,
@@ -70,6 +72,8 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const { t } = useI18n();
   const [isAnonymousModalOpen, setIsAnonymousModalOpen] = useState(false);
   const { toasts, show: showToast, dismiss: dismissToast } = useToasts();
+  const { roster, assignLocally } = useMeetingRoster();
+  const speakerHintShownRef = useRef(false);
 
   const {
     status: recorderStatus,
@@ -110,6 +114,25 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const isRecording = recorderStatus === 'recording';
   const isRequesting = recorderStatus === 'requesting';
   const hasDemoData = transcript.some((entry) => entry.source === 'demo');
+
+  // 지정 안 된 화자가 처음 보이면 이름을 눌러 지정할 수 있다고 한 번만 알려 준다
+  const hasUnassignedSpeaker = transcript.some(
+    (entry) => entry.speakerKey && !roster.speakers[entry.speakerKey]
+  );
+  useEffect(() => {
+    if (!hasUnassignedSpeaker || speakerHintShownRef.current) return;
+    speakerHintShownRef.current = true;
+    showToast({
+      id: 'speaker-hint',
+      tone: 'info',
+      message: t.speakers.assignHint,
+      durationMs: SPEAKER_HINT_MS,
+    });
+  }, [hasUnassignedSpeaker, showToast, t]);
+
+  const handleAssignSpeaker = (speakerKey: string, participantId: string | null) => {
+    assignLocally(speakerKey, participantId);
+  };
 
   // 연결 오류 토스트를 닫으면 스트림 오류 상태도 함께 지운다
   const handleDismissToast = (id: string) => {
@@ -169,6 +192,9 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
               onStartDemoStream={startDemoStream}
               onStopStream={stopStream}
               onSendChat={onSendChat}
+              roster={roster}
+              selfId={session.participantId}
+              onAssignSpeaker={handleAssignSpeaker}
             />
           </div>
 

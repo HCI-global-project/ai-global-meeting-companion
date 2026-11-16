@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Hand, Play, Square } from 'lucide-react';
+import { speakerOf, type Roster } from '../features/roster/roster';
 import { useI18n } from '../i18n/I18nContext';
+import { SpeakerAssignMenu } from './SpeakerAssignMenu';
 import type { LanguageCode, TranscriptEntry } from '../types/meeting';
 import type { StreamConnectionState } from '../types/streaming';
 
@@ -13,6 +15,9 @@ interface LiveTranscriptPanelProps {
   onStartDemoStream: () => void;
   onStopStream: () => void;
   onSendChat: (text: string) => void;
+  roster: Roster;
+  selfId: string;
+  onAssignSpeaker: (speakerKey: string, participantId: string | null) => void;
 }
 
 const MEETING_LANGUAGE: LanguageCode = 'ko';
@@ -26,6 +31,9 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
   onStartDemoStream,
   onStopStream,
   onSendChat,
+  roster,
+  selfId,
+  onAssignSpeaker,
 }) => {
   const { t } = useI18n();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -120,20 +128,37 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
                 return (
                   <article key={entry.id} className="flex flex-col items-start">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <div
-                        className={`inline-flex items-center gap-2 rounded-full px-4 py-1 body-02 text-gray-800 tabular-nums ${
-                          entry.badgeVariant === 'lavender'
-                            ? 'bg-primary-300'
-                            : 'bg-gray-200'
-                        }`}
-                      >
-                        <span>
-                          {entry.isAnonymous
-                            ? t.anonymousOpinion.anonymousSpeaker
-                            : entry.speakerName}
-                        </span>
-                        <span>{entry.timestamp}</span>
-                      </div>
+                      {entry.speakerKey && !entry.isAnonymous ? (
+                        <SpeakerAssignMenu
+                          label={
+                            speakerOf(entry, roster)?.name ??
+                            t.speakers.unassigned(entry.speakerNumber ?? '?')
+                          }
+                          timestamp={entry.timestamp}
+                          chipClassName="bg-gray-200 hover:bg-gray-300"
+                          assignedId={roster.speakers[entry.speakerKey]}
+                          participants={roster.participants}
+                          selfId={selfId}
+                          onAssign={(participantId) =>
+                            onAssignSpeaker(entry.speakerKey!, participantId)
+                          }
+                        />
+                      ) : (
+                        <div
+                          className={`inline-flex items-center gap-2 rounded-full px-4 py-1 body-02 text-gray-800 tabular-nums ${
+                            entry.badgeVariant === 'lavender'
+                              ? 'bg-primary-300'
+                              : 'bg-gray-200'
+                          }`}
+                        >
+                          <span>
+                            {entry.isAnonymous
+                              ? t.anonymousOpinion.anonymousSpeaker
+                              : speakerOf(entry, roster)?.name ?? entry.speakerName}
+                          </span>
+                          <span>{entry.timestamp}</span>
+                        </div>
+                      )}
 
                       {entry.source === 'demo' && (
                         <span className="label-02 text-gray-500">

@@ -140,6 +140,9 @@ export function useTranscriptStream({
           status: 'final',
           source: event.source ?? 'stream',
           isAnonymous: event.isAnonymous,
+          speakerKey: event.speakerKey,
+          speakerNumber: event.speakerNumber,
+          participantId: event.participantId,
         };
 
         setInterimSegment((prev) =>
