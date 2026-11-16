@@ -196,17 +196,19 @@ describe('split-comma: lab-split plus a cut after commas once the segment is lon
     assert.equal(out[0].reason, 'max-length');
   });
 
-  it('split-comma cuts at commas after 40 chars and keeps every segment short', () => {
+  it('split-comma cuts at the first comma after 70 chars instead of the length cap', () => {
     const out = segment(new TokenScript().speak(COMMA_CHAINED).tokens, splitCommaRules());
     assert.deepEqual(
       out.map((s) => s.text),
       [
-        '온라인 강의 시 즉각 피드백이 어렵다, 이건 이제 온라인 수업을 한 번 했으니까,',
-        '어, 숙제를 내야만 하는 이 불편함이 있는데, 다음에 온라인 수업을 하게 되면 숙제를,',
-        '어, 프로젝트형으로 내지 말고 그냥 조사, 이런 걸 시켜야겠구나',
+        '온라인 강의 시 즉각 피드백이 어렵다, 이건 이제 온라인 수업을 한 번 했으니까, ' +
+          '어, 숙제를 내야만 하는 이 불편함이 있는데,',
+        '다음에 온라인 수업을 하게 되면 숙제를, 어, 프로젝트형으로 내지 말고 그냥 조사, 이런 걸 시켜야겠구나',
       ],
     );
-    assert.ok(out.every((s) => s.text.length <= 80));
+    assert.equal(out[0].reason, 'comma');
+    // 화면에서 한두 줄. 상한(100자)까지 가지 않는다
+    assert.ok(out.every((s) => s.text.length < 100));
   });
 
   it('does not cut short comma phrases', () => {

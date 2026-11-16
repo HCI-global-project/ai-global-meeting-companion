@@ -15,16 +15,17 @@ import type { BoundaryRule } from './types';
  * - lab: synq-realtime-lab 과 같은 규칙. 쉬지 않고 말하면 150자 덩어리가 된다(비교 기준)
  * - lab-split: lab 그대로 두고 긴 덩어리만 푼다(기본). 50자를 넘긴 뒤 한국어 종결어미가 오면 끊고, 상한을 100자로 낮춘다
  * - clause: 쉼·한국어 어미·언어 전환까지 보고 짧게 끊는다. 실제 회의에서 문장이 너무 잘게 잘려 기본에서 뺐다
- * - split-comma: lab-split 에 '40자를 넘기고 쉼표로 끝나면 끊기'를 더하고, 문장 끝 기준을 40자 → 30자로 낮춘다(실험).
- *   15분 강의 재생에서 80자 넘는 발화가 68% → 2% 로 줄었다. 짧은 문장이 여럿 이어지는 시연 녹음에서는
- *   문장 끝 기준 40자일 때 문장이 뭉쳐 100자 덩어리가 됐다(6% → 30자에서 4%, 더 낮춰도 같았다)
+ * - split-comma: lab-split 에 '70자를 넘기고 쉼표로 끝나면 끊기'를 더하고, 문장 끝은 50자부터 끊는다(실험).
+ *   100자 상한까지 쉼표로 이어 말하는 강의에서 구 중간이 잘리던 것을 쉼표 자리로 옮긴다.
+ *   처음에는 쉼표 40자·문장 30자로 잡았는데 화면에서 한 줄씩 끊겨, 한두 줄(50~90자)이 되도록 올렸다.
+ *   Soniox 는 확정 전 글자를 먼저 보여 줘서 화면에는 이미 그만큼 떠 있으므로, 번역이 늦어지는 건 몇 초다
  */
 export type SegmentationPreset = 'lab' | 'lab-split' | 'clause' | 'split-comma';
 
 export const SEGMENTATION_PRESETS: readonly SegmentationPreset[] = ['lab', 'lab-split', 'clause', 'split-comma'];
 
-const COMMA_MIN_CHARS = 40;
-const SPLIT_COMMA_SENTENCE_MIN_CHARS = 30;
+const COMMA_MIN_CHARS = 70;
+const SPLIT_COMMA_SENTENCE_MIN_CHARS = 50;
 
 export interface ClauseOptions {
   pauseMs: number;
