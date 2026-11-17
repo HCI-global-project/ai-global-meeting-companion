@@ -9,6 +9,7 @@ from .clients.llm import LlmClient
 from .clients.soniox import SonioxClient
 from .config import Settings
 from .pipeline.hub import ConnectionHub
+from .pipeline.interim import InterimRelay
 from .pipeline.pipeline import Pipeline
 from .pipeline.registry import SessionRegistry
 from .pipeline.tasks.correction import CorrectionTask
@@ -35,6 +36,7 @@ class Container:
     registry: SessionRegistry
     hub: ConnectionHub
     limits: RateLimits
+    interim: InterimRelay
 
     @property
     def opinion(self) -> OpinionTask:
@@ -72,6 +74,9 @@ def build_container(
     registry = SessionRegistry(store, pipeline, settings.default_primary_language)
     hub = ConnectionHub()
     registry.on_create(hub.attach)
+    limits = RateLimits.from_settings(settings)
+    interim = InterimRelay(hub, translator, settings.interim_translation_enabled, limits.interim_translations)
+    registry.on_create(interim.attach)
     return Container(
         settings=settings,
         http=http,
@@ -82,7 +87,8 @@ def build_container(
         pipeline=pipeline,
         registry=registry,
         hub=hub,
-        limits=RateLimits.from_settings(settings),
+        limits=limits,
+        interim=interim,
     )
 
 

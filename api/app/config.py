@@ -43,6 +43,8 @@ class Settings(BaseSettings):
     rate_messages_per_min: int = 30
     rate_opinions_per_min: int = 20
     rate_soniox_keys_per_hour: int = 30
+    # 임시 번역 횟수. 녹음 기기가 0.7초마다 보내고 방마다 한 번에 하나만 번역해서 보통 분당 60 아래다
+    rate_interim_translations_per_min: int = 90
 
     # --- 파이프라인 실험 조건 ---
     # 실제 회의에서 보정이 앞 발화를 베끼거나 말을 바꿔 원문을 망가뜨려 기본으로 끈다
@@ -60,6 +62,8 @@ class Settings(BaseSettings):
     opinion_max_concurrency: int = 4
     # 추천 문장을 주 언어 외에 영어로도 만든다(답답할 때 영어로 말하는 상황 실험)
     opinion_extra_english: bool = False
+    # 확정 전 글자도 계속 번역해 보여 준다(실험). 이어 말하는 동안 번역 호출이 1초에 한 번꼴로 는다
+    interim_translation_enabled: bool = False
 
 
 @lru_cache

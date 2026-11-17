@@ -106,6 +106,10 @@ export class FastApiPipelineClient implements PipelineClient {
           language: segment.language,
           clientSegmentId,
         }),
+      // 연결이 열리기 전의 확정 전 글자는 금방 낡으니 쌓아 두지 않고 버린다
+      sendInterim: (text, language) => {
+        if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'segment.interim', text, language }));
+      },
       configure: ({ topic = '', terms = [] }) => send({ type: 'session.configure', topic, terms }),
       close: () => socket.close(),
     };

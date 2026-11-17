@@ -24,6 +24,14 @@ class NoteRequest(CamelModel):
     language: str | None = None
 
 
+class InterimMessage(CamelModel):
+    """녹음 기기 → 서버: 아직 확정 전인 글자(마지막 확정 줄 뒤에 이어지는 말). 빈 글자면 지운다."""
+
+    type: Literal["segment.interim"]
+    text: str = ""
+    language: str | None = None
+
+
 class SegmentMessage(CamelModel):
     """녹음 기기 → 서버: 분절기가 확정한 발화."""
 

@@ -100,23 +100,31 @@ export function useTranscriptStream({
       }
 
       case 'transcript.interim': {
-        const translations: Partial<Record<LanguageCode, string>> = {};
+        // 줄이 확정됐거나 녹음이 끝나 서버가 임시 줄을 지운다
+        if (!event.text) {
+          setInterimSegment(null);
+          break;
+        }
+        const translations: Partial<Record<LanguageCode, string>> = { ...(event.translations ?? {}) };
         if (event.targetLanguage && event.translatedText) {
           translations[event.targetLanguage] = event.translatedText;
         }
 
-        setInterimSegment({
+        // 서버는 새 글자를 먼저 보내고 번역은 나중에 보낸다. 그 사이 번역이 비었다 생기며 깜빡이지 않게
+        // 새 번역이 올 때까지 직전 번역을 그대로 둔다
+        const hasTranslation = Object.keys(translations).length > 0;
+        setInterimSegment((prev) => ({
           id: event.segmentId,
           speakerId: event.speakerId,
           speakerName: event.speakerName,
           timestamp: event.timestamp,
           originalLanguage: event.sourceLanguage,
           originalText: event.text,
-          translations,
+          translations: hasTranslation || prev?.id !== event.segmentId ? translations : prev.translations,
           badgeVariant: event.badgeVariant ?? 'neutral',
           status: 'interim',
           source: event.source ?? 'stream',
-        });
+        }));
         break;
       }
 

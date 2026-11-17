@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createInterimSender } from '../features/pipeline/interimSender';
 import type { PipelineClient, PipelineConnection } from '../features/pipeline/PipelineClient';
 import { rulesFor, SEGMENTATION_PRESETS, type SegmentationPreset } from '../features/stt/segmentation/presets';
 import {
@@ -49,6 +50,7 @@ export function useLiveTranscription({
   const transcriberRef = useRef<SonioxTranscriber | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const logRef = useRef<TokenLog | null>(null);
+  const interimSenderRef = useRef<ReturnType<typeof createInterimSender> | null>(null);
   const segmentCountRef = useRef(0);
   // 서버가 저장했다고(segment.saved) 답하기 전까지 들고 있다가, 연결이 끊겼다 붙으면 다시 보낸다
   const unsavedRef = useRef(new Map<string, SegmentDraft>());
@@ -62,6 +64,8 @@ export function useLiveTranscription({
     timerRef.current = null;
     transcriberRef.current = null;
     wantRef.current = false;
+    interimSenderRef.current?.stop();
+    interimSenderRef.current = null;
     getConnection()?.stopRecording();
     if (logRef.current?.size) logRef.current.download();
     logRef.current = null;
@@ -71,6 +75,9 @@ export function useLiveTranscription({
     const { languageHints: hints, participantNames: names } = hintsRef.current;
     unsavedRef.current.clear();
     logRef.current = KEEP_TOKEN_LOG ? new TokenLog({ preset: PRESET, model: MODEL }) : null;
+    interimSenderRef.current?.stop();
+    const interimSender = createInterimSender((text, language) => getConnection()?.sendInterim(text, language));
+    interimSenderRef.current = interimSender;
     const transcriber = new SonioxTranscriber({
       getApiKey: () => client.getSonioxKey(selfId),
       rules: rulesFor(PRESET),
@@ -84,7 +91,11 @@ export function useLiveTranscription({
         unsavedRef.current.set(id, segment);
         getConnection()?.sendSegment(segment, id);
       },
-      onInterim: setInterimText,
+      onInterim: (text, language) => {
+        setInterimText(text);
+        // 서버 실험 설정(INTERIM_TRANSLATION_ENABLED)이 꺼져 있으면 서버가 무시한다
+        interimSender.push(text, language);
+      },
       onStateChange: (next, error) => {
         if (next === 'listening') {
           setState('listening');

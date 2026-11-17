@@ -135,4 +135,16 @@ describe('FastApiPipelineClient', () => {
     (socket.onclose as unknown as (e: { code: number }) => void)({ code: ACCESS_DENIED_CLOSE });
     assert.deepEqual(codes, [ACCESS_DENIED_CLOSE]);
   });
+
+  it("sends interim words only while the socket is open", () => {
+    let socket!: FakeSocket;
+    const client = new FastApiPipelineClient("http://api", {
+      openSocket: (url) => (socket = new FakeSocket(url)) as unknown as WebSocket,
+    });
+    const connection = client.connect("r1", { id: "p1", name: "A", role: "", language: "ko" }, { onEvent: () => undefined });
+    connection.sendInterim("낡은 글자", "ko"); // 열리기 전: 버린다
+    socket.open();
+    connection.sendInterim("지금 글자", "ko");
+    assert.deepEqual(socket.sent.map((d) => JSON.parse(d)), [{ type: "segment.interim", text: "지금 글자", language: "ko" }]);
+  });
 });

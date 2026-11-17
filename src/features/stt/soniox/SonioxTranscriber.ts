@@ -37,7 +37,8 @@ export interface SonioxTranscriberOptions {
   noiseSuppression?: boolean;
   log?: TokenLog;
   onSegment: (segment: SegmentDraft) => void;
-  onInterim?: (text: string) => void;
+  // 확정 전 글자(마지막 확정 줄 뒤에 이어지는 말)와 그 언어. 빈 글자면 지운다
+  onInterim?: (text: string, language?: string) => void;
   onStateChange?: (state: TranscriberState, error?: TranscriberFailure) => void;
 }
 
@@ -53,6 +54,7 @@ export class SonioxTranscriber {
   private idleTimer: ReturnType<typeof setTimeout> | null = null;
   // 오류로 닫힌 경우 정리 후에도 오류 상태를 유지한다
   private failed = false;
+  private interimLanguage: string | undefined;
 
   constructor(options: SonioxTranscriberOptions) {
     this.options = options;
@@ -127,7 +129,10 @@ export class SonioxTranscriber {
     if (!response.tokens?.length) return;
     const tokens = response.tokens.map(toToken);
     this.options.log?.recordTokens(tokens);
-    this.options.onInterim?.(this.segmenter.push(tokens));
+    // 지금 말하는 언어는 가장 최근 글자의 언어로 본다
+    const spoken = tokens.findLast((t) => t.language && t.text.trim() && !t.text.startsWith('<'));
+    if (spoken?.language) this.interimLanguage = spoken.language;
+    this.options.onInterim?.(this.segmenter.push(tokens), this.interimLanguage);
     if (tokens.some((t) => t.isFinal)) this.resetIdleTimer();
   }
 

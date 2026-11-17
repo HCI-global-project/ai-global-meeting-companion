@@ -53,6 +53,7 @@ class RateLimits:
     messages: RateLimiter
     opinions: RateLimiter
     soniox_keys: RateLimiter
+    interim_translations: RateLimiter
 
     @classmethod
     def from_settings(cls, settings) -> "RateLimits":
@@ -61,4 +62,5 @@ class RateLimits:
             messages=RateLimiter(settings.rate_messages_per_min, 60),
             opinions=RateLimiter(settings.rate_opinions_per_min, 60),
             soniox_keys=RateLimiter(settings.rate_soniox_keys_per_hour, 3_600),
+            interim_translations=RateLimiter(settings.rate_interim_translations_per_min, 60),
         )

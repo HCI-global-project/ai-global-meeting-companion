@@ -17,9 +17,8 @@ from ..domain.models import Participant, SegmentDraft
 from ..pipeline.hub import Connection
 from ..pipeline.session import MeetingSession
 from ..pipeline.wire import snapshot
-from ..services.rate_limit import RateLimiter
 from .access import ACCESS_DENIED_CLOSE, socket_code_ok
-from .schemas import AssignSpeakerMessage, ConfigureMessage, SegmentMessage
+from .schemas import AssignSpeakerMessage, ConfigureMessage, InterimMessage, SegmentMessage
 
 log = logging.getLogger(__name__)
 router = APIRouter()
@@ -58,15 +57,18 @@ async def meeting_socket(socket: WebSocket, meeting_id: str) -> None:
     await socket.send_json(snapshot(session))
     try:
         while True:
-            await _handle(session, connection, await socket.receive_json(), c.limits.segments)
+            await _handle(session, connection, await socket.receive_json(), c)
     except WebSocketDisconnect:
         pass
     finally:
         c.hub.remove(meeting_id, connection)
+        if session.speakers.is_recorder(connection):
+            # 녹음 기기가 끊기면 다른 화면에 남은 확정 전 글자를 지운다
+            await c.interim.clear(session)
         await session.stop_recording(connection)
 
 
-async def _handle(session: MeetingSession, connection: Connection, message: dict, segment_limit: RateLimiter) -> None:
+async def _handle(session: MeetingSession, connection: Connection, message: dict, c: Container) -> None:
     socket = connection.socket
     me = connection.participant_id
     kind = message.get("type")
@@ -79,7 +81,7 @@ async def _handle(session: MeetingSession, connection: Connection, message: dict
             if not body.text.strip():
                 return
             # 한도를 넘어도 말한 내용은 버리지 않는다. 화면에는 보내고 번역·맥락 같은 AI 작업만 건너뛴다
-            run_ai = segment_limit.hit(me or "recorder") is None
+            run_ai = c.limits.segments.hit(me or "recorder") is None
             if not run_ai:
                 log.warning("발화 사용량 제한 (%s): AI 처리를 건너뜀", me)
             segment = await session.add_segment(
@@ -93,6 +95,11 @@ async def _handle(session: MeetingSession, connection: Connection, message: dict
             await socket.send_json(
                 {"type": "segment.saved", "clientSegmentId": body.client_segment_id, "segmentId": segment.id}
             )
+        elif kind == "segment.interim":
+            # 녹음 기기만 보낸다. 다른 기기가 보내면 조용히 버린다(실험 기능이라 오류로 알리지 않는다)
+            if session.speakers.is_recorder(connection):
+                body = InterimMessage.model_validate(message)
+                await c.interim.update(session, connection, body.text, normalize(body.language))
         elif kind == "recording.start":
             if not me:
                 await _error(socket, "NOT_PARTICIPANT", "참여자로 들어와야 녹음할 수 있어요.")

@@ -78,6 +78,18 @@ eval/                       # CER, 발화 길이 분포
 | `CONTEXT_BATCH_SIZE` / `CONTEXT_MAX_WAIT_S` | 3 / 10 | 맥락 갱신 단위 |
 | `OUTCOME_BATCH_SIZE` / `OUTCOME_MAX_WAIT_S` | 6 / 30 | 회의 결과 갱신 단위 |
 | `OPINION_IMPORTANCE_THRESHOLD` | 60 | 의견 추천을 띄울 중요도 |
+| `INTERIM_TRANSLATION_ENABLED` | false | 확정 전 글자도 번역해 다른 화면에 보여 준다(아래) |
+
+### 임시 번역 실험 (`INTERIM_TRANSLATION_ENABLED`)
+
+Soniox 는 이어 말하는 동안 글자를 4~5초 늦게 확정해서, 확정된 줄만 번역하면 외국인 참여자가 그만큼 늦게 따라간다.
+켜면 녹음 기기가 확정 전 글자를 0.7초마다 보내고(`segment.interim`), 서버가 다른 화면에 바로 전하면서
+방마다 한 번에 하나씩 최신 글자를 번역해 붙인다(`transcript.interim`). 줄이 확정되면 임시 줄을 지우고 정식 번역이 덮어쓴다.
+
+- 저장하지 않는다. 늦게 온 번역이 이미 확정된 글자의 것이면 버린다.
+- 녹음 기기 화면에는 보이지 않는다(자기 확정 전 글자를 이미 보여 준다). 다른 탭·기기에서 본다.
+- 이어 말하는 동안 번역 호출이 1초에 한 번꼴로 는다. 한도는 `RATE_INTERIM_TRANSLATIONS_PER_MIN`(기본 90). 넘으면 원문만 전한다.
+- 끄면(기본) 서버가 `segment.interim` 을 무시해서 지금과 같다. 바꾼 뒤에는 서버를 다시 시작한다.
 | `OPINION_COOLDOWN_S` | 30 | 사람당 추천 최소 간격 |
 | `OPINION_EXTRA_ENGLISH` | false | 추천 문장을 영어로도 만들기 |
 

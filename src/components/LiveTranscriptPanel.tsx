@@ -160,8 +160,11 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
                 // 확정된 줄이 아직 없는 카드: 말하는 중인 글자만 있다(새 화자이거나 첫 발화)
                 if (!entry) return renderInterimCard(turn.interim!);
 
-                const translating = turn.entries.some(needsTranslation);
                 const interim = turn.interim;
+                // 서버 임시 번역(실험)이 켜져 있으면 확정 전 글자의 번역도 카드 끝에 옅게 붙는다
+                const interimTranslation =
+                  interim && needsTranslation(interim) ? interim.translations[speechTargetLanguage] : undefined;
+                const translating = turn.entries.some(needsTranslation) || Boolean(interimTranslation);
 
                 return (
                   <article key={turn.id} className="flex flex-col items-start">
@@ -248,6 +251,7 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
                             </React.Fragment>
                           );
                         })}
+                        {interimTranslation && <span className="text-gray-300"> {interimTranslation}</span>}
                       </p>
                     )}
                   </article>

@@ -102,6 +102,8 @@ export interface TranscriptInterimEvent {
   /** Optional in-progress translation for the active target language */
   targetLanguage?: LanguageCode;
   translatedText?: string;
+  // 서버 임시 번역(실험): 방에 있는 언어별 번역. 빈 text 는 임시 줄을 지우라는 뜻이다
+  translations?: Partial<Record<LanguageCode, string>>;
   badgeVariant?: 'neutral' | 'lavender';
   source?: 'stream' | 'demo';
 }
