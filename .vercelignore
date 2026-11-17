@@ -1,0 +1,7 @@
+# 프론트 빌드에 필요 없는 것. 로컬 .env 는 올리지 않는다(배포 값은 Vercel 환경변수로)
+.env*
+api/
+supabase/
+scripts/
+node_modules/
+dist/
