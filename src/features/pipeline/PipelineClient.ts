@@ -30,6 +30,8 @@ export interface PipelineConnection {
   stopRecording(): void;
   /** 녹음 기기: 분절기가 확정한 발화를 보낸다 */
   sendSegment(segment: SegmentDraft, clientSegmentId?: string): void;
+  /** 녹음 기기: 아직 확정 전인 글자. 서버 실험 설정이 켜져 있으면 다른 화면에 임시 번역과 함께 보인다 */
+  sendInterim(text: string, language?: string): void;
   /** '화자 2 = 민지'. participantId 가 null 이면 지정 해제 */
   assignSpeaker(speakerKey: string, participantId: string | null): void;
   /** 녹음 기기: 회의 주제·용어를 알려 보정 정확도를 높인다 */
@@ -40,11 +42,12 @@ export interface PipelineConnection {
 export interface ConnectHandlers {
   onOpen?: () => void;
   onEvent: (event: IncomingTranscriptEvent) => void;
-  onClose?: () => void;
+  // 서버가 닫은 이유 코드. 4403 이면 접속 코드가 없거나 틀렸다(다시 붙지 않는다)
+  onClose?: (code?: number) => void;
 }
 
 export interface PipelineClient {
-  getSonioxKey(): Promise<string>;
+  getSonioxKey(participantId?: string): Promise<string>;
   connect(meetingId: string, participant: PipelineParticipant, handlers: ConnectHandlers): PipelineConnection;
   sendMessage(
     meetingId: string,

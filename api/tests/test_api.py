@@ -49,7 +49,13 @@ def start_recording(ws) -> None:
 
 def test_health(client):
     body = client.get("/api/health").json()
-    assert body == {"ok": True, "aiProvider": "fake", "store": "memory", "sonioxConfigured": False}
+    assert body == {
+        "ok": True,
+        "aiProvider": "fake",
+        "store": "memory",
+        "sonioxConfigured": False,
+        "accessCodeRequired": False,
+    }
 
 
 def test_soniox_key_without_config_is_502(client):

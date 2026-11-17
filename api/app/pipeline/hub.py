@@ -66,6 +66,17 @@ class ConnectionHub:
     def remove(self, meeting_id: str, connection: Connection) -> None:
         self._connections[meeting_id].discard(connection)
 
+    async def broadcast(self, meeting_id: str, message: dict, exclude: Connection | None = None) -> None:
+        """이벤트가 아닌 메시지(확정 전 글자 등)를 방 전체에 보낸다. exclude 연결은 뺀다."""
+        for connection in list(self._connections[meeting_id]):
+            if connection is exclude:
+                continue
+            try:
+                await connection.socket.send_json(message)
+            except Exception:
+                log.info("끊긴 연결 정리 (%s)", meeting_id)
+                self.remove(meeting_id, connection)
+
     async def send(self, session: MeetingSession, event: Event) -> None:
         recipient = event.suggestion.participant_id if isinstance(event, OpinionSuggested) else None
         for message in to_wire(session, event):

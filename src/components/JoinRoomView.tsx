@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { SUPPORTED_LANGUAGES } from '../data/mockMeetingData';
+import { readInvite } from '../features/pipeline/inviteLink';
 import { useI18n } from '../i18n/I18nContext';
 import type { LanguageCode, RoomSession } from '../types/meeting';
 import { LavenderBackdrop } from './LavenderBackdrop';
@@ -20,7 +21,8 @@ export const JoinRoomView: React.FC<JoinRoomViewProps> = ({
   onStartMeeting,
 }) => {
   const { uiLanguage, setUiLanguage, t } = useI18n();
-  const [roomCode, setRoomCode] = useState('');
+  // 초대 링크(?room=)로 왔으면 방 코드를 채워 둔다
+  const [roomCode, setRoomCode] = useState(() => readInvite().room ?? '');
   const [userName, setUserName] = useState('');
   const [userRole, setUserRole] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>(

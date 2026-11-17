@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Play, Square } from 'lucide-react';
 import { speakerOf, type Roster } from '../features/roster/roster';
+import { groupTurns } from '../features/transcript/groupTurns';
 import { useI18n } from '../i18n/I18nContext';
 import { SpeakerAssignMenu } from './SpeakerAssignMenu';
 import type { LanguageCode, TranscriptEntry } from '../types/meeting';
@@ -21,6 +22,10 @@ interface LiveTranscriptPanelProps {
 }
 
 const MEETING_LANGUAGE: LanguageCode = 'ko';
+// 맨 아래에서 이 정도 안쪽이면 '맨 아래를 보고 있다'로 본다
+const STICK_TO_BOTTOM_PX = 80;
+// 번역이 오기 전 자리. 1~2초 뒤 번역으로 바뀐다
+const PENDING_TRANSLATION = '…';
 
 export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
   entries,
@@ -43,16 +48,21 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
     (entry) => entry.source !== 'signal' && !(entry.source === 'opinion' && entry.isAnonymous)
   );
 
-  // Auto-scroll ONLY inside the transcript panel whenever finalized or interim segments update
-  useEffect(() => {
+  // 같은 사람이 이어 말한 줄은 한 카드로 묶는다(groupTurns 참고). 줄이 확정돼도 글자가 튀지 않는다
+  const turns = groupTurns(visibleEntries, interimSegment);
+
+  // 맨 아래를 보고 있을 때만 따라 내려간다. 위로 올려 앞 내용을 읽는 중이면 끌어내리지 않는다
+  const stickToBottomRef = useRef(true);
+  const handleScroll = () => {
     const container = scrollRef.current;
     if (!container) return;
-    container.scrollTop = container.scrollHeight;
-  }, [
-    visibleEntries.length,
-    interimSegment?.originalText,
-    interimSegment?.translations[speechTargetLanguage],
-  ]);
+    stickToBottomRef.current =
+      container.scrollHeight - container.scrollTop - container.clientHeight < STICK_TO_BOTTOM_PX;
+  };
+  useLayoutEffect(() => {
+    const container = scrollRef.current;
+    if (container && stickToBottomRef.current) container.scrollTop = container.scrollHeight;
+  });
 
   const isStreamActive =
     connectionState === 'connecting' || connectionState === 'listening';
@@ -62,8 +72,37 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
     (entry.originalLanguage === 'auto' ? MEETING_LANGUAGE : entry.originalLanguage) !==
     speechTargetLanguage;
 
-  const speechTargetLangLabel =
-    t.common.languages[speechTargetLanguage] ?? t.common.languages.en;
+  // 이어 붙일 카드가 없을 때(첫 발화, 오래 쉰 뒤, 앞 카드가 꽉 참) 말하는 중인 글자만 담는 카드
+  const renderInterimCard = (interim: TranscriptEntry) => (
+    <article
+      key={`interim-${interim.id}`}
+      aria-live="polite"
+      className="rounded-3 border border-dashed border-primary-200 bg-gray-20 px-4 py-4 flex flex-col items-start"
+    >
+      <div className="flex items-center gap-2 flex-wrap">
+        {interim.speakerName && (
+          <div
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-1 body-02 text-gray-800 tabular-nums ${
+              interim.badgeVariant === 'lavender' ? 'bg-primary-300' : 'bg-gray-200'
+            }`}
+          >
+            <span>{interim.speakerName}</span>
+            <span>{interim.timestamp}</span>
+          </div>
+        )}
+        <span className="body-05 text-primary-500">{t.stream.interimBadge}</span>
+        {interim.source === 'demo' && (
+          <span className="label-01 text-gray-500">· {t.stream.demoBadge}</span>
+        )}
+      </div>
+
+      <p className="mt-2.5 body-01 text-gray-800">{interim.originalText}</p>
+
+      {needsTranslation(interim) && interim.translations[speechTargetLanguage] && (
+        <p className="mt-0.5 body-03 text-gray-400">{interim.translations[speechTargetLanguage]}</p>
+      )}
+    </article>
+  );
 
   const handleSendChat = (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,17 +149,25 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
         {/* Scrollable Transcript Feed */}
         <div
           ref={scrollRef}
+          onScroll={handleScroll}
           className="flex-1 min-h-0 overflow-y-auto loop-scroll px-5 sm:px-6 py-5 flex flex-col gap-5"
         >
           {/* Transcript Feed: Finalized Segments + In-Progress Interim Segment */}
           {visibleEntries.length > 0 || interimSegment ? (
             <div className="flex flex-col gap-6">
-              {visibleEntries.map((entry) => {
-                const showTranslation = needsTranslation(entry);
-                const translatedLine = entry.translations[speechTargetLanguage];
+              {turns.map((turn) => {
+                const entry = turn.entries[0];
+                // 확정된 줄이 아직 없는 카드: 말하는 중인 글자만 있다(새 화자이거나 첫 발화)
+                if (!entry) return renderInterimCard(turn.interim!);
+
+                const interim = turn.interim;
+                // 서버 임시 번역(실험)이 켜져 있으면 확정 전 글자의 번역도 카드 끝에 옅게 붙는다
+                const interimTranslation =
+                  interim && needsTranslation(interim) ? interim.translations[speechTargetLanguage] : undefined;
+                const translating = turn.entries.some(needsTranslation) || Boolean(interimTranslation);
 
                 return (
-                  <article key={entry.id} className="flex flex-col items-start">
+                  <article key={turn.id} className="flex flex-col items-start">
                     <div className="flex items-center gap-2 flex-wrap">
                       {entry.speakerKey && !entry.isAnonymous ? (
                         <SpeakerAssignMenu
@@ -164,69 +211,52 @@ export const LiveTranscriptPanel: React.FC<LiveTranscriptPanelProps> = ({
                           {t.chat.badge}
                         </span>
                       )}
+                      {interim && (
+                        <span className="body-05 text-primary-500">
+                          {t.stream.interimBadge}
+                        </span>
+                      )}
                     </div>
 
-                    <p className="mt-3 body-01 text-gray-800">
-                      {entry.originalText}
+                    {/* 원문은 한 문단으로 잇는다. 말하는 중인 글자는 끝에 옅게 붙어 있다가 확정되면 진해진다 */}
+                    <p className="mt-3 body-01 text-gray-800" aria-live={interim ? 'polite' : undefined}>
+                      {/* 새로 확정된 문장은 처음 그려질 때 잠깐 칠해진다(index.css transcript-arrive) */}
+                      {turn.entries.map((e, i) => (
+                        <React.Fragment key={e.id}>
+                          {i > 0 && ' '}
+                          <span className="transcript-arrive">{e.originalText}</span>
+                        </React.Fragment>
+                      ))}
+                      {interim && <span className="text-gray-400"> {interim.originalText}</span>}
                     </p>
 
-                    {showTranslation &&
-                      (translatedLine ? (
-                        <p className="mt-0.5 body-03 text-gray-400">
-                          {translatedLine}
-                        </p>
-                      ) : (
-                        <p className="mt-0.5 body-04 text-gray-400">
-                          {t.transcript.speechRecognizedPendingTranslation(
-                            speechTargetLangLabel
-                          )}
-                        </p>
-                      ))}
+                    {/* 번역도 한 문단으로 잇는다. 아직 안 온 줄은 '…' 로 자리만 둔다 */}
+                    {translating && (
+                      <p className="mt-0.5 body-03 text-gray-400">
+                        {turn.entries.filter(needsTranslation).map((e, i) => {
+                          const translated = e.translations[speechTargetLanguage];
+                          return (
+                            <React.Fragment key={e.id}>
+                              {i > 0 && ' '}
+                              {/* 번역이 오면 key 가 바뀌어 새로 그려진다. 그때 서서히 나타나며 잠깐 칠해진다 */}
+                              {translated ? (
+                                <span key="done" className="transcript-translation-arrive">
+                                  {translated}
+                                </span>
+                              ) : (
+                                <span key="pending" className="text-gray-300">
+                                  {PENDING_TRANSLATION}
+                                </span>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                        {interimTranslation && <span className="text-gray-300"> {interimTranslation}</span>}
+                      </p>
+                    )}
                   </article>
                 );
               })}
-
-              {/* Interim (In-Progress) Live Transcript Segment */}
-              {interimSegment && (
-                <article
-                  aria-live="polite"
-                  className="rounded-3 border border-dashed border-primary-200 bg-gray-20 px-4 py-4 flex flex-col items-start"
-                >
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <div
-                      className={`inline-flex items-center gap-2 rounded-full px-4 py-1 body-02 text-gray-800 tabular-nums ${
-                        interimSegment.badgeVariant === 'lavender'
-                          ? 'bg-primary-300'
-                          : 'bg-gray-200'
-                      }`}
-                    >
-                      <span>{interimSegment.speakerName}</span>
-                      <span>{interimSegment.timestamp}</span>
-                    </div>
-
-                    <span className="body-05 text-primary-500">
-                      {t.stream.interimBadge}
-                    </span>
-
-                    {interimSegment.source === 'demo' && (
-                      <span className="label-01 text-gray-500">
-                        · {t.stream.demoBadge}
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="mt-2.5 body-01 text-gray-800">
-                    {interimSegment.originalText}
-                  </p>
-
-                  {needsTranslation(interimSegment) && (
-                    <p className="mt-0.5 body-03 text-gray-400">
-                      {interimSegment.translations[speechTargetLanguage] ??
-                        t.stream.awaitingTranslation}
-                    </p>
-                  )}
-                </article>
-              )}
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-4 py-8">

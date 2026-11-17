@@ -1,4 +1,5 @@
 import { FastApiPipelineClient } from './FastApiPipelineClient';
+import { currentAccessCode } from './inviteLink';
 import type { PipelineClient } from './PipelineClient';
 
 const DEFAULT_PIPELINE_URL = 'http://localhost:8000';
@@ -9,5 +10,5 @@ const DEFAULT_PIPELINE_URL = 'http://localhost:8000';
  */
 export function createPipelineClient(): PipelineClient {
   const url = (import.meta.env.VITE_PIPELINE_URL as string | undefined) ?? DEFAULT_PIPELINE_URL;
-  return new FastApiPipelineClient(url);
+  return new FastApiPipelineClient(url, { accessCode: currentAccessCode });
 }

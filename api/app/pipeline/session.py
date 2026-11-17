@@ -40,10 +40,10 @@ class MeetingSession:
         await self.store.upsert_participant(self.meeting_id, participant)
         await self.bus.publish(ParticipantJoined(self.meeting_id, participant))
 
-    async def add_segment(self, draft: SegmentDraft) -> Segment:
+    async def add_segment(self, draft: SegmentDraft, run_ai: bool = True) -> Segment:
         segment = await self.store.append_segment(self.meeting_id, draft)
         self.window.append(segment)
-        await self.bus.publish(SegmentFinalized(self.meeting_id, segment))
+        await self.bus.publish(SegmentFinalized(self.meeting_id, segment, run_ai))
         return segment
 
     async def start_recording(self, participant_id: str, owner: object) -> bool:

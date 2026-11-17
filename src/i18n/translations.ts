@@ -51,7 +51,6 @@ export interface TranslationDictionary {
     unableToTranscribe: string;
     emptyStateTitle: string;
     emptyStateBody: string;
-    speechRecognizedPendingTranslation: (targetLangLabel: string) => string;
   };
   stream: {
     demoButton: string;
@@ -67,7 +66,6 @@ export interface TranslationDictionary {
     disconnectedHint: string;
     interimBadge: string;
     demoBadge: string;
-    awaitingTranslation: string;
     noBackendConfigured: string;
   };
   participants: {
@@ -148,6 +146,10 @@ export interface TranslationDictionary {
     recorderBusy: (name: string) => string;
     recordingBy: (name: string) => string;
     sendFailed: string;
+    // 사용량 한도에 걸렸을 때. 몇 초 뒤 다시 되는지 알려 준다
+    slowDown: (seconds: number) => string;
+    // 초대 링크 없이 들어왔거나 접속 코드가 바뀌었을 때
+    accessDenied: string;
   };
   meetingEnd: {
     backToMeeting: string;
@@ -244,8 +246,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       emptyStateTitle: 'No live transcript yet',
       emptyStateBody:
         'Click Start Recording, speak in Korean, English, Japanese, or Burmese, click Stop Recording, and then click Transcribe Recording to run speech-to-text.',
-      speechRecognizedPendingTranslation: (targetLangLabel) =>
-        `Original text recorded · Translation to ${targetLangLabel} awaits live backend`,
     },
     stream: {
       demoButton: 'Demo Stream',
@@ -263,7 +263,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
         'Ready for backend stream · Use Demo Stream to preview real-time captions or Start Recording for local audio',
       interimBadge: 'Speaking...',
       demoBadge: 'Demo',
-      awaitingTranslation: 'Translating...',
       noBackendConfigured:
         'No live WebSocket backend URL is connected yet. Use Demo Stream to preview streaming UI or Start Recording for local transcription.',
     },
@@ -345,6 +344,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       recorderBusy: (name) => `${name || 'Someone else'} is already recording`,
       recordingBy: (name) => `${name} is recording`,
       sendFailed: 'Could not send. Please try again.',
+      slowDown: (seconds) => `Too many requests. Please try again in ${seconds}s.`,
+      accessDenied: 'Please join with the invite link.',
     },
     meetingEnd: {
       backToMeeting: 'Back to Meeting Page',
@@ -442,8 +443,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       emptyStateTitle: '아직 실시간 전사 내역이 없습니다',
       emptyStateBody:
         '녹음 시작을 눌러 한국어, 영어, 일본어 또는 버마어로 말한 뒤 녹음 중지를 누르고, 녹음 텍스트 변환을 클릭하세요.',
-      speechRecognizedPendingTranslation: (targetLangLabel) =>
-        `원문 기록됨 · ${targetLangLabel} 번역은 실시간 백엔드 연결 후 표시됩니다`,
     },
     stream: {
       demoButton: '데모 스트림',
@@ -461,7 +460,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
         '백엔드 스트림 대기 중 · 데모 스트림으로 실시간 자막을 테스트하거나 녹음 시작을 사용하세요',
       interimBadge: '말하는 중...',
       demoBadge: '데모',
-      awaitingTranslation: '번역 중...',
       noBackendConfigured:
         '실시간 WebSocket 백엔드가 아직 연결되지 않았습니다. 데모 스트림 또는 로컬 녹음을 이용해 주세요.',
     },
@@ -543,6 +541,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       recorderBusy: (name) => `${name || '다른 참여자'}님이 이미 녹음하고 있어요`,
       recordingBy: (name) => `${name} 녹음 중`,
       sendFailed: '보내지 못했어요. 다시 시도해 주세요.',
+      slowDown: (seconds) => `요청이 너무 많아요. ${seconds}초 뒤에 다시 시도해 주세요.`,
+      accessDenied: '초대 링크로 들어와 주세요.',
     },
     meetingEnd: {
       backToMeeting: '회의 페이지로 돌아가기',
@@ -639,8 +639,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       emptyStateTitle: '文字起こしはまだありません',
       emptyStateBody:
         '「録音開始」を押して韓国語・英語・日本語・ビルマ語で話し、「録音停止」の後に「録音を文字起こし」をクリックしてください。',
-      speechRecognizedPendingTranslation: (targetLangLabel) =>
-        `原文を記録しました · ${targetLangLabel}への翻訳はバックエンド接続後に表示されます`,
     },
     stream: {
       demoButton: 'デモ配信',
@@ -658,7 +656,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
         'バックエンド接続待機中 · デモ配信でリアルタイム字幕を確認するか録音を開始してください',
       interimBadge: '発話中...',
       demoBadge: 'デモ',
-      awaitingTranslation: '翻訳中...',
       noBackendConfigured:
         'ライブWebSocketバックエンドが未接続です。デモ配信またはローカル録音をご利用ください。',
     },
@@ -740,6 +737,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       recorderBusy: (name) => `${name || '他の参加者'}さんがすでに録音しています`,
       recordingBy: (name) => `${name}が録音中`,
       sendFailed: '送信できませんでした。もう一度お試しください。',
+      slowDown: (seconds) => `リクエストが多すぎます。${seconds}秒後にもう一度お試しください。`,
+      accessDenied: '招待リンクから参加してください。',
     },
     meetingEnd: {
       backToMeeting: '会議ページに戻る',
@@ -836,8 +835,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       emptyStateTitle: 'တိုက်ရိုက် စာသားမှတ်တမ်း မရှိသေးပါ',
       emptyStateBody:
         'အသံဖမ်းရန် ကိုနှိပ်ပြီး ကိုရီးယား၊ အင်္ဂလိပ်၊ ဂျပန် သို့မဟုတ် မြန်မာဘာသာဖြင့် ပြောဆိုပါ။ ထို့နောက် အသံဖမ်း ရပ်ရန် နှင့် စာသားသို့ ပြောင်းရန် ကိုနှိပ်ပါ။',
-      speechRecognizedPendingTranslation: (targetLangLabel) =>
-        `မူရင်းစာသား မှတ်တမ်းတင်ပြီး · ${targetLangLabel} ဘာသာပြန်မှုကို Backend ချိတ်ဆက်ပြီးနောက် ပြသပါမည်`,
     },
     stream: {
       demoButton: 'Demo စမ်းသပ်မှု',
@@ -855,7 +852,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
         'Backend စောင့်ဆိုင်းနေသည် · တိုက်ရိုက်စာတန်းစမ်းရန် Demo ကိုနှိပ်ပါ သို့မဟုတ် အသံဖမ်းပါ',
       interimBadge: 'ပြောနေသည်...',
       demoBadge: 'Demo',
-      awaitingTranslation: 'ဘာသာပြန်နေသည်...',
       noBackendConfigured:
         'တိုက်ရိုက် WebSocket Backend မချိတ်ဆက်ရသေးပါ။ Demo စမ်းသပ်မှု သို့မဟုတ် အသံဖမ်းစနစ်ကို အသုံးပြုပါ။',
     },
@@ -937,6 +933,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       recorderBusy: (name) => `${name || 'အခြားပါဝင်သူ'} က အသံဖမ်းနေပြီ ဖြစ်သည်`,
       recordingBy: (name) => `${name} အသံဖမ်းနေသည်`,
       sendFailed: 'ပို့၍ မရပါ။ ထပ်စမ်းကြည့်ပါ။',
+      slowDown: (seconds) => `တောင်းဆိုမှု များလွန်းနေပါသည်။ ${seconds} စက္ကန့်အကြာတွင် ထပ်စမ်းကြည့်ပါ။`,
+      accessDenied: 'ဖိတ်ကြားလင့်ခ်ဖြင့် ဝင်ရောက်ပါ။',
     },
     meetingEnd: {
       backToMeeting: 'အစည်းအဝေး စာမျက်နှာသို့ ပြန်သွားရန်',
@@ -1033,8 +1031,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       emptyStateTitle: 'Расшифровки пока нет',
       emptyStateBody:
         'Нажмите «Начать запись», произнесите фразу на корейском, английском, японском или бирманском, нажмите «Остановить запись», а затем «Расшифровать запись».',
-      speechRecognizedPendingTranslation: (targetLangLabel) =>
-        `Текст записан · Перевод на ${targetLangLabel} появится после подключения бэкенда`,
     },
     stream: {
       demoButton: 'Демо-поток',
@@ -1052,7 +1048,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
         'Ожидание бэкенда · Запустите Демо-поток для теста или используйте запись микрофона',
       interimBadge: 'Говорит...',
       demoBadge: 'Демо',
-      awaitingTranslation: 'Перевод...',
       noBackendConfigured:
         'Сервер WebSocket пока не подключён. Используйте Демо-поток или локальную запись.',
     },
@@ -1134,6 +1129,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       recorderBusy: (name) => `${name || 'Другой участник'} уже ведёт запись`,
       recordingBy: (name) => `Запись: ${name}`,
       sendFailed: 'Не удалось отправить. Попробуйте ещё раз.',
+      slowDown: (seconds) => `Слишком много запросов. Повторите через ${seconds} с.`,
+      accessDenied: 'Войдите по ссылке-приглашению.',
     },
     meetingEnd: {
       backToMeeting: 'Назад ко встрече',
@@ -1231,8 +1228,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       emptyStateTitle: 'Aún no hay transcripción en vivo',
       emptyStateBody:
         'Haz clic en Iniciar grabación, habla en coreano, inglés, japonés o birmano, haz clic en Detener grabación y luego en Transcribir grabación.',
-      speechRecognizedPendingTranslation: (targetLangLabel) =>
-        `Texto original registrado · La traducción al ${targetLangLabel} espera conexión al backend`,
     },
     stream: {
       demoButton: 'Modo Demo',
@@ -1250,7 +1245,6 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
         'Listo para el backend · Usa Modo Demo para probar subtítulos en vivo o Inicia grabación',
       interimBadge: 'Hablando...',
       demoBadge: 'Demo',
-      awaitingTranslation: 'Traduciendo...',
       noBackendConfigured:
         'Aún no hay un servidor WebSocket conectado. Usa Modo Demo o la grabación local.',
     },
@@ -1332,6 +1326,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
       recorderBusy: (name) => `${name || 'Otra persona'} ya está grabando`,
       recordingBy: (name) => `Graba ${name}`,
       sendFailed: 'No se pudo enviar. Inténtalo de nuevo.',
+      slowDown: (seconds) => `Demasiadas solicitudes. Inténtalo de nuevo en ${seconds} s.`,
+      accessDenied: 'Únete con el enlace de invitación.',
     },
     meetingEnd: {
       backToMeeting: 'Volver a la reunión',

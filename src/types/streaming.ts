@@ -102,6 +102,8 @@ export interface TranscriptInterimEvent {
   /** Optional in-progress translation for the active target language */
   targetLanguage?: LanguageCode;
   translatedText?: string;
+  // 서버 임시 번역(실험): 방에 있는 언어별 번역. 빈 text 는 임시 줄을 지우라는 뜻이다
+  translations?: Partial<Record<LanguageCode, string>>;
   badgeVariant?: 'neutral' | 'lavender';
   source?: 'stream' | 'demo';
 }
@@ -128,6 +130,8 @@ export interface TranscriptFinalEvent {
   speakerKey?: string | null;
   speakerNumber?: string | null;
   participantId?: string | null;
+  // 서버가 발화를 저장한 시각(ISO). 화면에서 이어 말한 줄을 한 카드로 묶을 때 쓴다
+  createdAt?: string;
 }
 
 /** 서버가 STT 오인식을 고친 뒤 보내는 보정본. 번역은 보정본 기준으로 다시 온다 */

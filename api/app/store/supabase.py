@@ -1,4 +1,4 @@
-"""Supabase(PostgREST) 저장소. service role 키로 쓰고, 화면에는 Realtime 으로 퍼진다.
+"""Supabase(PostgREST) 저장소. 서버 키(secret 또는 예전 service role)로 쓰고, 화면에는 Realtime 으로 퍼진다.
 
 테이블 구조는 supabase/migrations 를 따른다.
 """
@@ -22,11 +22,22 @@ from ..domain.models import (
 UPSERT = {"Prefer": "resolution=merge-duplicates,return=minimal"}
 
 
+def server_key_headers(key: str) -> dict[str, str]:
+    """서버 키를 보내는 헤더.
+
+    새 secret key(sb_secret_…)는 JWT 가 아니라서 apikey 헤더로만 보낸다. Authorization: Bearer 로 보내면
+    Supabase 가 JWT 로 읽으려다 'Invalid JWT' 로 거절한다. 예전 service_role 키(JWT, eyJ…)는 둘 다 보낸다.
+    """
+    if key.startswith("sb_"):
+        return {"apikey": key}
+    return {"apikey": key, "Authorization": f"Bearer {key}"}
+
+
 class SupabaseStore:
     def __init__(self, http: httpx.AsyncClient, url: str, service_role_key: str):
         self._http = http
         self._base = f"{url.rstrip('/')}/rest/v1"
-        self._headers = {"apikey": service_role_key, "Authorization": f"Bearer {service_role_key}"}
+        self._headers = server_key_headers(service_role_key)
 
     async def _request(self, method: str, path: str, **kwargs: Any) -> Any:
         headers = {**self._headers, **kwargs.pop("headers", {})}

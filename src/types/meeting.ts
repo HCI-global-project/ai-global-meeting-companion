@@ -34,6 +34,8 @@ export interface TranscriptEntry {
   speakerNumber?: string | null;
   // 서버가 아는 말한 사람. 채팅이거나 화자가 지정됐을 때 있다
   participantId?: string | null;
+  // 서버가 저장한 시각(ISO). 이어 말한 줄을 한 카드로 묶을지 정할 때 쓴다
+  createdAt?: string;
 }
 
 /**

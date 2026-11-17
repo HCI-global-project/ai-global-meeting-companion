@@ -14,4 +14,5 @@ async def health(c: Container = Depends(container)) -> dict:
         "aiProvider": c.settings.ai_provider,
         "store": "memory" if isinstance(c.store, InMemoryStore) else "supabase",
         "sonioxConfigured": c.soniox.configured,
+        "accessCodeRequired": bool(c.settings.access_code),
     }

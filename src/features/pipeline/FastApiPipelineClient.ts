@@ -9,13 +9,20 @@ import type {
 
 type WebSocketFactory = (url: string) => WebSocket;
 
+// 서버(api/app/routes/access.py)와 맞춘 값
+const ACCESS_HEADER = 'X-Access-Code';
+export const ACCESS_DENIED_CLOSE = 4403;
+
 export class PipelineRequestError extends Error {
   readonly status: number;
+  // 사용량 한도에 걸렸을 때(429) 몇 초 뒤 다시 되는지
+  readonly retryAfterSeconds?: number;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, retryAfterSeconds?: number) {
     super(message);
     this.name = 'PipelineRequestError';
     this.status = status;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 
@@ -24,18 +31,30 @@ export class FastApiPipelineClient implements PipelineClient {
   private readonly baseUrl: string;
   private readonly fetchImpl: typeof fetch;
   private readonly openSocket: WebSocketFactory;
+  private readonly accessCode: () => string | null;
 
   constructor(
     baseUrl: string,
-    options: { fetchImpl?: typeof fetch; openSocket?: WebSocketFactory } = {}
+    options: {
+      fetchImpl?: typeof fetch;
+      openSocket?: WebSocketFactory;
+      // 초대 링크로 받은 접속 코드. 서버에 ACCESS_CODE 가 없으면 없어도 된다
+      accessCode?: () => string | null;
+    } = {}
   ) {
     this.baseUrl = baseUrl.replace(/\/$/, '');
     this.fetchImpl = options.fetchImpl ?? ((...args) => fetch(...args));
     this.openSocket = options.openSocket ?? ((url) => new WebSocket(url));
+    this.accessCode = options.accessCode ?? (() => null);
   }
 
-  async getSonioxKey(): Promise<string> {
-    const body = await this.request<{ apiKey: string }>('POST', '/api/soniox/temporary-key');
+  async getSonioxKey(participantId?: string): Promise<string> {
+    // 서버는 참여자별로 키 발급 횟수를 센다
+    const body = await this.request<{ apiKey: string }>(
+      'POST',
+      '/api/soniox/temporary-key',
+      participantId ? { participantId } : undefined
+    );
     return body.apiKey;
   }
 
@@ -47,6 +66,9 @@ export class FastApiPipelineClient implements PipelineClient {
       language: participant.language,
       ...(participant.userId && { userId: participant.userId }),
     });
+    // 브라우저 WebSocket 은 헤더를 못 붙여서 접속 코드를 주소에 넣는다
+    const code = this.accessCode();
+    if (code) query.set('code', code);
     const wsBase = this.baseUrl.replace(/^http/, 'ws');
     const socket = this.openSocket(`${wsBase}/ws/meetings/${encodeURIComponent(meetingId)}?${query}`);
     // 연결이 열리기 전에 보낸 메시지는 열린 뒤에 보낸다
@@ -70,7 +92,7 @@ export class FastApiPipelineClient implements PipelineClient {
     };
     socket.onerror = () =>
       handlers.onEvent({ type: 'error', code: 'WEBSOCKET_ERROR', message: '파이프라인 서버에 연결할 수 없어요.', recoverable: false });
-    socket.onclose = () => handlers.onClose?.();
+    socket.onclose = (event?: CloseEvent) => handlers.onClose?.(event?.code);
 
     return {
       startRecording: () => send({ type: 'recording.start' }),
@@ -84,6 +106,10 @@ export class FastApiPipelineClient implements PipelineClient {
           language: segment.language,
           clientSegmentId,
         }),
+      // 연결이 열리기 전의 확정 전 글자는 금방 낡으니 쌓아 두지 않고 버린다
+      sendInterim: (text, language) => {
+        if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'segment.interim', text, language }));
+      },
       configure: ({ topic = '', terms = [] }) => send({ type: 'session.configure', topic, terms }),
       close: () => socket.close(),
     };
@@ -121,13 +147,24 @@ export class FastApiPipelineClient implements PipelineClient {
   }
 
   private async request<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
+    const headers: Record<string, string> = {};
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    const code = this.accessCode();
+    if (code) headers[ACCESS_HEADER] = code;
     const res = await this.fetchImpl(`${this.baseUrl}${path}`, {
       method,
-      headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+      headers,
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     const payload = (await res.json().catch(() => ({}))) as { detail?: string };
-    if (!res.ok) throw new PipelineRequestError(payload.detail ?? `파이프라인 요청 실패 (${res.status})`, res.status);
+    if (!res.ok) {
+      const retryAfter = Number(res.headers?.get('Retry-After'));
+      throw new PipelineRequestError(
+        payload.detail ?? `파이프라인 요청 실패 (${res.status})`,
+        res.status,
+        retryAfter > 0 ? retryAfter : undefined
+      );
+    }
     return payload as T;
   }
 }
