@@ -99,24 +99,6 @@ export interface OpinionSuggestion {
   createdAt: string;
 }
 
-export interface MeetingNote {
-  id: string;
-  author: string;
-  timestamp: string;
-  content: string;
-  translatedContent?: Partial<Record<LanguageCode, string>>;
-  isDemo?: boolean;
-}
-
-export interface DecisionItem {
-  id: string;
-  title: string;
-  owner: string;
-  dueDate: string;
-  status: 'Confirmed' | 'Pending Review';
-  isDemo?: boolean;
-}
-
 export interface RoomSession {
   // 이 탭의 참여자 id (features/pipeline/participantIdentity)
   participantId: string;

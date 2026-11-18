@@ -153,25 +153,20 @@ export interface TranslationDictionary {
   };
   meetingEnd: {
     backToMeeting: string;
-    notesTitle: string;
-    noNotesTitle: string;
-    noNotesBody: string;
-    addNotePlaceholder: (name: string) => string;
-    addNoteButton: string;
-    noteValidationEmpty: string;
-    translationHistoryTitle: string;
+    summaryTitle: string;
+    summaryHint: string;
+    finalizing: string;
+    decidedTitle: string;
+    actionItemsTitle: string;
+    undecidedTitle: string;
+    owner: (name: string) => string;
+    noOwner: string;
+    emptyGroup: string;
+    noOutcomeTitle: string;
+    noOutcomeBody: string;
+    transcriptTitle: string;
     noHistoryTitle: string;
     noHistoryBody: string;
-    reviewDecisionsTitle: string;
-    noDecisionsTitle: string;
-    noDecisionsBody: string;
-    addDecisionPlaceholder: string;
-    addDecisionButton: string;
-    decisionValidationEmpty: string;
-    loadSampleDemo: string;
-    ownerPrefix: string;
-    statusConfirmed: string;
-    statusPending: string;
   };
 }
 
@@ -349,27 +344,20 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
     },
     meetingEnd: {
       backToMeeting: 'Back to Meeting Page',
-      notesTitle: 'Meeting Notes',
-      noNotesTitle: 'No meeting notes added yet',
-      noNotesBody: 'Capture key takeaways or follow-ups for this meeting below.',
-      addNotePlaceholder: (name) => `Add a shared note as ${name}...`,
-      addNoteButton: 'Add Note',
-      noteValidationEmpty: 'Please enter a note before adding.',
-      translationHistoryTitle: 'Translation History',
-      noHistoryTitle: 'No translated entries recorded yet',
-      noHistoryBody:
-        'Transcribed speech and translation history will appear here.',
-      reviewDecisionsTitle: 'Review Decisions',
-      noDecisionsTitle: 'No decisions recorded yet',
-      noDecisionsBody:
-        'Add action items or decisions from this meeting and click any item to toggle its confirmation status.',
-      addDecisionPlaceholder: 'Add a meeting decision or action item...',
-      addDecisionButton: 'Add Decision',
-      decisionValidationEmpty: 'Please enter a decision title first.',
-      loadSampleDemo: 'Load sample demo',
-      ownerPrefix: 'Owner:',
-      statusConfirmed: 'Confirmed',
-      statusPending: 'Pending Review',
+      summaryTitle: 'Meeting summary',
+      summaryHint: 'AI put this together from the conversation. It may have mistakes, so check it against the transcript.',
+      finalizing: 'Adding the last part of the meeting…',
+      decidedTitle: 'Decided',
+      actionItemsTitle: 'To-dos',
+      undecidedTitle: 'Still open',
+      owner: (name) => `Owner: ${name}`,
+      noOwner: 'No owner yet',
+      emptyGroup: 'Nothing here',
+      noOutcomeTitle: 'Nothing to summarize yet',
+      noOutcomeBody: 'Decisions and to-dos from the meeting will gather here.',
+      transcriptTitle: 'Transcript',
+      noHistoryTitle: 'Nothing was recorded',
+      noHistoryBody: 'Speech and translations from the meeting appear here.',
     },
   },
 
@@ -546,26 +534,20 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
     },
     meetingEnd: {
       backToMeeting: '회의 페이지로 돌아가기',
-      notesTitle: '회의 노트',
-      noNotesTitle: '아직 작성된 회의 노트가 없습니다',
-      noNotesBody: '아래 입력란에 이번 회의의 핵심 내용과 후속 작업을 남겨 보세요.',
-      addNotePlaceholder: (name) => `${name}님으로 공유 노트를 추가하세요...`,
-      addNoteButton: '노트 추가',
-      noteValidationEmpty: '추가할 노트 내용을 입력해 주세요.',
-      translationHistoryTitle: '번역 기록',
-      noHistoryTitle: '아직 기록된 번역 내역이 없습니다',
-      noHistoryBody: '음성 인식 및 번역 기록이 여기에 표시됩니다.',
-      reviewDecisionsTitle: '결정 사항 검토',
-      noDecisionsTitle: '아직 등록된 결정 사항이 없습니다',
-      noDecisionsBody:
-        '이번 회의에서 정해진 결정 사항을 추가하고 클릭해 확정 상태를 전환할 수 있습니다.',
-      addDecisionPlaceholder: '회의 결정 사항 또는 실행 항목 입력...',
-      addDecisionButton: '결정 추가',
-      decisionValidationEmpty: '결정 사항 제목을 입력해 주세요.',
-      loadSampleDemo: '샘플 데모 불러오기',
-      ownerPrefix: '담당:',
-      statusConfirmed: '확정됨',
-      statusPending: '검토 대기',
+      summaryTitle: '회의 정리',
+      summaryHint: 'AI가 대화를 듣고 정리했어요. 틀린 곳이 있을 수 있으니 회의 기록과 함께 확인해 주세요.',
+      finalizing: '마지막 이야기까지 정리하고 있어요…',
+      decidedTitle: '정해진 것',
+      actionItemsTitle: '할 일',
+      undecidedTitle: '아직 정하지 못한 것',
+      owner: (name) => `담당 ${name}`,
+      noOwner: '담당 미정',
+      emptyGroup: '없어요',
+      noOutcomeTitle: '아직 정리할 내용이 없어요',
+      noOutcomeBody: '회의에서 무언가를 정하거나 할 일을 나누면 여기에 모여요.',
+      transcriptTitle: '회의 기록',
+      noHistoryTitle: '기록된 이야기가 없어요',
+      noHistoryBody: '회의 중 말한 내용과 번역이 여기에 보여요.',
     },
   },
 
@@ -742,26 +724,20 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
     },
     meetingEnd: {
       backToMeeting: '会議ページに戻る',
-      notesTitle: '会議ノート',
-      noNotesTitle: 'まだ会議ノートはありません',
-      noNotesBody: 'この会議のメモや次のアクションを下から追加できます。',
-      addNotePlaceholder: (name) => `${name} として共有ノートを追加...`,
-      addNoteButton: 'ノートを追加',
-      noteValidationEmpty: '追加するノートの内容を入力してください。',
-      translationHistoryTitle: '翻訳履歴',
-      noHistoryTitle: '翻訳履歴はまだありません',
-      noHistoryBody: '文字起こしされた発言と翻訳履歴がここに表示されます。',
-      reviewDecisionsTitle: '決定事項の確認',
-      noDecisionsTitle: 'まだ決定事項はありません',
-      noDecisionsBody:
-        'この会議の決定事項を追加し、クリックして確定ステータスを切り替えられます。',
-      addDecisionPlaceholder: '決定事項またはアクション項目を入力...',
-      addDecisionButton: '決定を追加',
-      decisionValidationEmpty: '決定事項のタイトルを入力してください。',
-      loadSampleDemo: 'サンプルデモを読み込む',
-      ownerPrefix: '担当:',
-      statusConfirmed: '確定済み',
-      statusPending: '確認待ち',
+      summaryTitle: '会議のまとめ',
+      summaryHint: 'AIが会話からまとめました。間違いがあるかもしれないので、記録と合わせて確認してください。',
+      finalizing: '最後の話までまとめています…',
+      decidedTitle: '決まったこと',
+      actionItemsTitle: 'やること',
+      undecidedTitle: 'まだ決まっていないこと',
+      owner: (name) => `担当 ${name}`,
+      noOwner: '担当未定',
+      emptyGroup: 'ありません',
+      noOutcomeTitle: 'まだまとめる内容がありません',
+      noOutcomeBody: '会議で決まったことや分担したことがここに集まります。',
+      transcriptTitle: '会議の記録',
+      noHistoryTitle: '記録された発言がありません',
+      noHistoryBody: '会議中の発言と翻訳がここに表示されます。',
     },
   },
 
@@ -938,26 +914,20 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
     },
     meetingEnd: {
       backToMeeting: 'အစည်းအဝေး စာမျက်နှာသို့ ပြန်သွားရန်',
-      notesTitle: 'အစည်းအဝေး မှတ်စုများ',
-      noNotesTitle: 'အစည်းအဝေး မှတ်စု မရှိသေးပါ',
-      noNotesBody: 'အောက်တွင် ဤအစည်းအဝေးအတွက် မှတ်စုများ ထည့်သွင်းနိုင်ပါသည်။',
-      addNotePlaceholder: (name) => `${name} အဖြစ် မျှဝေမှတ်စု ထည့်ပါ...`,
-      addNoteButton: 'မှတ်စု ထည့်ရန်',
-      noteValidationEmpty: 'မှတ်စုစာသားကို ရေးထည့်ပါ။',
-      translationHistoryTitle: 'ဘာသာပြန် မှတ်တမ်း',
-      noHistoryTitle: 'ဘာသာပြန် မှတ်တမ်း မရှိသေးပါ',
-      noHistoryBody: 'စာသားပြောင်းထားသော စကားများနှင့် ဘာသာပြန်မှတ်တမ်း ဤနေရာတွင် ပေါ်လာပါမည်။',
-      reviewDecisionsTitle: 'ဆုံးဖြတ်ချက်များ စစ်ဆေးရန်',
-      noDecisionsTitle: 'ဆုံးဖြတ်ချက်များ မရှိသေးပါ',
-      noDecisionsBody:
-        'ဆုံးဖြတ်ချက်အသစ် ထည့်သွင်းပြီး အတည်ပြုမှု အခြေအနေကို ပြောင်းလဲရန် နှိပ်ပါ။',
-      addDecisionPlaceholder: 'ဆုံးဖြတ်ချက် သို့မဟုတ် လုပ်ဆောင်ရန် အချက်ထည့်ပါ...',
-      addDecisionButton: 'ဆုံးဖြတ်ချက် ထည့်ရန်',
-      decisionValidationEmpty: 'ဆုံးဖြတ်ချက် ခေါင်းစဉ်ကို ရေးထည့်ပါ။',
-      loadSampleDemo: 'နမူနာ Demo ထည့်ရန်',
-      ownerPrefix: 'တာဝန်ခံ:',
-      statusConfirmed: 'အတည်ပြုပြီး',
-      statusPending: 'စစ်ဆေးရန် ကျန်',
+      summaryTitle: 'အစည်းအဝေး အနှစ်ချုပ်',
+      summaryHint: 'AI က စကားပြောဆိုမှုကို နားထောင်ပြီး စုစည်းထားပါသည်။ မှားနိုင်သဖြင့် မှတ်တမ်းနှင့် တိုက်စစ်ပါ။',
+      finalizing: 'နောက်ဆုံးပြောခဲ့သည်များကို စုစည်းနေပါသည်…',
+      decidedTitle: 'ဆုံးဖြတ်ပြီးသည်များ',
+      actionItemsTitle: 'လုပ်ရန်များ',
+      undecidedTitle: 'မဆုံးဖြတ်ရသေးသည်များ',
+      owner: (name) => `တာဝန်ခံ ${name}`,
+      noOwner: 'တာဝန်ခံ မသတ်မှတ်ရသေး',
+      emptyGroup: 'မရှိပါ',
+      noOutcomeTitle: 'စုစည်းစရာ မရှိသေးပါ',
+      noOutcomeBody: 'အစည်းအဝေးတွင် ဆုံးဖြတ်ချက်များနှင့် လုပ်ရန်များ ဤနေရာတွင် စုစည်းပါမည်။',
+      transcriptTitle: 'အစည်းအဝေး မှတ်တမ်း',
+      noHistoryTitle: 'မှတ်တမ်းတင်ထားသည် မရှိပါ',
+      noHistoryBody: 'အစည်းအဝေးအတွင်း ပြောဆိုချက်များနှင့် ဘာသာပြန်များ ဤနေရာတွင် ပေါ်ပါမည်။',
     },
   },
 
@@ -1134,26 +1104,20 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
     },
     meetingEnd: {
       backToMeeting: 'Назад ко встрече',
-      notesTitle: 'Заметки встречи',
-      noNotesTitle: 'Заметок пока нет',
-      noNotesBody: 'Добавьте общие заметки или следующие шаги для этой встречи ниже.',
-      addNotePlaceholder: (name) => `Добавить заметку от имени ${name}...`,
-      addNoteButton: 'Добавить заметку',
-      noteValidationEmpty: 'Введите текст заметки.',
-      translationHistoryTitle: 'История переводов',
-      noHistoryTitle: 'Записей пока нет',
-      noHistoryBody: 'Здесь появится распознанная речь и история переводов.',
-      reviewDecisionsTitle: 'Решения встречи',
-      noDecisionsTitle: 'Решений пока нет',
-      noDecisionsBody:
-        'Добавьте решение по итогам встречи и нажмите на него, чтобы изменить статус.',
-      addDecisionPlaceholder: 'Добавить решение или задачу...',
-      addDecisionButton: 'Добавить решение',
-      decisionValidationEmpty: 'Введите название решения.',
-      loadSampleDemo: 'Загрузить пример',
-      ownerPrefix: 'Ответственный:',
-      statusConfirmed: 'Подтверждено',
-      statusPending: 'На проверке',
+      summaryTitle: 'Итоги встречи',
+      summaryHint: 'ИИ собрал это по ходу разговора. Возможны ошибки — сверьтесь с записью.',
+      finalizing: 'Добавляем последнюю часть встречи…',
+      decidedTitle: 'Решено',
+      actionItemsTitle: 'Задачи',
+      undecidedTitle: 'Пока не решено',
+      owner: (name) => `Ответственный: ${name}`,
+      noOwner: 'Ответственный не назначен',
+      emptyGroup: 'Пусто',
+      noOutcomeTitle: 'Пока нечего подводить',
+      noOutcomeBody: 'Здесь соберутся решения и задачи со встречи.',
+      transcriptTitle: 'Запись встречи',
+      noHistoryTitle: 'Ничего не записано',
+      noHistoryBody: 'Здесь появятся реплики и переводы со встречи.',
     },
   },
 
@@ -1331,27 +1295,20 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
     },
     meetingEnd: {
       backToMeeting: 'Volver a la reunión',
-      notesTitle: 'Notas de la reunión',
-      noNotesTitle: 'Aún no hay notas de la reunión',
-      noNotesBody: 'Agrega acuerdos o notas compartidas de esta reunión abajo.',
-      addNotePlaceholder: (name) => `Agrega una nota compartida como ${name}...`,
-      addNoteButton: 'Agregar nota',
-      noteValidationEmpty: 'Escribe una nota antes de agregarla.',
-      translationHistoryTitle: 'Historial de traducción',
-      noHistoryTitle: 'Aún no hay entradas registradas',
-      noHistoryBody:
-        'El texto reconocido y su historial de traducción aparecerán aquí.',
-      reviewDecisionsTitle: 'Revisar decisiones',
-      noDecisionsTitle: 'Aún no hay decisiones registradas',
-      noDecisionsBody:
-        'Agrega decisiones de esta reunión y haz clic en cualquiera para cambiar su estado.',
-      addDecisionPlaceholder: 'Agregar una decisión o acción...',
-      addDecisionButton: 'Agregar decisión',
-      decisionValidationEmpty: 'Ingresa el título de la decisión.',
-      loadSampleDemo: 'Cargar ejemplo demo',
-      ownerPrefix: 'Responsable:',
-      statusConfirmed: 'Confirmado',
-      statusPending: 'Pendiente de revisión',
+      summaryTitle: 'Resumen de la reunión',
+      summaryHint: 'La IA lo preparó a partir de la conversación. Puede tener errores; compáralo con la transcripción.',
+      finalizing: 'Añadiendo la última parte de la reunión…',
+      decidedTitle: 'Decidido',
+      actionItemsTitle: 'Tareas',
+      undecidedTitle: 'Sin decidir',
+      owner: (name) => `Responsable: ${name}`,
+      noOwner: 'Sin responsable',
+      emptyGroup: 'Nada aquí',
+      noOutcomeTitle: 'Aún no hay nada que resumir',
+      noOutcomeBody: 'Aquí se reunirán las decisiones y tareas de la reunión.',
+      transcriptTitle: 'Transcripción',
+      noHistoryTitle: 'No se grabó nada',
+      noHistoryBody: 'Aquí aparecen lo dicho en la reunión y sus traducciones.',
     },
   },
 };

@@ -115,6 +115,26 @@ def test_state_returns_recent_segments_for_late_joiners(client):
     assert [s["text"] for s in state["segments"]] == ["첫 발화"]
 
 
+def test_finalize_outcome_includes_the_last_waiting_segment(store):
+    # 결과를 1분씩 모으게 해 두고, 마무리 요청이 기다리지 않고 마지막 발화까지 반영하는지 본다
+    app = create_app(make_settings(outcome_batch_size=10, outcome_max_wait_s=60), llm=FakeLlmClient(), store=store)
+    with TestClient(app) as client:
+        with client.websocket_connect(f"{WS}?participantId=p-ko&name=민지&language=ko") as ws:
+            joined(ws)
+            start_recording(ws)
+            ws.send_json({"type": "segment.final", "text": "발표는 금요일에 하기로 했어요", "language": "ko"})
+            receive_until(ws, "segment.saved")
+        assert client.get("/api/meetings/room-1/state").json()["outcome"] is None
+
+        res = client.post("/api/meetings/room-1/outcome/finalize")
+        assert res.status_code == 200
+        assert [i["text"] for i in res.json()["outcome"]["decided"]] == ["발표는 금요일에 하기로 했어요"]
+
+
+def test_finalize_outcome_without_speech_returns_nothing(client):
+    assert client.post("/api/meetings/room-1/outcome/finalize").json() == {"outcome": None}
+
+
 def test_invalid_socket_message_is_reported(client):
     with client.websocket_connect(WS) as ws:
         joined(ws)

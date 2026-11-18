@@ -60,4 +60,6 @@ export interface PipelineClient {
     note: { author: string; content: string; language?: LanguageCode }
   ): Promise<{ id: string; translatedContent: Partial<Record<LanguageCode, string>> }>;
   fetchState(meetingId: string): Promise<MeetingState>;
+  /** 회의 종료 화면: 모아 두던 마지막 발화까지 회의 결과에 반영해 받는다. 정리할 게 없으면 null */
+  finalizeOutcome(meetingId: string): Promise<MeetingOutcome | null>;
 }

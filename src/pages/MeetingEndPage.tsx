@@ -1,46 +1,52 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LavenderBackdrop } from '../components/LavenderBackdrop';
 import { MeetingHeader } from '../components/MeetingHeader';
-import { NotesReviewView } from '../components/NotesReviewView';
-import type {
-  DecisionItem,
-  LanguageCode,
-  MeetingNote,
-  RoomSession,
-  TranscriptEntry,
-} from '../types/meeting';
+import { MeetingSummaryView } from '../components/MeetingSummaryView';
+import { createPipelineClient } from '../features/pipeline/createPipelineClient';
+import type { LanguageCode, MeetingOutcome, RoomSession, TranscriptEntry } from '../types/meeting';
 
 interface MeetingEndPageProps {
   session: RoomSession;
-  notes: MeetingNote[];
   transcript: TranscriptEntry[];
-  decisions: DecisionItem[];
+  outcome: MeetingOutcome | null;
+  onOutcomeUpdated: (outcome: MeetingOutcome) => void;
   onChangeLanguage: (lang: LanguageCode) => void;
   onChangeRoom: (room: string) => void;
-  onAddNote: (content: string) => void;
-  onAddDecision: (title: string) => void;
-  onToggleDecisionStatus: (id: string) => void;
-  onLoadDemoNotes: () => void;
-  onLoadDemoDecisions: () => void;
   onExit: () => void;
 }
 
 export const MeetingEndPage: React.FC<MeetingEndPageProps> = ({
   session,
-  notes,
   transcript,
-  decisions,
+  outcome,
+  onOutcomeUpdated,
   onChangeLanguage,
   onChangeRoom,
-  onAddNote,
-  onAddDecision,
-  onToggleDecisionStatus,
-  onLoadDemoNotes,
-  onLoadDemoDecisions,
   onExit,
 }) => {
   const navigate = useNavigate();
+  const client = useMemo(() => createPipelineClient(), []);
+  const { roomCode } = session;
+
+  // 들어오자마자 서버에 마무리를 부탁한다. 회의 결과는 발화를 모아 정리해서, 그냥 두면 마지막 결정이 빠져 있다
+  const [finalizing, setFinalizing] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    client
+      .finalizeOutcome(roomCode)
+      .then((next) => {
+        if (!cancelled && next) onOutcomeUpdated(next);
+      })
+      // 서버에 못 닿으면 회의 중에 받아 둔 결과를 그대로 보인다
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setFinalizing(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [client, roomCode, onOutcomeUpdated]);
 
   const handleBackToMeeting = () => {
     navigate('/meeting');
@@ -71,17 +77,11 @@ export const MeetingEndPage: React.FC<MeetingEndPageProps> = ({
       />
 
       <main className="flex-1">
-        <NotesReviewView
-          notes={notes}
+        <MeetingSummaryView
+          outcome={outcome}
           transcript={transcript}
-          decisions={decisions}
           speechTargetLanguage={session.speechTargetLanguage}
-          userName={session.userName}
-          onAddNote={onAddNote}
-          onAddDecision={onAddDecision}
-          onToggleDecisionStatus={onToggleDecisionStatus}
-          onLoadDemoNotes={onLoadDemoNotes}
-          onLoadDemoDecisions={onLoadDemoDecisions}
+          finalizing={finalizing}
           onBackToMeeting={handleBackToMeeting}
         />
       </main>

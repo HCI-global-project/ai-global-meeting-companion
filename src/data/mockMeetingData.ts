@@ -1,7 +1,5 @@
 import type {
-  DecisionItem,
   LanguageOption,
-  MeetingNote,
   Participant,
   TranscriptEntry,
 } from '../types/meeting';
@@ -90,37 +88,3 @@ export const MOCK_SUMMARY_POINTS: Record<string, string[]> = {
     'Siguiente paso: Compartir el prototipo y organizar comentarios de usabilidad',
   ],
 };
-
-export const INITIAL_NOTES: MeetingNote[] = [
-  {
-    id: 'note-1',
-    author: 'Joe',
-    timestamp: '20:16',
-    content: 'Check if Friday afternoon works across all time zones for usability testing.',
-    translatedContent: {
-      ko: '사용성 테스트를 위해 금요일 오후가 모든 팀원의 시간대에 맞는지 확인하기.',
-      en: 'Check if Friday afternoon works across all time zones for usability testing.',
-      ja: 'ユーザビリティテストに向けて金曜午後の時間帯が全員に合うか確認する。',
-      my: 'အသုံးပြုရလွယ်ကူမှု စမ်းသပ်ရန် သောကြာနေ့ နေ့လယ်ပိုင်းသည် အားလုံး၏ အချိန်ဇုန်နှင့် ကိုက်ညီမှုရှိမရှိ စစ်ဆေးရန်။',
-      ru: 'Проверить, подходит ли пятница после обеда для всех часовых поясов.',
-      es: 'Verificar si el viernes por la tarde funciona en todas las zonas horarias.',
-    },
-  },
-];
-
-export const MOCK_DECISIONS: DecisionItem[] = [
-  {
-    id: 'dec-1',
-    title: 'Target Friday for milestone schedule review',
-    owner: 'Anna',
-    dueDate: 'This Friday, 14:00',
-    status: 'Pending Review',
-  },
-  {
-    id: 'dec-2',
-    title: 'Keep dual-line original + translated captions in Live Transcript',
-    owner: 'Joe',
-    dueDate: 'Confirmed in Lab-5',
-    status: 'Confirmed',
-  },
-];
