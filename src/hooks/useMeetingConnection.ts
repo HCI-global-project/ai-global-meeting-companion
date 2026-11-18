@@ -37,6 +37,8 @@ export function useMeetingConnection({ session, onEvent }: Options) {
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
     const open = () => {
+      // 거절 메시지를 받았는지. 프록시(Render 등)를 거치면 4403 종료 코드가 1006 으로 바뀌어 올 수 있다
+      let accessDenied = false;
       const connection = client.connect(
         roomCode,
         { id: participantId, name: userName, role: userRole, language: speechTargetLanguage },
@@ -47,13 +49,17 @@ export function useMeetingConnection({ session, onEvent }: Options) {
           },
           onEvent: (event) => {
             // 소켓 오류와 접속 거절은 바로 뒤따르는 onClose 에서 상태로 다룬다
-            if (event.type === 'error' && (event.code === 'WEBSOCKET_ERROR' || event.code === 'ACCESS_DENIED')) return;
+            if (event.type === 'error' && event.code === 'ACCESS_DENIED') {
+              accessDenied = true;
+              return;
+            }
+            if (event.type === 'error' && event.code === 'WEBSOCKET_ERROR') return;
             onEventRef.current(event);
           },
           onClose: (code) => {
             if (disposed) return;
             connectionRef.current = null;
-            if (code === ACCESS_DENIED_CLOSE) {
+            if (accessDenied || code === ACCESS_DENIED_CLOSE) {
               setStatus('denied');
               return;
             }

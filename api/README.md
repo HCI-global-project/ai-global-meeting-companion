@@ -79,6 +79,8 @@ eval/                       # CER, 발화 길이 분포
 | `OUTCOME_BATCH_SIZE` / `OUTCOME_MAX_WAIT_S` | 6 / 30 | 회의 결과 갱신 단위 |
 | `OPINION_IMPORTANCE_THRESHOLD` | 60 | 의견 추천을 띄울 중요도 |
 | `INTERIM_TRANSLATION_ENABLED` | false | 확정 전 글자도 번역해 다른 화면에 보여 준다(아래) |
+| `OPINION_COOLDOWN_S` | 30 | 사람당 추천 최소 간격 |
+| `OPINION_EXTRA_ENGLISH` | false | 추천 문장을 영어로도 만들기 |
 
 ### 임시 번역 실험 (`INTERIM_TRANSLATION_ENABLED`)
 
@@ -90,8 +92,6 @@ Soniox 는 이어 말하는 동안 글자를 4~5초 늦게 확정해서, 확정�
 - 녹음 기기 화면에는 보이지 않는다(자기 확정 전 글자를 이미 보여 준다). 다른 탭·기기에서 본다.
 - 이어 말하는 동안 번역 호출이 1초에 한 번꼴로 는다. 한도는 `RATE_INTERIM_TRANSLATIONS_PER_MIN`(기본 90). 넘으면 원문만 전한다.
 - 끄면(기본) 서버가 `segment.interim` 을 무시해서 지금과 같다. 바꾼 뒤에는 서버를 다시 시작한다.
-| `OPINION_COOLDOWN_S` | 30 | 사람당 추천 최소 간격 |
-| `OPINION_EXTRA_ENGLISH` | false | 추천 문장을 영어로도 만들기 |
 
 프론트 쪽(루트 `.env`):
 
@@ -141,11 +141,20 @@ python -m eval.llm.compare eval/llm/results/A.json eval/llm/results/B.json   # �
   - 발화가 넘어도 버리지 않습니다. 화면에는 보내고 번역·맥락 같은 AI 처리만 건너뜁니다.
   - 걸리면 서버 로그에 `사용량 제한` 이 남습니다. 정상 사용자가 걸리면 숫자를 올립니다.
 
+## 배포 (Vercel + Render)
+
+- **백엔드 → Render** Web Service: Docker, Root Directory `api`, 리전 Singapore, Health Check Path `/api/health`.
+  환경변수는 `.env` 와 같고, 배포에서는 `ACCESS_CODE`, `CORS_ORIGINS`(프론트 주소 포함, JSON 배열)를 꼭 넣는다.
+  main 에 머지하면 다시 배포된다. Free 는 15분 동안 요청이 없으면 잠들어 첫 접속이 30초~1분 걸린다.
+- **프론트 → Vercel**: 저장소 루트 `vercel.json`(Vite, 새로고침해도 index.html). 환경변수 `VITE_PIPELINE_URL`(Render 주소),
+  `VITE_SEGMENTATION`, `VITE_SONIOX_MODEL`, `VITE_TOKEN_LOG=false`. 로컬 `.env*` 는 `.vercelignore` 로 올리지 않는다.
+- Render 프록시를 거치면 WebSocket 종료 코드 4403 이 1006 으로 올 수 있어서, 화면은 `ACCESS_DENIED` 메시지로도 거절을 알아챈다.
+
 ## 지금 단순화한 것
 
 - 세션이 메모리에 있어 인스턴스는 한 대만 띄웁니다(uvicorn 워커 1).
 - 로그인이 없습니다. 공용 접속 코드를 아는 사람은 모든 방에 들어올 수 있습니다.
 - 화자를 지정하기 전의 발화에는 말한 본인에게도 추천이 갈 수 있습니다. 지정하는 순간부터는 빠집니다.
 - 화자 분리가 틀리면(목소리가 비슷하거나 마이크에서 멀 때) 한 사람이 두 번호로 나뉘거나 두 사람이 한 번호로 묶입니다. 지정은 언제든 바꿀 수 있습니다.
-- 말하는 중인 문장(interim)은 녹음 기기 화면에만 보입니다. 다른 화면은 확정된 발화부터 받습니다.
+- 말하는 중인 문장(interim)은 녹음 기기 화면에만 보입니다. 다른 화면은 확정된 발화부터 받습니다(임시 번역 실험을 켜면 다른 화면에도 보입니다).
 - 회의 중 내 언어를 바꾸면 서버에 다시 접속합니다. 녹음 기기에서 바꾸면 녹음이 멈춥니다.
