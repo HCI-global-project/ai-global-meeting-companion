@@ -227,6 +227,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
         'not-supported':
           'Audio recording is not supported in this browser or insecure context.',
         unknown: 'Unable to access the microphone.',
+        lost:
+          'The microphone stopped sending sound. Check whether another app is using it or your earphones changed, then start recording again.',
       },
       waitingPermission: 'Waiting for browser microphone permission...',
       recordingLocallyNotice: (speakerName) =>
@@ -417,6 +419,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
         'not-supported':
           '현재 브라우저 또는 보안 환경에서는 오디오 녹음이 지원되지 않습니다.',
         unknown: '마이크에 접근할 수 없습니다.',
+        lost:
+          '마이크 소리가 끊겼어요. 다른 앱이 마이크를 쓰고 있는지, 이어폰 연결이 바뀌었는지 확인한 뒤 다시 녹음해 주세요.',
       },
       waitingPermission: '브라우저의 마이크 권한 승인을 기다리는 중...',
       recordingLocallyNotice: (speakerName) =>
@@ -607,6 +611,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
         'not-supported':
           'このブラウザまたは環境では音声録音がサポートされていません。',
         unknown: 'マイクにアクセスできませんでした。',
+        lost:
+          'マイクの音が途切れました。他のアプリがマイクを使っていないか、イヤホンの接続が変わっていないか確認してから、もう一度録音してください。',
       },
       waitingPermission: 'ブラウザのマイク許可を待っています...',
       recordingLocallyNotice: (speakerName) =>
@@ -797,6 +803,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
         'not-supported':
           'ဤဘရောက်ဇာတွင် အသံဖမ်းယူမှုကို မပံ့ပိုးပါ။',
         unknown: 'မိုက်ခရိုဖုန်းသို့ ဝင်ရောက်၍ မရပါ။',
+        lost:
+          'မိုက်ခရိုဖုန်းမှ အသံ ပြတ်သွားပါသည်။ အခြားအက်ပ်က မိုက်ကို သုံးနေသလား၊ နားကြပ်ချိတ်ဆက်မှု ပြောင်းသွားသလား စစ်ဆေးပြီး ပြန်လည်အသံဖမ်းပါ။',
       },
       waitingPermission: 'ဘရောက်ဇာ မိုက်ခရိုဖုန်း ခွင့်ပြုချက်ကို စောင့်ဆိုင်းနေသည်...',
       recordingLocallyNotice: (speakerName) =>
@@ -987,6 +995,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
         'not-supported':
           'Запись аудио не поддерживается в этом браузере или контексте.',
         unknown: 'Не удалось получить доступ к микрофону.',
+        lost:
+          'Микрофон перестал передавать звук. Проверьте, не занят ли он другим приложением и не сменились ли наушники, затем начните запись снова.',
       },
       waitingPermission: 'Ожидание разрешения на использование микрофона...',
       recordingLocallyNotice: (speakerName) =>
@@ -1177,6 +1187,8 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
         'not-supported':
           'La grabación de audio no es compatible con este navegador o contexto.',
         unknown: 'No se pudo acceder al micrófono.',
+        lost:
+          'El micrófono dejó de enviar sonido. Comprueba si otra app lo está usando o si cambiaron los auriculares, y vuelve a grabar.',
       },
       waitingPermission: 'Esperando el permiso del micrófono en el navegador...',
       recordingLocallyNotice: (speakerName) =>

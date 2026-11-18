@@ -19,13 +19,22 @@ export interface SonioxConfigInput {
   model?: string;
 }
 
+// Soniox 가 알아듣지 못하는 언어. 힌트에 넣으면 400 으로 연결을 거절한다
+// (2026-11 확인: 실시간 모델 전부 60개 언어 중 미얀마어 없음, GET /v1/models)
+// 이 언어 참여자도 화면 번역(Gemini)은 받는다. 그 언어로 말한 것만 전사되지 않는다
+const SONIOX_UNSUPPORTED = new Set(['my']);
+
+export function sonioxLanguageHints(languages: string[]): string[] {
+  return [...new Set(languages)].filter((code) => !SONIOX_UNSUPPORTED.has(code));
+}
+
 export function buildSonioxConfig({ apiKey, languageHints, context, model }: SonioxConfigInput) {
   const sonioxContext = context ? toSonioxContext(context) : undefined;
   return {
     api_key: apiKey,
     model: model ?? DEFAULT_SONIOX_MODEL,
     audio_format: 'auto',
-    language_hints: [...new Set(languageHints)],
+    language_hints: sonioxLanguageHints(languageHints),
     enable_speaker_diarization: true,
     enable_language_identification: true,
     enable_endpoint_detection: true,

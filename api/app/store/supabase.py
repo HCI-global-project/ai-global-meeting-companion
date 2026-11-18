@@ -68,7 +68,13 @@ class SupabaseStore:
         rows = await self._request(
             "GET",
             "transcript_segments",
-            params={"meeting_id": f"eq.{meeting_id}", "order": "sequence_index.desc", "limit": limit},
+            # 번역도 같이 읽는다. 서버가 재시작된 뒤 다시 붙은 화면이 번역 없는 줄을 받지 않게 한다
+            params={
+                "meeting_id": f"eq.{meeting_id}",
+                "order": "sequence_index.desc",
+                "limit": limit,
+                "select": "*,segment_translations(language,content)",
+            },
         )
         return [_segment(r) for r in reversed(rows)]
 
@@ -248,4 +254,5 @@ def _segment(row: dict) -> Segment:
         is_anonymous=row.get("is_anonymous") or False,
         corrected_text=row.get("corrected_content"),
         created_at=row["created_at"],
+        translations={t["language"]: t["content"] for t in row.get("segment_translations") or []},
     )

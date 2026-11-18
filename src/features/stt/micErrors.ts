@@ -4,6 +4,8 @@ export type MicErrorCode =
   | 'not-found'
   | 'not-readable'
   | 'not-supported'
+  // 녹음 중에 마이크가 끊기거나 오래 음소거됨(다른 앱이 가져감, 이어폰 연결 변경 등)
+  | 'lost'
   | 'unknown';
 
 export function micErrorCode(err: unknown): MicErrorCode | null {
