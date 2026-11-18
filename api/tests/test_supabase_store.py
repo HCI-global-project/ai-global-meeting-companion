@@ -48,6 +48,33 @@ async def test_append_segment_calls_rpc_with_service_key():
     assert segment.id == "7" and segment.source == "chat"
 
 
+async def test_recent_segments_come_back_with_their_translations():
+    seen = {}
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        seen["select"] = req.url.params["select"]
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "id": 9,
+                    "meeting_id": "m",
+                    "sequence_index": 1,
+                    "content": "네.",
+                    "created_at": "2026-11-18T04:24:45+00:00",
+                    "segment_translations": [{"language": "en", "content": "Yes."}],
+                },
+                {"id": 8, "meeting_id": "m", "sequence_index": 0, "content": "23만 원.", "created_at": "2026-11-18T04:24:45+00:00"},
+            ],
+        )
+
+    store, http = store_with(handler)
+    async with http:
+        segments = await store.recent_segments("m", 60)
+    assert "segment_translations(language,content)" in seen["select"]
+    assert [(s.text, s.translations) for s in segments] == [("23만 원.", {}), ("네.", {"en": "Yes."})]
+
+
 async def test_suggestion_upsert_uses_participant_conflict_key():
     seen = {}
 

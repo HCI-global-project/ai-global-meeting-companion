@@ -56,8 +56,12 @@ export default function App() {
     setTranscript((prev) => {
       const existingIdx = prev.findIndex((item) => item.id === entry.id);
       if (existingIdx !== -1) {
+        // 다시 붙을 때 받은 줄에 번역이 빠져 있어도, 이미 받아 둔 번역은 지우지 않는다
         const next = [...prev];
-        next[existingIdx] = entry;
+        next[existingIdx] = {
+          ...entry,
+          translations: { ...prev[existingIdx].translations, ...entry.translations },
+        };
         return next;
       }
       return [...prev, entry];
