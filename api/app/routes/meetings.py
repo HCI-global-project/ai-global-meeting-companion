@@ -1,5 +1,7 @@
 """회의 HTTP 엔드포인트: 채팅·의견 보내기, 수동 추천 요청, 노트, 나중에 들어온 참여자용 현재 상태."""
 
+import asyncio
+import logging
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -11,6 +13,11 @@ from ..services.languages import translation_targets
 from .access import client_ip, enforce, require_access
 from .deps import container, participant_or_404
 from .schemas import MessageRequest, NoteRequest, OpinionRequest
+
+log = logging.getLogger(__name__)
+
+# 회의 종료 화면이 '정리 중'으로 기다리는 최대 시간
+FINALIZE_TIMEOUT_S = 20
 
 # 모든 회의 요청은 접속 코드를 확인한다
 router = APIRouter(prefix="/api/meetings/{meeting_id}", dependencies=[Depends(require_access)])
@@ -26,6 +33,21 @@ async def state(meeting_id: str, c: Container = Depends(container)) -> dict:
         "context": session.context.dump() if session.context else None,
         "outcome": session.outcome.dump() if session.outcome else None,
     }
+
+
+@router.post("/outcome/finalize")
+async def finalize_outcome(meeting_id: str, c: Container = Depends(container)) -> dict:
+    """회의 종료 화면: 모아 두던 마지막 발화까지 회의 결과에 바로 반영하고 돌려준다.
+
+    회의 결과는 발화를 몇 개씩(최대 30초) 모아 정리해서, 그냥 두면 마지막 결정이 늦게 들어온다.
+    오래 걸리면 지금까지의 결과를 돌려준다. 처리 중인 작업은 끊지 않고 마저 끝낸다(shield).
+    """
+    session = await c.registry.get(meeting_id)
+    try:
+        await asyncio.wait_for(asyncio.shield(session.flush()), timeout=FINALIZE_TIMEOUT_S)
+    except TimeoutError:
+        log.warning("회의 결과 마무리가 %s초를 넘김 (%s)", FINALIZE_TIMEOUT_S, meeting_id)
+    return {"outcome": session.outcome.dump() if session.outcome else None}
 
 
 @router.post("/messages", status_code=201)

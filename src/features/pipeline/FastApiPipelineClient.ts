@@ -1,3 +1,4 @@
+import type { MeetingOutcome } from '../../types/meeting';
 import type { IncomingTranscriptEvent } from '../../types/streaming';
 import type {
   ConnectHandlers,
@@ -140,6 +141,14 @@ export class FastApiPipelineClient implements PipelineClient {
 
   fetchState(meetingId: string): Promise<MeetingState> {
     return this.request<MeetingState>('GET', `${this.meeting(meetingId)}/state`);
+  }
+
+  async finalizeOutcome(meetingId: string): Promise<MeetingOutcome | null> {
+    const body = await this.request<{ outcome: MeetingOutcome | null }>(
+      'POST',
+      `${this.meeting(meetingId)}/outcome/finalize`
+    );
+    return body.outcome;
   }
 
   private meeting(meetingId: string): string {
