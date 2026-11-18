@@ -6,6 +6,8 @@ export interface SttToken {
   endMs?: number;
   speaker?: string;
   language?: string;
+  // Soniox 가 매긴 확신도(0~1). 없는 말을 지어낸 토큰은 낮게 나오는지 TokenLog 로 보려고 남긴다
+  confidence?: number;
 }
 
 /** 분절기가 확정한 발화 하나 */

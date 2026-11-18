@@ -16,6 +16,7 @@ type SonioxRawToken = {
   end_ms?: number;
   speaker?: string;
   language?: string;
+  confidence?: number;
 };
 type SonioxResponse = { tokens?: SonioxRawToken[]; error_code?: number; error_message?: string };
 
@@ -175,5 +176,6 @@ function toToken(raw: SonioxRawToken): SttToken {
     endMs: raw.end_ms,
     speaker: raw.speaker,
     language: raw.language,
+    confidence: raw.confidence,
   };
 }
